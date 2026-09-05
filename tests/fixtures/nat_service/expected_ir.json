@@ -1,0 +1,177 @@
+{
+  "product": "nat_service",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "nat_service.v1.NatService.CreateNatService",
+      "id": "CreateNatService",
+      "product": "nat_service",
+      "version": "v1",
+      "resource": "nat_service",
+      "http_method": "POST",
+      "path": "/CreateNatService",
+      "description": "Creates a network address translation (NAT) service in the specified public Subnet of a Net.<br />\nA NAT service enables virtual machines (VMs) placed in the private Subnet of this Net to connect to the Internet, without being accessible from the Internet.<br />\nWhen creating a NAT service, you specify the allocation ID of the public IP you want to use as public IP for the NAT service. Once the NAT service is created, you need to create a route in the route table of the private Subnet, with 0.0.0.0/0 as destination and the ID of the NAT service as target. For more information, see [LinkPublicIP](#linkpublicip) and [CreateRoute](#createroute).<br />\nThis action also enables you to create multiple NAT services in the same Net (one per public Subnet).<br /><br />",
+      "tags": [
+        "NatService"
+      ],
+      "parameters": [
+        {
+          "name": "ClientToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "A unique identifier which enables you to manage the idempotency.<br />With OSC CLI, if you want to specify a number for this value, you must wrap it in two pairs of quotes to make sure the value is parsed as a string: `--ClientToken '&quot;12345678&quot;'`."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "PublicIpId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The allocation ID of the public IP to associate with the NAT service.<br />\nIf the public IP is already associated with another resource, you must first disassociate it."
+        },
+        {
+          "name": "SubnetId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the Subnet in which you want to create the NAT service."
+        }
+      ],
+      "response": {
+        "schema": "CreateNatServiceResponse",
+        "payload_field": "NatService",
+        "payload_schema": "NatService",
+        "payload_fields": [
+          "ClientToken",
+          "NatServiceId",
+          "NetId",
+          "PublicIps",
+          "State",
+          "SubnetId",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "nat_service.v1.NatService.DeleteNatService",
+      "id": "DeleteNatService",
+      "product": "nat_service",
+      "version": "v1",
+      "resource": "nat_service",
+      "http_method": "POST",
+      "path": "/DeleteNatService",
+      "description": "Deletes a specified network address translation (NAT) service.<br />\nThis action disassociates the public IP from the NAT service, but does not release this public IP from your OUTSCALE account. However, it does not delete any NAT service routes in your route tables.",
+      "tags": [
+        "NatService"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NatServiceId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the NAT service you want to delete."
+        }
+      ],
+      "response": {
+        "schema": "DeleteNatServiceResponse"
+      }
+    },
+    {
+      "key": "nat_service.v1.NatService.ReadNatServices",
+      "id": "ReadNatServices",
+      "product": "nat_service",
+      "version": "v1",
+      "resource": "nat_service",
+      "http_method": "POST",
+      "path": "/ReadNatServices",
+      "description": "Lists one or more network address translation (NAT) services.",
+      "tags": [
+        "NatService"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersNatService",
+          "properties": [
+            "ClientTokens",
+            "NatServiceIds",
+            "NetIds",
+            "States",
+            "SubnetIds",
+            "TagKeys",
+            "TagValues",
+            "Tags"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadNatServicesResponse",
+        "payload_field": "NatServices",
+        "payload_schema": "NatService",
+        "payload_fields": [
+          "ClientToken",
+          "NatServiceId",
+          "NetId",
+          "PublicIps",
+          "State",
+          "SubnetId",
+          "Tags"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    }
+  ]
+}

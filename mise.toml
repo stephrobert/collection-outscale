@@ -1,0 +1,280 @@
+# mise : outillage épinglé et lanceur de tâches.
+#
+#   mise install        installe l'outillage et crée le venv
+#   mise run setup      installe les dépendances de développement
+#   mise tasks          liste ce qui est lançable
+#   mise run check      ce qu'une pull request doit passer
+#
+# Une seule définition par tâche, et la CI appelle ces tâches plutôt que de
+# recopier leurs commandes : une CI qui diverge du lanceur ne mesure pas ce
+# qu'on croit.
+
+[tools]
+python = "3.12"
+# Le style et le typage sont épinglés ici plutôt que laissés à la version
+# installée sur la machine : un lint qui change d'avis d'un poste à l'autre
+# n'est pas un contrôle, c'est une loterie.
+ruff = "0.16.5"
+# uv ne sert qu'à recalculer le verrou des dépendances. Épinglé pour la même
+# raison : l'outil qui décide quelles versions entrent ne change pas d'avis.
+uv = "0.11.26"
+# Terraform bâtit la plateforme d'exemple, avec le fournisseur officiel
+# d'Outscale : c'est le même outil qu'un utilisateur réel, et feint le sert
+# (`capabilityMatrix` : Outscale / Terraform, supported, provenInCI). Épinglé
+# comme le reste : la stack doit produire le même plan sur un poste et dans
+# la CI.
+terraform = "1.15.4"
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+
+# ---- Environnement ---------------------------------------------------------
+
+[tasks.setup]
+description = "Installer les dépendances de développement depuis le verrou"
+# `--require-hashes` : pip refuse une archive dont l'empreinte ne correspond
+# pas, et toute dépendance absente du verrou. `--no-build-isolation` : sans
+# lui, pip télécharge le backend de construction hors du verrou, et rouvre la
+# porte que le verrou ferme. `uv pip` et non `python -m pip` : un venv créé par
+# uv ne contient pas pip, mesuré en CI par collection-scaleway.
+run = """
+uv pip install --require-hashes --requirement requirements-dev.lock
+uv pip install --editable . --no-deps --no-build-isolation
+"""
+
+[tasks.lock]
+description = "Recalculer le verrou des dépendances après un changement de pyproject.toml"
+# Le verrou se relit comme un diff : c'est là qu'une dépendance qui apparaît se
+# voit. Le régénérer sans lire son diff annule le mécanisme, comme un golden.
+run = "uv pip compile pyproject.toml --extra dev --generate-hashes --quiet -o requirements-dev.lock"
+
+[tasks."setup:ansible"]
+description = "Épingler une version d'ansible-core (ANSIBLE_CORE='>=2.17,<2.18')"
+# La matrice de CI s'en sert pour éprouver chaque version que `meta/runtime.yml`
+# déclare, et `scripts/ansible_matrix.py` dérive la matrice de ce fichier :
+# une version déclarée et jamais testée est une promesse sans preuve.
+#
+# C'est la seule installation du dépôt qui sorte du verrou, et c'est assumé :
+# la plage de versions **est** le sujet du test.
+#
+# Guillemets et non apostrophes : dans `sh`, `${VAR:-défaut}` ne s'expanse pas
+# entre apostrophes, et la chaîne partait littérale vers le résolveur.
+run = 'uv pip install "ansible-core${ANSIBLE_CORE:->=2.17}"'
+
+[tasks.security]
+description = "Juger les workflows : actionlint, zizmor, poutine"
+# Les mêmes portes que la CI, lançables avant de pousser. Elles échouent quand
+# l'outil est absent au lieu de se sauter : un contrôle qui se saute tout seul
+# finit par ne plus jamais tourner.
+run = """
+actionlint -color
+zizmor --no-progress --persona regular --min-severity low .github/workflows/
+poutine analyze_local . --fail-on-violation --quiet
+"""
+
+[tasks."security:trust"]
+description = "Juger la politique de confiance du pipeline : plumber"
+# Séparé des trois autres : plumber déduit le fournisseur du remote git et
+# refuse une copie de travail qui n'en a pas.
+run = "plumber analyze --min-score B"
+
+# ---- Contrôles rapides -----------------------------------------------------
+
+[tasks.test]
+description = "Lancer les tests du générateur et de la collection"
+run = "python -m pytest tests/unit"
+
+[tasks.lint]
+description = "Vérifier le style"
+run = """
+ruff check generator scripts tests examples
+ruff format --check generator scripts tests examples
+"""
+
+[tasks.typecheck]
+description = "Vérifier les types"
+run = "python -m mypy"
+
+[tasks."lint:changelog"]
+description = "Juger les fragments de changelog"
+# Un fragment mal formé ne se voit qu'au moment de publier, c'est-à-dire au
+# pire moment. Le linter le dit tout de suite.
+run = "python scripts/changelog.py lint"
+
+[tasks.falsify]
+description = "Prouver que les gardes mordent, en les neutralisant hors dépôt"
+run = "python scripts/falsify.py"
+
+[tasks."matrix:check"]
+description = "Échouer si la matrice ansible-core de la CI n'est pas celle que meta/runtime.yml déclare"
+# La matrice ne se recopie pas : elle se dérive de `requires_ansible` et de la
+# version d'ansible-core que le verrou porte, et `ci.yml` comme le ruleset
+# doivent la porter telle quelle. Chez exoscale, trois endroits la tenaient à
+# la main sans mécanisme de cohérence.
+run = "python scripts/ansible_matrix.py --check"
+
+# ---- Générateur ------------------------------------------------------------
+
+[tasks.products]
+description = "Recenser le document entier, tag par tag, avec les UNKNOWN de chacun"
+run = "python -m generator products --classify"
+
+[tasks.report]
+description = "Recensement, puis rapport strict de chaque produit indexé"
+# Chaque produit de l'index, pas un seul : la liste vient de `products.txt`,
+# elle n'est pas recopiée.
+run = "python scripts/report_all.py"
+
+[tasks.generate]
+description = "Écrire les modules de chaque produit indexé dans plugins/modules"
+# Tous les produits de l'index, dans une seule collection. Une tâche par
+# produit laisserait la porte ouverte à n'en lancer qu'une, et
+# `check:generated` mesurerait alors un arbre à moitié régénéré.
+run = "python scripts/generate_all.py"
+
+[tasks."sync:api"]
+description = "Retélécharger le contrat depuis outscale/osc-api, au tag épinglé"
+run = "python scripts/sync_specs.py"
+
+[tasks.drift]
+description = "Dire ce que le contrat téléchargé change pour le générateur"
+# À lancer après `sync:api --tag <dernier>`. Sort en 3 quand quelque chose a
+# bougé, code distinct des trois que la CI connaît : une dérive n'est pas une
+# erreur du dépôt, c'est une nouvelle du monde extérieur.
+run = "python scripts/drift_report.py"
+
+[tasks."golden:update"]
+description = "Régénérer les golden fixtures, après lecture du diff"
+run = "python scripts/update_golden.py"
+
+# ---- Dérive ----------------------------------------------------------------
+
+[tasks."check:generated"]
+description = "Échouer si un artefact versionné n'est plus à jour"
+# `git diff --exit-code` seul ne verrait pas un module tout neuf, produit et
+# jamais commité : le script regarde aussi les fichiers non suivis.
+depends = ["golden:update", "generate"]
+run = "python scripts/check_generated.py tests/fixtures ansible_collections"
+
+[tasks."check:worktree"]
+description = "Échouer si un build a laissé un fichier non ignoré"
+run = "python scripts/check_generated.py ."
+
+# ---- Collection ------------------------------------------------------------
+
+[tasks.sanity]
+description = "Lancer ansible-test sanity sur la collection"
+# Le script refuse un vert obtenu sur zéro fichier examiné : `ansible-test`
+# demande la liste des fichiers à git, et sort en 0 quand elle est vide.
+depends = ["generate"]
+run = "python scripts/sanity.py"
+
+[tasks.docs]
+description = "Juger la documentation, puis produire les pages RST"
+# `antsibull-docs` voit ce qu'`ansible-test sanity` laisse passer : sur une
+# référence croisée invalide, sanity sort en 0 et lui en 3.
+depends = ["generate"]
+run = "python scripts/docs.py"
+
+[tasks."lint:docs"]
+description = "Juger la documentation sans produire de pages"
+depends = ["generate"]
+run = "python scripts/docs.py --lint"
+
+[tasks.package]
+description = "Construire l'archive installable, et la vérifier"
+# Une archive qui existe ne prouve rien : le script contrôle son contenu,
+# l'installe dans un répertoire jetable, puis demande sa documentation à
+# `ansible-doc`. Tout ce que `plugins/` porte sur le disque doit y être.
+depends = ["generate"]
+run = "python scripts/package.py"
+
+[tasks."release:check"]
+description = "Ce qui doit être vrai avant de publier sur Galaxy"
+# **Hors de `check`**, et c'est délibéré : cette garde exige un tag qui désigne
+# HEAD et un arbre propre, donc elle refuserait toute pull request. C'est le
+# workflow de release qui l'appelle, et le jeton comme le tag appartiennent au
+# mainteneur.
+run = "python scripts/release.py --check"
+
+[tasks.readme]
+description = "Réécrire les blocs dérivés des deux README depuis ce qui est mesuré"
+# Un nombre recopié à la main vieillit en silence, et se lit exactement comme
+# une mesure. Les deux README sortent du même script, entre marqueurs, et
+# aucun nom de module, de plugin ni de produit n'y est écrit en dur.
+depends = ["report", "generate"]
+run = "python scripts/readme_counters.py --write"
+
+[tasks."readme:check"]
+description = "Échouer si un bloc dérivé d'un README a vieilli"
+depends = ["report", "generate"]
+run = "python scripts/readme_counters.py --check"
+
+# ---- La plateforme d'exemple ----------------------------------------------
+
+[tasks.example]
+description = "Bâtir la plateforme d'exemple contre l'émulateur, l'exploiter, la détruire"
+# feint émule Outscale, sur un port qui n'est ni le sien par défaut (4599), ni
+# celui de collection-scaleway (4877), ni celui de collection-exoscale (4993) :
+# deux exercices qui se partagent un émulateur se détruisent l'un l'autre. La
+# plateforme se bâtit par Terraform et le fournisseur officiel, qui honore
+# OSC_ENDPOINT_API de bout en bout depuis sa génération 1.7.
+depends = ["generate"]
+run = "python scripts/example.py emulateur"
+
+[tasks."example:reel"]
+description = "Refusée : la cible réelle ne se lance pas sans l'accord du mainteneur"
+# Aucun appel au compte Outscale réel depuis ce dépôt sans accord explicite,
+# demandé à chaque fois : ça coûte de l'argent sur son compte, et une ressource
+# qui survit à un run raté est un résidu payant. Le lanceur refuse cette cible
+# sans `--compte-reel-accorde`, que seul le mainteneur passe.
+depends = ["generate"]
+run = "python scripts/example.py reel"
+
+[tasks."example:residu"]
+description = "Vérifier qu'aucune ressource de l'exemple ne survit sur la cible"
+run = "python scripts/residue.py verify"
+
+[tasks."coverage:check"]
+description = "Refuser un module livré qu'aucun playbook d'exemple n'appelle"
+# Dans `check` : hors ligne, déterministe, il lit les clés de tâches des
+# playbooks et le répertoire des modules, jamais un artefact de run. Un module
+# écrit que rien n'exerce est un module dont on ignore s'il marche, et ce
+# dépôt ne publie pas ce que l'exemple n'exerce pas.
+depends = ["generate"]
+run = "python scripts/example_coverage.py --check"
+
+[tasks."coverage:example"]
+description = "Les étages de couverture, et ce que le dernier run a joué"
+run = "python scripts/example_coverage.py"
+
+# ---- Le tout ---------------------------------------------------------------
+
+[tasks.check]
+description = "Ce qu'une pull request doit passer"
+# Tout ce que le job Générateur et le job Archive de la CI portent, et rien de
+# ce qui demande une autre version d'ansible-core ou le réseau. `package` en
+# fait partie parce que c'est là qu'un contrôle sur l'archive a voyagé jusqu'en
+# CI chez collection-scaleway, faute d'être dans `check`.
+depends = [
+  "lint",
+  "typecheck",
+  "test",
+  "report",
+  "check:generated",
+  "lint:changelog",
+  "falsify",
+  "matrix:check",
+  "readme:check",
+  "coverage:check",
+  "package",
+]
+
+[tasks.clean]
+description = "Supprimer les artefacts d'exécution"
+# Le motif est quoté et passé à `find` : un glob non quoté sans correspondance
+# est une erreur fatale sous zsh, pas un argument transmis.
+run = """
+rm -rf build .pytest_cache .ruff_cache .mypy_cache
+find . -maxdepth 1 -name '*.egg-info' -exec rm -rf {} +
+"""

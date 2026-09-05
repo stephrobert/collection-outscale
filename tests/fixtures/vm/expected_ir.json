@@ -1,0 +1,1087 @@
+{
+  "product": "vm",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "enums": [
+    {
+      "name": "BootMode",
+      "values": [
+        "uefi",
+        "legacy"
+      ],
+      "description": "Information about the boot mode of the VM."
+    }
+  ],
+  "operations": [
+    {
+      "key": "vm.v1.Vm.CreateVms",
+      "id": "CreateVms",
+      "product": "vm",
+      "version": "v1",
+      "resource": "vm",
+      "http_method": "POST",
+      "path": "/CreateVms",
+      "description": "Creates virtual machines (VMs), and then launches them.<br />\nThis action enables you to create a specified number of VMs using an OUTSCALE machine image (OMI) that you are allowed to use, and then to automatically launch them.<br />\nThe VMs remain in the `pending` state until they are created and ready to be used. Once automatically launched, they are in the `running` state.<br />\nTo check the state of your VMs, call the [ReadVms](#readvms) method.<br />\nThe metadata server enables you to get the public key provided when the VM is launched. Official OMIs contain a script to get this public key and put it inside the VM to provide secure access without password.<br />\nIf not specified, the security group used by the service is the default one.<br />",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "ActionsOnNextBoot",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "The action to perform on the next boot of the VM.",
+          "ref": "ActionsOnNextBoot",
+          "properties": [
+            "SecureBoot"
+          ]
+        },
+        {
+          "name": "BlockDeviceMappings",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more block device mappings.",
+          "item_type": "object",
+          "ref": "BlockDeviceMappingVmCreation"
+        },
+        {
+          "name": "BootMode",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "The boot mode of the VM.",
+          "enum_name": "BootMode",
+          "enum_values": [
+            "uefi",
+            "legacy"
+          ],
+          "ref": "BootMode"
+        },
+        {
+          "name": "BootOnCreation",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, the VM is started on creation. If false, the VM is stopped on creation.",
+          "default": true
+        },
+        {
+          "name": "BsuOptimized",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "This parameter is not available. It is present in our API for the sake of historical compatibility with AWS."
+        },
+        {
+          "name": "ClientToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "A unique identifier which enables you to manage the idempotency.<br />With OSC CLI, if you want to specify a number for this value, you must wrap it in two pairs of quotes to make sure the value is parsed as a string: `--ClientToken '&quot;12345678&quot;'`."
+        },
+        {
+          "name": "DeletionProtection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, you cannot delete the VM unless you change this parameter back to false."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "ImageId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the OMI used to create the VM. You can find the list of OMIs by calling the [ReadImages](#readimages) method."
+        },
+        {
+          "name": "KeypairName",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The name of the keypair."
+        },
+        {
+          "name": "MaxVmsCount",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of VMs you want to create. If all the VMs cannot be created, the largest possible number of VMs above MinVmsCount is created."
+        },
+        {
+          "name": "MinVmsCount",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The minimum number of VMs you want to create. If this number of VMs cannot be created, no VMs are created."
+        },
+        {
+          "name": "NestedVirtualization",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "(dedicated tenancy only) If true, nested virtualization is enabled. If false, it is disabled.",
+          "default": false
+        },
+        {
+          "name": "Nics",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more NICs. If you specify this parameter, you must define one NIC as the primary network interface of the VM with `0` as its device number.",
+          "item_type": "object",
+          "ref": "NicForVmCreation"
+        },
+        {
+          "name": "Performance",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "The performance of the VM. This parameter is ignored if you specify a performance flag directly in the `VmType` parameter.",
+          "enum_values": [
+            "medium",
+            "high",
+            "highest"
+          ],
+          "default": "high"
+        },
+        {
+          "name": "Placement",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Information about the placement of the VM.",
+          "ref": "Placement",
+          "properties": [
+            "SubregionName",
+            "Tenancy"
+          ]
+        },
+        {
+          "name": "PrivateIps",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more private IPs of the VM. These IPs must be within the IP range of the Subnet that you specify with the `SubnetId` parameter. However, they cannot be one of the first four IPs (ending in `.0`, `.1`, `.2`, `.3`) or the last IP (ending in `.255`) of the Subnet, as these are reserved by 3DS OUTSCALE. For more information, see [About Nets](https://docs.outscale.com/en/userguide/About-Nets.html).",
+          "item_type": "string"
+        },
+        {
+          "name": "SecurityGroupIds",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more IDs of security group for the VMs.",
+          "item_type": "string"
+        },
+        {
+          "name": "SecurityGroups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more names of security groups for the VMs.",
+          "item_type": "string"
+        },
+        {
+          "name": "ShutdownBehaviorConfiguration",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Information about the actions performed by the orchestrator when the VM shuts down.",
+          "ref": "ShutdownBehaviorConfiguration",
+          "properties": [
+            "GuestAction",
+            "HostAction"
+          ]
+        },
+        {
+          "name": "SubnetId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The ID of the Subnet in which you want to create the VM."
+        },
+        {
+          "name": "TpmEnabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, a virtual Trusted Platform Module (vTPM) is enabled on the VM. If false, it is not.<br />The default behavior for this parameter varies depending on the source OMI of the VM.<br />If the `TpmMandatory` parameter of the source OMI is true, a vTPM has to be attached to the VM and it will be created by default. Setting `TpmEnabled` to false will cause the creation request to fail.<br />If the `TpmMandatory` parameter of the source OMI is false, only setting `TpmEnabled` to true will create and attach a vTPM to the VM."
+        },
+        {
+          "name": "UserData",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Data or script used to add a specific configuration to the VM. It must be Base64-encoded and is limited to 500 kibibytes (KiB). For more information about user data, see [Configuring a VM with User Data and OUTSCALE Tags](https://docs.outscale.com/en/userguide/Configuring-a-VM-with-User-Data-and-OUTSCALE-Tags.html)."
+        },
+        {
+          "name": "VmInitiatedShutdownBehavior",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The VM behavior when you stop it. If set to `stop`, the VM stops. If set to `restart`, the VM stops then automatically restarts. If set to `terminate`, the VM stops and is terminated.",
+          "deprecated": true
+        },
+        {
+          "name": "VmType",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The type of VM. You can specify a TINA type (in the `tinavW.cXrYpZ` or `tinavW.cXrY` format), or an AWS type (for example, `t2.small`, which is the default value).<br />\nIf you specify an AWS type, it is converted in the background to its corresponding TINA type, but the AWS type is still returned. If the specified or converted TINA type includes a performance flag, this performance flag is applied regardless of the value you may have provided in the `Performance` parameter. For more information, see [VM Types](https://docs.outscale.com/en/userguide/VM-Types.html)."
+        }
+      ],
+      "response": {
+        "schema": "CreateVmsResponse",
+        "payload_field": "Vms",
+        "payload_schema": "Vm",
+        "payload_fields": [
+          "ActionsOnNextBoot",
+          "Architecture",
+          "BlockDeviceMappings",
+          "BootMode",
+          "BsuOptimized",
+          "ClientToken",
+          "CreationDate",
+          "DeletionProtection",
+          "Hypervisor",
+          "ImageId",
+          "IsSourceDestChecked",
+          "KeypairName",
+          "LaunchNumber",
+          "NestedVirtualization",
+          "NetId",
+          "Nics",
+          "OsFamily",
+          "Performance",
+          "Placement",
+          "PrivateDnsName",
+          "PrivateIp",
+          "ProductCodes",
+          "PublicDnsName",
+          "PublicIp",
+          "ReservationId",
+          "RootDeviceName",
+          "RootDeviceType",
+          "SecurityGroups",
+          "ShutdownBehaviorConfiguration",
+          "State",
+          "StateReason",
+          "SubnetId",
+          "Tags",
+          "TpmEnabled",
+          "UserData",
+          "VmId",
+          "VmInitiatedShutdownBehavior",
+          "VmType"
+        ],
+        "is_list": true
+      }
+    },
+    {
+      "key": "vm.v1.Vm.DeleteVms",
+      "id": "DeleteVms",
+      "product": "vm",
+      "version": "v1",
+      "resource": "vm",
+      "http_method": "POST",
+      "path": "/DeleteVms",
+      "description": "Terminates one or more virtual machines (VMs).<br />\nThis operation is idempotent, that means that all calls succeed if you terminate a VM more than once.",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "VmIds",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more IDs of VMs.",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "DeleteVmsResponse",
+        "payload_field": "Vms",
+        "payload_schema": "VmState",
+        "payload_fields": [
+          "CurrentState",
+          "PreviousState",
+          "VmId"
+        ],
+        "is_list": true
+      }
+    },
+    {
+      "key": "vm.v1.AdminPassword.ReadAdminPassword",
+      "id": "ReadAdminPassword",
+      "product": "vm",
+      "version": "v1",
+      "resource": "admin_password",
+      "http_method": "POST",
+      "path": "/ReadAdminPassword",
+      "description": "Gets the administrator password for a Windows running virtual machine (VM).<br />\nThe administrator password is encrypted using the keypair you specified when launching the VM.<br /><br />",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the VM."
+        }
+      ],
+      "response": {
+        "schema": "ReadAdminPasswordResponse",
+        "payload_fields": [
+          "AdminPassword",
+          "VmId"
+        ]
+      }
+    },
+    {
+      "key": "vm.v1.ConsoleOutput.ReadConsoleOutput",
+      "id": "ReadConsoleOutput",
+      "product": "vm",
+      "version": "v1",
+      "resource": "console_output",
+      "http_method": "POST",
+      "path": "/ReadConsoleOutput",
+      "description": "Gets the console output for a virtual machine (VM). This console is not in real-time. It is refreshed every two seconds and provides the most recent 64 KiB output.<br /><br />",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the VM."
+        }
+      ],
+      "response": {
+        "schema": "ReadConsoleOutputResponse",
+        "payload_fields": [
+          "ConsoleOutput",
+          "VmId"
+        ]
+      }
+    },
+    {
+      "key": "vm.v1.VmType.ReadVmTypes",
+      "id": "ReadVmTypes",
+      "product": "vm",
+      "version": "v1",
+      "resource": "vm_type",
+      "http_method": "POST",
+      "path": "/ReadVmTypes",
+      "description": "Lists one or more predefined VM types.",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersVmType",
+          "properties": [
+            "BsuOptimized",
+            "EphemeralsTypes",
+            "Eths",
+            "Gpus",
+            "MemorySizes",
+            "VcoreCounts",
+            "VmTypeNames",
+            "VolumeCounts",
+            "VolumeSizes"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadVmTypesResponse",
+        "payload_field": "VmTypes",
+        "payload_schema": "VmType",
+        "payload_fields": [
+          "BsuOptimized",
+          "EphemeralsType",
+          "Eth",
+          "Gpu",
+          "MaxPrivateIps",
+          "MemorySize",
+          "VcoreCount",
+          "VmTypeName",
+          "VolumeCount",
+          "VolumeSize"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "vm.v1.Vm.ReadVms",
+      "id": "ReadVms",
+      "product": "vm",
+      "version": "v1",
+      "resource": "vm",
+      "http_method": "POST",
+      "path": "/ReadVms",
+      "description": "Lists one or more of your virtual machines (VMs).<br />\nIf you provide one or more VM IDs, this action returns a description for all of these VMs. If you do not provide any VM ID, this action returns a description for all of the VMs that belong to you. If you provide an invalid VM ID, an error is returned. If you provide the ID of a VM that does not belong to you, the description of this VM is not included in the response. The refresh interval for data returned by this action is one hour, meaning that a terminated VM may appear in the response.",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersVm",
+          "properties": [
+            "Architectures",
+            "BlockDeviceMappingDeleteOnVmDeletion",
+            "BlockDeviceMappingDeviceNames",
+            "BlockDeviceMappingLinkDates",
+            "BlockDeviceMappingStates",
+            "BlockDeviceMappingVolumeIds",
+            "BootModes",
+            "ClientTokens",
+            "CreationDates",
+            "ImageIds",
+            "IsSourceDestChecked",
+            "KeypairNames",
+            "LaunchNumbers",
+            "Lifecycles",
+            "NetIds",
+            "NicAccountIds",
+            "NicDescriptions",
+            "NicIsSourceDestChecked",
+            "NicLinkNicDeleteOnVmDeletion",
+            "NicLinkNicDeviceNumbers",
+            "NicLinkNicLinkNicDates",
+            "NicLinkNicLinkNicIds",
+            "NicLinkNicStates",
+            "NicLinkNicVmAccountIds",
+            "NicLinkNicVmIds",
+            "NicLinkPublicIpAccountIds",
+            "NicLinkPublicIpLinkPublicIpIds",
+            "NicLinkPublicIpPublicIpIds",
+            "NicLinkPublicIpPublicIps",
+            "NicMacAddresses",
+            "NicNetIds",
+            "NicNicIds",
+            "NicPrivateIpsLinkPublicIpAccountIds",
+            "NicPrivateIpsLinkPublicIpIds",
+            "NicPrivateIpsPrimaryIp",
+            "NicPrivateIpsPrivateIps",
+            "NicSecurityGroupIds",
+            "NicSecurityGroupNames",
+            "NicStates",
+            "NicSubnetIds",
+            "NicSubregionNames",
+            "Platforms",
+            "PrivateIps",
+            "ProductCodes",
+            "PublicIps",
+            "ReservationIds",
+            "RootDeviceNames",
+            "RootDeviceTypes",
+            "SecurityGroupIds",
+            "SecurityGroupNames",
+            "StateReasonCodes",
+            "StateReasonMessages",
+            "StateReasons",
+            "SubnetIds",
+            "SubregionNames",
+            "TagKeys",
+            "TagValues",
+            "Tags",
+            "Tenancies",
+            "TpmEnabled",
+            "VmIds",
+            "VmSecurityGroupIds",
+            "VmSecurityGroupNames",
+            "VmStateCodes",
+            "VmStateNames",
+            "VmTypes"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadVmsResponse",
+        "payload_field": "Vms",
+        "payload_schema": "Vm",
+        "payload_fields": [
+          "ActionsOnNextBoot",
+          "Architecture",
+          "BlockDeviceMappings",
+          "BootMode",
+          "BsuOptimized",
+          "ClientToken",
+          "CreationDate",
+          "DeletionProtection",
+          "Hypervisor",
+          "ImageId",
+          "IsSourceDestChecked",
+          "KeypairName",
+          "LaunchNumber",
+          "NestedVirtualization",
+          "NetId",
+          "Nics",
+          "OsFamily",
+          "Performance",
+          "Placement",
+          "PrivateDnsName",
+          "PrivateIp",
+          "ProductCodes",
+          "PublicDnsName",
+          "PublicIp",
+          "ReservationId",
+          "RootDeviceName",
+          "RootDeviceType",
+          "SecurityGroups",
+          "ShutdownBehaviorConfiguration",
+          "State",
+          "StateReason",
+          "SubnetId",
+          "Tags",
+          "TpmEnabled",
+          "UserData",
+          "VmId",
+          "VmInitiatedShutdownBehavior",
+          "VmType"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "vm.v1.VmState.ReadVmsState",
+      "id": "ReadVmsState",
+      "product": "vm",
+      "version": "v1",
+      "resource": "vm_state",
+      "http_method": "POST",
+      "path": "/ReadVmsState",
+      "description": "Lists the status of one or more virtual machines (VMs).",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "AllVms",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, includes the status of all VMs. If false, only includes the status of running VMs.",
+          "default": false
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersVmsState",
+          "properties": [
+            "MaintenanceEventCodes",
+            "MaintenanceEventDescriptions",
+            "MaintenanceEventsNotAfter",
+            "MaintenanceEventsNotBefore",
+            "SubregionNames",
+            "VmIds",
+            "VmStates"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadVmsStateResponse",
+        "payload_field": "VmStates",
+        "payload_schema": "VmStates",
+        "payload_fields": [
+          "MaintenanceEvents",
+          "SubregionName",
+          "VmId",
+          "VmState"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "vm.v1.VmStopHistory.ReadVmsStopHistory",
+      "id": "ReadVmsStopHistory",
+      "product": "vm",
+      "version": "v1",
+      "resource": "vm_stop_history",
+      "http_method": "POST",
+      "path": "/ReadVmsStopHistory",
+      "description": "Lists the stop history of one or more VMs.",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersVmsStopHistory",
+          "properties": [
+            "StateReasons",
+            "StopDateAfter",
+            "StopDateBefore",
+            "VmIds"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadVmsStopHistoryResponse",
+        "payload_field": "VmsStopHistory",
+        "payload_schema": "VmsStopHistory",
+        "payload_fields": [
+          "StateReason",
+          "StopDate",
+          "VmId"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "vm.v1.Vm.RebootVms",
+      "id": "RebootVms",
+      "product": "vm",
+      "version": "v1",
+      "resource": "vm",
+      "http_method": "POST",
+      "path": "/RebootVms",
+      "description": "Reboots one or more virtual machines (VMs).<br />\nThis operation sends a reboot request to one or more specified VMs. This is an asynchronous action that queues this reboot request. This action only reboots VMs that are valid and that belong to you.",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "VmIds",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more IDs of the VMs you want to reboot.",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "RebootVmsResponse"
+      }
+    },
+    {
+      "key": "vm.v1.Vm.StartVms",
+      "id": "StartVms",
+      "product": "vm",
+      "version": "v1",
+      "resource": "vm",
+      "http_method": "POST",
+      "path": "/StartVms",
+      "description": "Start one or more virtual machines (VMs).<br />\nYou can start only VMs that are valid and that belong to you.",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "VmIds",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more IDs of VMs.",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "StartVmsResponse",
+        "payload_field": "Vms",
+        "payload_schema": "VmState",
+        "payload_fields": [
+          "CurrentState",
+          "PreviousState",
+          "VmId"
+        ],
+        "is_list": true
+      }
+    },
+    {
+      "key": "vm.v1.Vm.StopVms",
+      "id": "StopVms",
+      "product": "vm",
+      "version": "v1",
+      "resource": "vm",
+      "http_method": "POST",
+      "path": "/StopVms",
+      "description": "Stops one or more running virtual machines (VMs).<br />\nYou can stop only VMs that are valid and that belong to you. Data stored in the VM RAM is lost.",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "ForceStop",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Forces the VM to stop."
+        },
+        {
+          "name": "VmIds",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more IDs of VMs.",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "StopVmsResponse",
+        "payload_field": "Vms",
+        "payload_schema": "VmState",
+        "payload_fields": [
+          "CurrentState",
+          "PreviousState",
+          "VmId"
+        ],
+        "is_list": true
+      }
+    },
+    {
+      "key": "vm.v1.Vm.UpdateVm",
+      "id": "UpdateVm",
+      "product": "vm",
+      "version": "v1",
+      "resource": "vm",
+      "http_method": "POST",
+      "path": "/UpdateVm",
+      "description": "Modifies the specified attributes of a virtual machine (VM).<br />\nYou must stop the VM before modifying the following attributes:<br />\n* `NestedVirtualization`<br />\n* `Performance`<br />\n* `UserData`<br />\n* `VmType`",
+      "tags": [
+        "Vm"
+      ],
+      "parameters": [
+        {
+          "name": "ActionsOnNextBoot",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "The action to perform on the next boot of the VM.",
+          "ref": "ActionsOnNextBoot",
+          "properties": [
+            "SecureBoot"
+          ]
+        },
+        {
+          "name": "BlockDeviceMappings",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more block device mappings of the VM.",
+          "item_type": "object",
+          "ref": "BlockDeviceMappingVmUpdate"
+        },
+        {
+          "name": "BsuOptimized",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "This parameter is not available. It is present in our API for the sake of historical compatibility with AWS."
+        },
+        {
+          "name": "DeletionProtection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, you cannot delete the VM unless you change this parameter back to false."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "IsSourceDestChecked",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "(Net only) If true, the source/destination check is enabled. If false, it is disabled."
+        },
+        {
+          "name": "KeypairName",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The name of a keypair you want to associate with the VM.<br />\nWhen you replace the keypair of a VM with another one, the metadata of the VM is modified to reflect the new public key, but the replacement is still not effective in the operating system of the VM. To complete the replacement and effectively apply the new keypair, you need to perform other actions inside the VM. For more information, see [Modifying the Keypair of a VM](https://docs.outscale.com/en/userguide/Modifying-the-Keypair-of-a-VM.html)."
+        },
+        {
+          "name": "NestedVirtualization",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "(dedicated tenancy only) If true, nested virtualization is enabled. If false, it is disabled."
+        },
+        {
+          "name": "Performance",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "The performance of the VM.",
+          "enum_values": [
+            "medium",
+            "high",
+            "highest"
+          ]
+        },
+        {
+          "name": "SecurityGroupIds",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more IDs of security groups for the VM.",
+          "item_type": "string"
+        },
+        {
+          "name": "ShutdownBehaviorConfiguration",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Information about the actions performed by the orchestrator when the VM shuts down.",
+          "ref": "ShutdownBehaviorConfiguration",
+          "properties": [
+            "GuestAction",
+            "HostAction"
+          ]
+        },
+        {
+          "name": "UserData",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The Base64-encoded MIME user data, limited to 500 kibibytes (KiB)."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the VM."
+        },
+        {
+          "name": "VmInitiatedShutdownBehavior",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The VM behavior when you stop it. If set to `stop`, the VM stops. If set to `restart`, the VM stops then automatically restarts. If set to `terminate`, the VM stops and is terminated.",
+          "deprecated": true
+        },
+        {
+          "name": "VmType",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The type of VM. For more information, see [VM Types](https://docs.outscale.com/en/userguide/VM-Types.html)."
+        }
+      ],
+      "response": {
+        "schema": "UpdateVmResponse",
+        "payload_field": "Vm",
+        "payload_schema": "Vm",
+        "payload_fields": [
+          "ActionsOnNextBoot",
+          "Architecture",
+          "BlockDeviceMappings",
+          "BootMode",
+          "BsuOptimized",
+          "ClientToken",
+          "CreationDate",
+          "DeletionProtection",
+          "Hypervisor",
+          "ImageId",
+          "IsSourceDestChecked",
+          "KeypairName",
+          "LaunchNumber",
+          "NestedVirtualization",
+          "NetId",
+          "Nics",
+          "OsFamily",
+          "Performance",
+          "Placement",
+          "PrivateDnsName",
+          "PrivateIp",
+          "ProductCodes",
+          "PublicDnsName",
+          "PublicIp",
+          "ReservationId",
+          "RootDeviceName",
+          "RootDeviceType",
+          "SecurityGroups",
+          "ShutdownBehaviorConfiguration",
+          "State",
+          "StateReason",
+          "SubnetId",
+          "Tags",
+          "TpmEnabled",
+          "UserData",
+          "VmId",
+          "VmInitiatedShutdownBehavior",
+          "VmType"
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    "ReadAdminPassword : réponse à 2 propriétés, charge utile indécidable",
+    "ReadConsoleOutput : réponse à 2 propriétés, charge utile indécidable"
+  ]
+}

@@ -1,0 +1,18 @@
+# Paquets Python dont les modules de cette collection ont besoin à
+# l'exécution, côté contrôleur.
+#
+# La borne basse est celle du contrat que ce dépôt versionne : `osc-sdk-python`
+# embarque sa propre copie d'`outscale.yaml` et refuse une action ou un
+# paramètre que sa copie ne connaît pas, et la 0.42.0 embarque la 1.42.0.
+# C'est la même borne que `pyproject.toml` déclare pour les tests, et un test
+# exige que le SDK installé connaisse chaque action qu'un module appelle.
+osc-sdk-python>=0.42
+
+# Borne posée pour une vulnérabilité, pas pour une fonctionnalité.
+#
+# `idna` est une dépendance transitive du SDK, par `requests`. Sans borne, un
+# résolveur prend la plus ancienne version qui satisfait les contraintes, et
+# OSV-Scanner l'a signalé sur collection-exoscale dès sa première exécution :
+# cette résolution est vulnérable à CVE-2026-45409 (GHSA-65pc-fj4g-8rjx),
+# corrigée en 3.15. Même constat, même réponse.
+idna>=3.15

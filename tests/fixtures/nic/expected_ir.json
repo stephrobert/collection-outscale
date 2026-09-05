@@ -1,0 +1,475 @@
+{
+  "product": "nic",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "nic.v1.Nic.CreateNic",
+      "id": "CreateNic",
+      "product": "nic",
+      "version": "v1",
+      "resource": "nic",
+      "http_method": "POST",
+      "path": "/CreateNic",
+      "description": "Creates a network interface card (NIC) in the specified Subnet.<br /><br />\nFor more information, see [About NICs](https://docs.outscale.com/en/userguide/About-NICs.html).",
+      "tags": [
+        "Nic"
+      ],
+      "parameters": [
+        {
+          "name": "Description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "A description for the NIC."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "PrivateIps",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Information about the private IP or IPs of the NIC. If you do not specify a primary private IP, one is still created, with an IP randomly selected within the IP range of the Subnet.",
+          "item_type": "object",
+          "ref": "PrivateIpLight"
+        },
+        {
+          "name": "SecurityGroupIds",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more IDs of security groups for the NIC.",
+          "item_type": "string"
+        },
+        {
+          "name": "SubnetId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the Subnet in which you want to create the NIC."
+        }
+      ],
+      "response": {
+        "schema": "CreateNicResponse",
+        "payload_field": "Nic",
+        "payload_schema": "Nic",
+        "payload_fields": [
+          "AccountId",
+          "Description",
+          "IsSourceDestChecked",
+          "LinkNic",
+          "LinkPublicIp",
+          "MacAddress",
+          "NetId",
+          "NicId",
+          "PrivateDnsName",
+          "PrivateIps",
+          "SecurityGroups",
+          "State",
+          "SubnetId",
+          "SubregionName",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "nic.v1.Nic.DeleteNic",
+      "id": "DeleteNic",
+      "product": "nic",
+      "version": "v1",
+      "resource": "nic",
+      "http_method": "POST",
+      "path": "/DeleteNic",
+      "description": "Deletes the specified network interface card (NIC).<br />\nThe network interface must not be attached to any virtual machine (VM).",
+      "tags": [
+        "Nic"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NicId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the NIC you want to delete."
+        }
+      ],
+      "response": {
+        "schema": "DeleteNicResponse"
+      }
+    },
+    {
+      "key": "nic.v1.Nic.LinkNic",
+      "id": "LinkNic",
+      "product": "nic",
+      "version": "v1",
+      "resource": "nic",
+      "http_method": "POST",
+      "path": "/LinkNic",
+      "description": "Attaches a network interface card (NIC) to a virtual machine (VM).<br />\nThe interface and the VM must be in the same Subregion. The VM can be either `running` or `stopped`. The NIC must be in the `available` state. For more information, see [Attaching a NIC to a VM](https://docs.outscale.com/en/userguide/Attaching-a-NIC-to-a-VM.html).",
+      "tags": [
+        "Nic"
+      ],
+      "parameters": [
+        {
+          "name": "DeviceNumber",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "The index of the VM device for the NIC attachment (between `1` and `7`, both included)."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NicId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the NIC you want to attach."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the VM to which you want to attach the NIC."
+        }
+      ],
+      "response": {
+        "schema": "LinkNicResponse",
+        "payload_field": "LinkNicId"
+      }
+    },
+    {
+      "key": "nic.v1.PrivateIp.LinkPrivateIps",
+      "id": "LinkPrivateIps",
+      "product": "nic",
+      "version": "v1",
+      "resource": "private_ip",
+      "http_method": "POST",
+      "path": "/LinkPrivateIps",
+      "description": "Assigns one or more secondary private IPs to a specified network interface card (NIC). This action is only available in a Net. The private IPs to be assigned can be added individually using the `PrivateIps` parameter, or you can specify the number of private IPs to be automatically chosen within the Subnet range using the `SecondaryPrivateIpCount` parameter. You can specify only one of these two parameters. If none of these parameters are specified, a private IP is chosen within the Subnet range.",
+      "tags": [
+        "Nic"
+      ],
+      "parameters": [
+        {
+          "name": "AllowRelink",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, allows an IP that is already assigned to another NIC in the same Subnet to be assigned to the NIC you specified."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NicId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the NIC."
+        },
+        {
+          "name": "PrivateIps",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "The secondary private IP or IPs you want to assign to the NIC within the IP range of the Subnet. They cannot be one of the first four IPs (ending in `.0`, `.1`, `.2`, `.3`) or the last IP (ending in `.255`) of the Subnet, as these are reserved by 3DS OUTSCALE. For more information, see [About Nets](https://docs.outscale.com/en/userguide/About-Nets.html).",
+          "item_type": "string"
+        },
+        {
+          "name": "SecondaryPrivateIpCount",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The number of secondary private IPs to assign to the NIC."
+        }
+      ],
+      "response": {
+        "schema": "LinkPrivateIpsResponse"
+      }
+    },
+    {
+      "key": "nic.v1.Nic.ReadNics",
+      "id": "ReadNics",
+      "product": "nic",
+      "version": "v1",
+      "resource": "nic",
+      "http_method": "POST",
+      "path": "/ReadNics",
+      "description": "Lists one or more network interface cards (NICs).<br />\nA NIC is a virtual network interface that you can attach to a virtual machine (VM) in a Net.",
+      "tags": [
+        "Nic"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersNic",
+          "properties": [
+            "Descriptions",
+            "IsSourceDestCheck",
+            "LinkNicDeleteOnVmDeletion",
+            "LinkNicDeviceNumbers",
+            "LinkNicLinkNicIds",
+            "LinkNicStates",
+            "LinkNicVmAccountIds",
+            "LinkNicVmIds",
+            "LinkPublicIpAccountIds",
+            "LinkPublicIpLinkPublicIpIds",
+            "LinkPublicIpPublicDnsNames",
+            "LinkPublicIpPublicIpIds",
+            "LinkPublicIpPublicIps",
+            "MacAddresses",
+            "NetIds",
+            "NicIds",
+            "PrivateDnsNames",
+            "PrivateIpsLinkPublicIpAccountIds",
+            "PrivateIpsLinkPublicIpPublicIps",
+            "PrivateIpsPrimaryIp",
+            "PrivateIpsPrivateIps",
+            "SecurityGroupIds",
+            "SecurityGroupNames",
+            "States",
+            "SubnetIds",
+            "SubregionNames",
+            "TagKeys",
+            "TagValues",
+            "Tags"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadNicsResponse",
+        "payload_field": "Nics",
+        "payload_schema": "Nic",
+        "payload_fields": [
+          "AccountId",
+          "Description",
+          "IsSourceDestChecked",
+          "LinkNic",
+          "LinkPublicIp",
+          "MacAddress",
+          "NetId",
+          "NicId",
+          "PrivateDnsName",
+          "PrivateIps",
+          "SecurityGroups",
+          "State",
+          "SubnetId",
+          "SubregionName",
+          "Tags"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "nic.v1.Nic.UnlinkNic",
+      "id": "UnlinkNic",
+      "product": "nic",
+      "version": "v1",
+      "resource": "nic",
+      "http_method": "POST",
+      "path": "/UnlinkNic",
+      "description": "Detaches a network interface card (NIC) from a virtual machine (VM).<br />\nThe primary NIC cannot be detached.",
+      "tags": [
+        "Nic"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LinkNicId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the attachment operation."
+        }
+      ],
+      "response": {
+        "schema": "UnlinkNicResponse"
+      }
+    },
+    {
+      "key": "nic.v1.PrivateIp.UnlinkPrivateIps",
+      "id": "UnlinkPrivateIps",
+      "product": "nic",
+      "version": "v1",
+      "resource": "private_ip",
+      "http_method": "POST",
+      "path": "/UnlinkPrivateIps",
+      "description": "Unassigns one or more secondary private IPs from a network interface card (NIC).",
+      "tags": [
+        "Nic"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NicId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the NIC."
+        },
+        {
+          "name": "PrivateIps",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more secondary private IPs you want to unassign from the NIC.",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "UnlinkPrivateIpsResponse"
+      }
+    },
+    {
+      "key": "nic.v1.Nic.UpdateNic",
+      "id": "UpdateNic",
+      "product": "nic",
+      "version": "v1",
+      "resource": "nic",
+      "http_method": "POST",
+      "path": "/UpdateNic",
+      "description": "Modifies the specified network interface card (NIC). You can specify only one attribute at a time.",
+      "tags": [
+        "Nic"
+      ],
+      "parameters": [
+        {
+          "name": "Description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "A new description for the NIC."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LinkNic",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Information about the NIC attachment. If you are modifying the `DeleteOnVmDeletion` attribute, you must specify the ID of the NIC attachment.",
+          "ref": "LinkNicToUpdate",
+          "properties": [
+            "DeleteOnVmDeletion",
+            "LinkNicId"
+          ]
+        },
+        {
+          "name": "NicId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the NIC you want to modify."
+        },
+        {
+          "name": "SecurityGroupIds",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more IDs of security groups for the NIC.<br />\nYou must specify at least one group, even if you use the default security group in the Net.",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "UpdateNicResponse",
+        "payload_field": "Nic",
+        "payload_schema": "Nic",
+        "payload_fields": [
+          "AccountId",
+          "Description",
+          "IsSourceDestChecked",
+          "LinkNic",
+          "LinkPublicIp",
+          "MacAddress",
+          "NetId",
+          "NicId",
+          "PrivateDnsName",
+          "PrivateIps",
+          "SecurityGroups",
+          "State",
+          "SubnetId",
+          "SubregionName",
+          "Tags"
+        ]
+      }
+    }
+  ]
+}

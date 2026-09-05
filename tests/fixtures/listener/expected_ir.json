@@ -1,0 +1,360 @@
+{
+  "product": "listener",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "listener.v1.ListenerRule.CreateListenerRule",
+      "id": "CreateListenerRule",
+      "product": "listener",
+      "version": "v1",
+      "resource": "listener_rule",
+      "http_method": "POST",
+      "path": "/CreateListenerRule",
+      "description": "Creates a rule for traffic redirection for the specified listener. Each rule must have either the `HostNamePattern` or `PathPattern` parameter specified. Rules are treated in priority order, from the highest value to the lowest value.<br />\nOnce the rule is created, you need to register backend VMs with it. For more information, see the [RegisterVmsInLoadBalancer](#registervmsinloadbalancer) method.<br /><br />\nFor more information, see [About Load Balancers](https://docs.outscale.com/en/userguide/About-Load-Balancers.html).",
+      "tags": [
+        "Listener"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Listener",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Information about the load balancer.",
+          "ref": "LoadBalancerLight",
+          "properties": [
+            "LoadBalancerName",
+            "LoadBalancerPort"
+          ]
+        },
+        {
+          "name": "ListenerRule",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Information about the listener rule.",
+          "ref": "ListenerRuleForCreation",
+          "properties": [
+            "Action",
+            "HostNamePattern",
+            "ListenerRuleName",
+            "PathPattern",
+            "Priority"
+          ]
+        },
+        {
+          "name": "VmIds",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "The IDs of the backend VMs.",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "CreateListenerRuleResponse",
+        "payload_field": "ListenerRule",
+        "payload_schema": "ListenerRule",
+        "payload_fields": [
+          "Action",
+          "HostNamePattern",
+          "ListenerId",
+          "ListenerRuleId",
+          "ListenerRuleName",
+          "PathPattern",
+          "Priority",
+          "VmIds"
+        ]
+      }
+    },
+    {
+      "key": "listener.v1.LoadBalancerListener.CreateLoadBalancerListeners",
+      "id": "CreateLoadBalancerListeners",
+      "product": "listener",
+      "version": "v1",
+      "resource": "load_balancer_listener",
+      "http_method": "POST",
+      "path": "/CreateLoadBalancerListeners",
+      "description": "Creates one or more listeners for a specified load balancer.<br /><br />\nFor more information, see [About Load Balancers](https://docs.outscale.com/en/userguide/About-Load-Balancers.html).",
+      "tags": [
+        "Listener"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Listeners",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more listeners for the load balancer.",
+          "item_type": "object",
+          "ref": "ListenerForCreation"
+        },
+        {
+          "name": "LoadBalancerName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the load balancer for which you want to create listeners."
+        }
+      ],
+      "response": {
+        "schema": "CreateLoadBalancerListenersResponse",
+        "payload_field": "LoadBalancer",
+        "payload_schema": "LoadBalancer",
+        "payload_fields": [
+          "AccessLog",
+          "ApplicationStickyCookiePolicies",
+          "BackendIps",
+          "BackendVmIds",
+          "DnsName",
+          "HealthCheck",
+          "Listeners",
+          "LoadBalancerName",
+          "LoadBalancerStickyCookiePolicies",
+          "LoadBalancerType",
+          "NetId",
+          "PrivateIp",
+          "PublicIp",
+          "SecuredCookies",
+          "SecurityGroups",
+          "SourceSecurityGroup",
+          "State",
+          "Subnets",
+          "SubregionNames",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "listener.v1.ListenerRule.DeleteListenerRule",
+      "id": "DeleteListenerRule",
+      "product": "listener",
+      "version": "v1",
+      "resource": "listener_rule",
+      "http_method": "POST",
+      "path": "/DeleteListenerRule",
+      "description": "Deletes a listener rule.<br />\nThe previously active rule is disabled after deletion.",
+      "tags": [
+        "Listener"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "ListenerRuleName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the rule you want to delete."
+        }
+      ],
+      "response": {
+        "schema": "DeleteListenerRuleResponse"
+      }
+    },
+    {
+      "key": "listener.v1.LoadBalancerListener.DeleteLoadBalancerListeners",
+      "id": "DeleteLoadBalancerListeners",
+      "product": "listener",
+      "version": "v1",
+      "resource": "load_balancer_listener",
+      "http_method": "POST",
+      "path": "/DeleteLoadBalancerListeners",
+      "description": "Deletes listeners of a specified load balancer.",
+      "tags": [
+        "Listener"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LoadBalancerName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the load balancer for which you want to delete listeners."
+        },
+        {
+          "name": "LoadBalancerPorts",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more port numbers of the listeners you want to delete.",
+          "item_type": "integer"
+        }
+      ],
+      "response": {
+        "schema": "DeleteLoadBalancerListenersResponse",
+        "payload_field": "LoadBalancer",
+        "payload_schema": "LoadBalancer",
+        "payload_fields": [
+          "AccessLog",
+          "ApplicationStickyCookiePolicies",
+          "BackendIps",
+          "BackendVmIds",
+          "DnsName",
+          "HealthCheck",
+          "Listeners",
+          "LoadBalancerName",
+          "LoadBalancerStickyCookiePolicies",
+          "LoadBalancerType",
+          "NetId",
+          "PrivateIp",
+          "PublicIp",
+          "SecuredCookies",
+          "SecurityGroups",
+          "SourceSecurityGroup",
+          "State",
+          "Subnets",
+          "SubregionNames",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "listener.v1.ListenerRule.ReadListenerRules",
+      "id": "ReadListenerRules",
+      "product": "listener",
+      "version": "v1",
+      "resource": "listener_rule",
+      "http_method": "POST",
+      "path": "/ReadListenerRules",
+      "description": "Lists one or more listener rules. By default, this action returns the full list of listener rules for the OUTSCALE account.",
+      "tags": [
+        "Listener"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersListenerRule",
+          "properties": [
+            "ListenerRuleNames"
+          ]
+        }
+      ],
+      "response": {
+        "schema": "ReadListenerRulesResponse",
+        "payload_field": "ListenerRules",
+        "payload_schema": "ListenerRule",
+        "payload_fields": [
+          "Action",
+          "HostNamePattern",
+          "ListenerId",
+          "ListenerRuleId",
+          "ListenerRuleName",
+          "PathPattern",
+          "Priority",
+          "VmIds"
+        ],
+        "is_list": true
+      }
+    },
+    {
+      "key": "listener.v1.ListenerRule.UpdateListenerRule",
+      "id": "UpdateListenerRule",
+      "product": "listener",
+      "version": "v1",
+      "resource": "listener_rule",
+      "http_method": "POST",
+      "path": "/UpdateListenerRule",
+      "description": "Updates the pattern of the listener rule.<br />\nThis call updates the pattern matching algorithm for incoming traffic.",
+      "tags": [
+        "Listener"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "HostPattern",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "A host-name pattern for the rule, with a maximum length of 128 characters. This host-name pattern supports maximum three wildcards, and must not contain any special characters except `-.?`."
+        },
+        {
+          "name": "ListenerRuleName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the listener rule."
+        },
+        {
+          "name": "PathPattern",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "A path pattern for the rule, with a maximum length of 128 characters. This path pattern supports maximum three wildcards, and must not contain any special characters except `_-.$/~&quot;'@:+?`."
+        }
+      ],
+      "response": {
+        "schema": "UpdateListenerRuleResponse",
+        "payload_field": "ListenerRule",
+        "payload_schema": "ListenerRule",
+        "payload_fields": [
+          "Action",
+          "HostNamePattern",
+          "ListenerId",
+          "ListenerRuleId",
+          "ListenerRuleName",
+          "PathPattern",
+          "Priority",
+          "VmIds"
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    "1 lecture(s) de liste sans jeton de page, rendue(s) en une réponse dont le contrat ne promet pas qu'elle soit complète : ReadListenerRules"
+  ]
+}

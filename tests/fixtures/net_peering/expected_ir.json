@@ -1,0 +1,254 @@
+{
+  "product": "net_peering",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "net_peering.v1.NetPeering.AcceptNetPeering",
+      "id": "AcceptNetPeering",
+      "product": "net_peering",
+      "version": "v1",
+      "resource": "net_peering",
+      "http_method": "POST",
+      "path": "/AcceptNetPeering",
+      "description": "Accepts a Net peering request.<br />\nTo accept this request, you must be the owner of the peer Net. If you do not accept the request within 7 days, the state of the Net peering becomes `expired`.<br /><br />",
+      "tags": [
+        "NetPeering"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NetPeeringId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the Net peering you want to accept."
+        }
+      ],
+      "response": {
+        "schema": "AcceptNetPeeringResponse",
+        "payload_field": "NetPeering",
+        "payload_schema": "NetPeering",
+        "payload_fields": [
+          "AccepterNet",
+          "ExpirationDate",
+          "NetPeeringId",
+          "SourceNet",
+          "State",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "net_peering.v1.NetPeering.CreateNetPeering",
+      "id": "CreateNetPeering",
+      "product": "net_peering",
+      "version": "v1",
+      "resource": "net_peering",
+      "http_method": "POST",
+      "path": "/CreateNetPeering",
+      "description": "Requests a Net peering between a Net you own and a peer Net that belongs to you or another OUTSCALE account.<br />\nThis action creates a Net peering that remains in the `pending-acceptance` state until it is accepted by the owner of the peer Net. If the owner of the peer Net does not accept the request within 7 days, the state of the Net peering becomes `expired`. For more information, see [AcceptNetPeering](#acceptnetpeering).<br /><br />",
+      "tags": [
+        "NetPeering"
+      ],
+      "parameters": [
+        {
+          "name": "AccepterNetId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the Net you want to connect with.<br/ >\nIf the Net does not belong to you, you must also specify the `AccepterOwnerId` parameter with the OUTSCALE account ID owning the Net you want to connect with."
+        },
+        {
+          "name": "AccepterOwnerId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The OUTSCALE account ID of the owner of the Net you want to connect with. By default, the account ID of the owner of the Net from which the peering request is sent.<br/ >\nThis parameter is required if the Net you want to connect with does not belong to you.<br />With OSC CLI, you must wrap the value in two pairs of quotes to make sure it is parsed as a string: `--AccepterOwnerId '&quot;12345678&quot;'`."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "SourceNetId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the Net you send the peering request from."
+        }
+      ],
+      "response": {
+        "schema": "CreateNetPeeringResponse",
+        "payload_field": "NetPeering",
+        "payload_schema": "NetPeering",
+        "payload_fields": [
+          "AccepterNet",
+          "ExpirationDate",
+          "NetPeeringId",
+          "SourceNet",
+          "State",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "net_peering.v1.NetPeering.DeleteNetPeering",
+      "id": "DeleteNetPeering",
+      "product": "net_peering",
+      "version": "v1",
+      "resource": "net_peering",
+      "http_method": "POST",
+      "path": "/DeleteNetPeering",
+      "description": "Deletes a Net peering.<br />\nIf the Net peering is in the `active` state, it can be deleted either by the owner of the requester Net or the owner of the peer Net.<br />\nIf it is in the `pending-acceptance` state, it can be deleted only by the owner of the requester Net.<br />\nIf it is in the `rejected`, `failed`, or `expired` states, it cannot be deleted.",
+      "tags": [
+        "NetPeering"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NetPeeringId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the Net peering you want to delete."
+        }
+      ],
+      "response": {
+        "schema": "DeleteNetPeeringResponse"
+      }
+    },
+    {
+      "key": "net_peering.v1.NetPeering.ReadNetPeerings",
+      "id": "ReadNetPeerings",
+      "product": "net_peering",
+      "version": "v1",
+      "resource": "net_peering",
+      "http_method": "POST",
+      "path": "/ReadNetPeerings",
+      "description": "Lists one or more peering connections between two Nets.",
+      "tags": [
+        "NetPeering"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersNetPeering",
+          "properties": [
+            "AccepterNetAccountIds",
+            "AccepterNetIpRanges",
+            "AccepterNetNetIds",
+            "ExpirationDates",
+            "NetPeeringIds",
+            "SourceNetAccountIds",
+            "SourceNetIpRanges",
+            "SourceNetNetIds",
+            "StateMessages",
+            "StateNames",
+            "TagKeys",
+            "TagValues",
+            "Tags"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadNetPeeringsResponse",
+        "payload_field": "NetPeerings",
+        "payload_schema": "NetPeering",
+        "payload_fields": [
+          "AccepterNet",
+          "ExpirationDate",
+          "NetPeeringId",
+          "SourceNet",
+          "State",
+          "Tags"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "net_peering.v1.NetPeering.RejectNetPeering",
+      "id": "RejectNetPeering",
+      "product": "net_peering",
+      "version": "v1",
+      "resource": "net_peering",
+      "http_method": "POST",
+      "path": "/RejectNetPeering",
+      "description": "Rejects a Net peering request.<br />\nThe Net peering must be in the `pending-acceptance` state to be rejected. The rejected Net peering is then in the `rejected` state.",
+      "tags": [
+        "NetPeering"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NetPeeringId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the Net peering you want to reject."
+        }
+      ],
+      "response": {
+        "schema": "RejectNetPeeringResponse"
+      }
+    }
+  ]
+}

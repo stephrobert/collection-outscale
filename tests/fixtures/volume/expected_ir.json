@@ -1,0 +1,438 @@
+{
+  "product": "volume",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "volume.v1.Volume.CreateVolume",
+      "id": "CreateVolume",
+      "product": "volume",
+      "version": "v1",
+      "resource": "volume",
+      "http_method": "POST",
+      "path": "/CreateVolume",
+      "description": "Creates a Block Storage Unit (BSU) volume in a specified Region.<br />\nBSU volumes can be attached to a virtual machine (VM) in the same Subregion. You can create an empty volume or restore a volume from an existing snapshot.<br />\nYou can create the following volume types: Enterprise (`io1`) for provisioned IOPS SSD volumes, Performance (`gp2`) for general purpose SSD volumes, or Magnetic (`standard`) volumes.<br /><br />\nFor more information, see [About Volumes](https://docs.outscale.com/en/userguide/About-Volumes.html).",
+      "tags": [
+        "Volume"
+      ],
+      "parameters": [
+        {
+          "name": "ClientToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "A unique identifier which enables you to manage the idempotency.<br />With OSC CLI, if you want to specify a number for this value, you must wrap it in two pairs of quotes to make sure the value is parsed as a string: `--ClientToken '&quot;12345678&quot;'`."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Iops",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The number of I/O operations per second (IOPS). This parameter must be specified only if you create an `io1` volume. The maximum number of IOPS allowed for `io1` volumes is `13000` with a maximum performance ratio of 300 IOPS per gibibyte."
+        },
+        {
+          "name": "Size",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The size of the volume, in gibibytes (GiB). The maximum allowed size for a volume is 14901 GiB. This parameter is required if the volume is not created from a snapshot (`SnapshotId` unspecified)."
+        },
+        {
+          "name": "SnapshotId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The ID of the snapshot from which you want to create the volume."
+        },
+        {
+          "name": "SubregionName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The Subregion in which you want to create the volume."
+        },
+        {
+          "name": "VolumeType",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The type of volume you want to create (`io1` \\| `gp2` \\| `standard`). If not specified, a `standard` volume is created.<br />\nFor more information about volume types, see [About Volumes > Volume Types and IOPS](https://docs.outscale.com/en/userguide/About-Volumes.html#_volume_types_and_iops)."
+        }
+      ],
+      "response": {
+        "schema": "CreateVolumeResponse",
+        "payload_field": "Volume",
+        "payload_schema": "Volume",
+        "payload_fields": [
+          "ClientToken",
+          "CreationDate",
+          "Iops",
+          "LinkedVolumes",
+          "Size",
+          "SnapshotId",
+          "State",
+          "SubregionName",
+          "Tags",
+          "TaskId",
+          "VolumeId",
+          "VolumeType"
+        ]
+      }
+    },
+    {
+      "key": "volume.v1.Volume.DeleteVolume",
+      "id": "DeleteVolume",
+      "product": "volume",
+      "version": "v1",
+      "resource": "volume",
+      "http_method": "POST",
+      "path": "/DeleteVolume",
+      "description": "Deletes a specified Block Storage Unit (BSU) volume.<br />\nYou can delete available volumes only, that is, volumes that are not attached to a virtual machine (VM).",
+      "tags": [
+        "Volume"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "VolumeId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the volume you want to delete."
+        }
+      ],
+      "response": {
+        "schema": "DeleteVolumeResponse"
+      }
+    },
+    {
+      "key": "volume.v1.Volume.LinkVolume",
+      "id": "LinkVolume",
+      "product": "volume",
+      "version": "v1",
+      "resource": "volume",
+      "http_method": "POST",
+      "path": "/LinkVolume",
+      "description": "Attaches a Block Storage Unit (BSU) volume to a virtual machine (VM).<br />\nThe volume and the VM must be in the same Subregion. The VM can be running or stopped. The volume is attached to the specified VM device.",
+      "tags": [
+        "Volume"
+      ],
+      "parameters": [
+        {
+          "name": "DeviceName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the device. For a root device, you must use `/dev/sda1`. For other volumes, you must use `/dev/sdX`, `/dev/sdXX`, `/dev/xvdX`, or `/dev/xvdXX` (where the first `X` is a letter between `b` and `z`, and the second `X` is a letter between `a` and `z`)."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the VM you want to attach the volume to."
+        },
+        {
+          "name": "VolumeId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the volume you want to attach."
+        }
+      ],
+      "response": {
+        "schema": "LinkVolumeResponse"
+      }
+    },
+    {
+      "key": "volume.v1.VolumeUpdateTask.ReadVolumeUpdateTasks",
+      "id": "ReadVolumeUpdateTasks",
+      "product": "volume",
+      "version": "v1",
+      "resource": "volume_update_task",
+      "http_method": "POST",
+      "path": "/ReadVolumeUpdateTasks",
+      "summary": "Lists one or more update tasks of volumes",
+      "description": "Lists one or more specified tasks of volume update.",
+      "tags": [
+        "Volume"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersReadVolumeUpdateTask",
+          "properties": [
+            "TaskIds",
+            "VolumeIds"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included). By default, `100`."
+        }
+      ],
+      "response": {
+        "schema": "ReadVolumeUpdateTasksResponse",
+        "payload_field": "VolumeUpdateTasks",
+        "payload_schema": "VolumeUpdateTask",
+        "payload_fields": [
+          "Comment",
+          "CompletionDate",
+          "Progress",
+          "StartDate",
+          "State",
+          "Tags",
+          "TaskId",
+          "VolumeId",
+          "VolumeUpdate"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "volume.v1.Volume.ReadVolumes",
+      "id": "ReadVolumes",
+      "product": "volume",
+      "version": "v1",
+      "resource": "volume",
+      "http_method": "POST",
+      "path": "/ReadVolumes",
+      "description": "Lists one or more specified Block Storage Unit (BSU) volumes.",
+      "tags": [
+        "Volume"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersVolume",
+          "properties": [
+            "ClientTokens",
+            "CreationDates",
+            "LinkVolumeDeleteOnVmDeletion",
+            "LinkVolumeDeviceNames",
+            "LinkVolumeLinkDates",
+            "LinkVolumeLinkStates",
+            "LinkVolumeVmIds",
+            "SnapshotIds",
+            "SubregionNames",
+            "TagKeys",
+            "TagValues",
+            "Tags",
+            "VolumeIds",
+            "VolumeSizes",
+            "VolumeStates",
+            "VolumeTypes"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadVolumesResponse",
+        "payload_field": "Volumes",
+        "payload_schema": "Volume",
+        "payload_fields": [
+          "ClientToken",
+          "CreationDate",
+          "Iops",
+          "LinkedVolumes",
+          "Size",
+          "SnapshotId",
+          "State",
+          "SubregionName",
+          "Tags",
+          "TaskId",
+          "VolumeId",
+          "VolumeType"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "volume.v1.Volume.UnlinkVolume",
+      "id": "UnlinkVolume",
+      "product": "volume",
+      "version": "v1",
+      "resource": "volume",
+      "http_method": "POST",
+      "path": "/UnlinkVolume",
+      "description": "Detaches a Block Storage Unit (BSU) volume from a virtual machine (VM).<br />\nTo detach the root device of a VM, this VM must be stopped.",
+      "tags": [
+        "Volume"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "ForceUnlink",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Forces the detachment of the volume in case of previous failure. Important: This action may damage your data or file systems."
+        },
+        {
+          "name": "VolumeId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the volume you want to detach."
+        }
+      ],
+      "response": {
+        "schema": "UnlinkVolumeResponse"
+      }
+    },
+    {
+      "key": "volume.v1.Volume.UpdateVolume",
+      "id": "UpdateVolume",
+      "product": "volume",
+      "version": "v1",
+      "resource": "volume",
+      "http_method": "POST",
+      "path": "/UpdateVolume",
+      "description": "Modifies the specified attributes of a volume.<br />",
+      "tags": [
+        "Volume"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Iops",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The new number of I/O operations per second (IOPS). This parameter can be specified only if you update an `io1` volume or if you change the type of the volume for an `io1`."
+        },
+        {
+          "name": "Size",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The new size of the volume, in gibibytes (GiB). This value must be equal to or greater than the current size of the volume. This modification is not instantaneous."
+        },
+        {
+          "name": "VolumeId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the volume you want to update."
+        },
+        {
+          "name": "VolumeType",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The new type of the volume (`standard` \\| `io1` \\| `gp2`). If you update to an `io1` volume, you must also specify the `Iops` parameter."
+        }
+      ],
+      "response": {
+        "schema": "UpdateVolumeResponse",
+        "payload_field": "Volume",
+        "payload_schema": "Volume",
+        "payload_fields": [
+          "ClientToken",
+          "CreationDate",
+          "Iops",
+          "LinkedVolumes",
+          "Size",
+          "SnapshotId",
+          "State",
+          "SubregionName",
+          "Tags",
+          "TaskId",
+          "VolumeId",
+          "VolumeType"
+        ]
+      }
+    }
+  ]
+}

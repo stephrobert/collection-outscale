@@ -1,0 +1,16 @@
+---
+# Version minimale d'ansible-core exigée par la collection.
+#
+# 2.17 est la borne que les deux collections voisines ont **mesurée** :
+# `ansible-test sanity` lancé de 2.16 à 2.21 sur collection-exoscale le
+# 4 septembre 2026 échoue en 2.16 sur deux contrôles de boilerplate Python 2
+# (`future-import-boilerplate`, `metaclass-boilerplate`) que des modules
+# écrits pour Python 3.12 ne peuvent pas satisfaire, et passe de 2.17 à 2.21.
+# Les modules de ce dépôt sont rendus par le même patron.
+#
+# **La matrice de CI se dérive de ce fichier, elle ne se recopie pas** :
+# `scripts/ansible_matrix.py` lit cette borne et la version d'ansible-core du
+# verrou, et `mise run matrix:check` exige que `ci.yml` et le ruleset portent
+# la matrice dérivée. Relever ce nombre demande de le remesurer, pas de
+# l'estimer, et c'est la matrice qui le mesure sur chaque pull request.
+requires_ansible: ">=2.17.0"

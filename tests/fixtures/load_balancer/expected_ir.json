@@ -1,0 +1,731 @@
+{
+  "product": "load_balancer",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "load_balancer.v1.LoadBalancer.CreateLoadBalancer",
+      "id": "CreateLoadBalancer",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "load_balancer",
+      "http_method": "POST",
+      "path": "/CreateLoadBalancer",
+      "description": "Creates a load balancer.<br />\nThe load balancer is created with a unique Domain Name Service (DNS) name. It receives the incoming traffic and routes it to its registered virtual machines (VMs).<br />\nBy default, this action creates an Internet-facing load balancer, resolving to public IPs. To create an internal load balancer in a Net, resolving to private IPs, use the `LoadBalancerType` parameter.<br />\nYou must specify either the `Subnets` or the `SubregionNames` parameters.<br /><br />\nFor more information, see [About Load Balancers](https://docs.outscale.com/en/userguide/About-Load-Balancers.html).",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Listeners",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more listeners to create.",
+          "item_type": "object",
+          "ref": "ListenerForCreation"
+        },
+        {
+          "name": "LoadBalancerName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The unique name of the load balancer, with a maximum length of 32 alphanumeric characters and dashes (`-`). This name must not start or end with a dash."
+        },
+        {
+          "name": "LoadBalancerType",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The type of load balancer: `internet-facing` or `internal`. Use this parameter only for load balancers in a Net."
+        },
+        {
+          "name": "PublicIp",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "(internet-facing only) The public IP you want to associate with the load balancer. If not specified, a public IP owned by 3DS OUTSCALE is associated."
+        },
+        {
+          "name": "SecurityGroups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "(Net only) One or more IDs of security groups you want to assign to the load balancer. If not specified, the default security group of the Net is assigned to the load balancer.",
+          "item_type": "string"
+        },
+        {
+          "name": "Subnets",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "(Net only) The ID of the Subnet in which you want to create the load balancer. Regardless of this Subnet, the load balancer can distribute traffic to all Subnets. This parameter is required in a Net.",
+          "item_type": "string"
+        },
+        {
+          "name": "SubregionNames",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "(public Cloud only) The Subregion in which you want to create the load balancer. Regardless of this Subregion, the load balancer can distribute traffic to all Subregions. This parameter is required in the public Cloud.",
+          "item_type": "string"
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more tags assigned to the load balancer.",
+          "item_type": "object",
+          "ref": "ResourceTag"
+        }
+      ],
+      "response": {
+        "schema": "CreateLoadBalancerResponse",
+        "payload_field": "LoadBalancer",
+        "payload_schema": "LoadBalancer",
+        "payload_fields": [
+          "AccessLog",
+          "ApplicationStickyCookiePolicies",
+          "BackendIps",
+          "BackendVmIds",
+          "DnsName",
+          "HealthCheck",
+          "Listeners",
+          "LoadBalancerName",
+          "LoadBalancerStickyCookiePolicies",
+          "LoadBalancerType",
+          "NetId",
+          "PrivateIp",
+          "PublicIp",
+          "SecuredCookies",
+          "SecurityGroups",
+          "SourceSecurityGroup",
+          "State",
+          "Subnets",
+          "SubregionNames",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "load_balancer.v1.LoadBalancerTag.CreateLoadBalancerTags",
+      "id": "CreateLoadBalancerTags",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "load_balancer_tag",
+      "http_method": "POST",
+      "path": "/CreateLoadBalancerTags",
+      "description": "Adds one or more tags to the specified load balancers.<br />\nIf a tag with the same key already exists for the load balancer, the tag value is replaced.<br /><br />\nFor more information, see [About Tags](https://docs.outscale.com/en/userguide/About-Tags.html).",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LoadBalancerNames",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more load balancer names.",
+          "item_type": "string"
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more tags to add to the specified load balancers.",
+          "item_type": "object",
+          "ref": "ResourceTag"
+        }
+      ],
+      "response": {
+        "schema": "CreateLoadBalancerTagsResponse"
+      }
+    },
+    {
+      "key": "load_balancer.v1.LoadBalancer.DeleteLoadBalancer",
+      "id": "DeleteLoadBalancer",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "load_balancer",
+      "http_method": "POST",
+      "path": "/DeleteLoadBalancer",
+      "description": "Deletes a specified load balancer.",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LoadBalancerName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the load balancer you want to delete."
+        }
+      ],
+      "response": {
+        "schema": "DeleteLoadBalancerResponse",
+        "payload_field": "LoadBalancer",
+        "payload_schema": "LoadBalancer",
+        "payload_fields": [
+          "AccessLog",
+          "ApplicationStickyCookiePolicies",
+          "BackendIps",
+          "BackendVmIds",
+          "DnsName",
+          "HealthCheck",
+          "Listeners",
+          "LoadBalancerName",
+          "LoadBalancerStickyCookiePolicies",
+          "LoadBalancerType",
+          "NetId",
+          "PrivateIp",
+          "PublicIp",
+          "SecuredCookies",
+          "SecurityGroups",
+          "SourceSecurityGroup",
+          "State",
+          "Subnets",
+          "SubregionNames",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "load_balancer.v1.LoadBalancerTag.DeleteLoadBalancerTags",
+      "id": "DeleteLoadBalancerTags",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "load_balancer_tag",
+      "http_method": "POST",
+      "path": "/DeleteLoadBalancerTags",
+      "description": "Deletes one or more tags from the specified load balancers.",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LoadBalancerNames",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more load balancer names.",
+          "item_type": "string"
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more tags to delete from the load balancers.",
+          "item_type": "object",
+          "ref": "ResourceLoadBalancerTag"
+        }
+      ],
+      "response": {
+        "schema": "DeleteLoadBalancerTagsResponse"
+      }
+    },
+    {
+      "key": "load_balancer.v1.VmInLoadBalancer.DeregisterVmsInLoadBalancer",
+      "id": "DeregisterVmsInLoadBalancer",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "vm_in_load_balancer",
+      "http_method": "POST",
+      "path": "/DeregisterVmsInLoadBalancer",
+      "description": "> [WARNING]<br />\n> Deprecated: This call is deprecated and will be removed.<br />",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "BackendVmIds",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more IDs of backend VMs.",
+          "item_type": "string"
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LoadBalancerName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the load balancer."
+        }
+      ],
+      "response": {
+        "schema": "DeregisterVmsInLoadBalancerResponse"
+      }
+    },
+    {
+      "key": "load_balancer.v1.LoadBalancerBackendMachine.LinkLoadBalancerBackendMachines",
+      "id": "LinkLoadBalancerBackendMachines",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "load_balancer_backend_machine",
+      "http_method": "POST",
+      "path": "/LinkLoadBalancerBackendMachines",
+      "description": "Attaches one or more virtual machines (VMs) to a specified load balancer. You need to specify at least the `BackendIps` or the `BackendVmIds` parameter.<br />\nThe VMs can be in different Subnets and different Subregions than the load balancer, as long as the VMs and load balancers are all in the public Cloud or all in the same Net. It may take a little time for a VM to be registered with the load balancer. Once the VM is registered with a load balancer, it receives traffic and requests from this load balancer and is called a backend VM.",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "BackendIps",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more public IPs of backend VMs.",
+          "item_type": "string"
+        },
+        {
+          "name": "BackendVmIds",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more IDs of backend VMs.",
+          "item_type": "string"
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LoadBalancerName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the load balancer."
+        }
+      ],
+      "response": {
+        "schema": "LinkLoadBalancerBackendMachinesResponse"
+      }
+    },
+    {
+      "key": "load_balancer.v1.LoadBalancerTag.ReadLoadBalancerTags",
+      "id": "ReadLoadBalancerTags",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "load_balancer_tag",
+      "http_method": "POST",
+      "path": "/ReadLoadBalancerTags",
+      "description": "Lists the tags associated with one or more specified load balancers.",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LoadBalancerNames",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more load balancer names.",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "ReadLoadBalancerTagsResponse",
+        "payload_field": "Tags",
+        "payload_schema": "LoadBalancerTag",
+        "payload_fields": [
+          "Key",
+          "LoadBalancerName",
+          "Value"
+        ],
+        "is_list": true
+      }
+    },
+    {
+      "key": "load_balancer.v1.LoadBalancer.ReadLoadBalancers",
+      "id": "ReadLoadBalancers",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "load_balancer",
+      "http_method": "POST",
+      "path": "/ReadLoadBalancers",
+      "description": "Lists one or more load balancers and their attributes.",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersLoadBalancer",
+          "properties": [
+            "LoadBalancerNames",
+            "States"
+          ]
+        }
+      ],
+      "response": {
+        "schema": "ReadLoadBalancersResponse",
+        "payload_field": "LoadBalancers",
+        "payload_schema": "LoadBalancer",
+        "payload_fields": [
+          "AccessLog",
+          "ApplicationStickyCookiePolicies",
+          "BackendIps",
+          "BackendVmIds",
+          "DnsName",
+          "HealthCheck",
+          "Listeners",
+          "LoadBalancerName",
+          "LoadBalancerStickyCookiePolicies",
+          "LoadBalancerType",
+          "NetId",
+          "PrivateIp",
+          "PublicIp",
+          "SecuredCookies",
+          "SecurityGroups",
+          "SourceSecurityGroup",
+          "State",
+          "Subnets",
+          "SubregionNames",
+          "Tags"
+        ],
+        "is_list": true
+      }
+    },
+    {
+      "key": "load_balancer.v1.VmHealth.ReadVmsHealth",
+      "id": "ReadVmsHealth",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "vm_health",
+      "http_method": "POST",
+      "path": "/ReadVmsHealth",
+      "description": "Lists the state of one or more backend virtual machines (VMs) registered with a specified load balancer.",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "BackendVmIds",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more IDs of backend VMs.",
+          "item_type": "string"
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LoadBalancerName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the load balancer."
+        }
+      ],
+      "response": {
+        "schema": "ReadVmsHealthResponse",
+        "payload_field": "BackendVmHealth",
+        "payload_schema": "BackendVmHealth",
+        "payload_fields": [
+          "Description",
+          "State",
+          "StateReason",
+          "VmId"
+        ],
+        "is_list": true
+      }
+    },
+    {
+      "key": "load_balancer.v1.VmInLoadBalancer.RegisterVmsInLoadBalancer",
+      "id": "RegisterVmsInLoadBalancer",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "vm_in_load_balancer",
+      "http_method": "POST",
+      "path": "/RegisterVmsInLoadBalancer",
+      "description": "> [WARNING]<br />\n> Deprecated: This call is deprecated and will be removed.<br />",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "BackendVmIds",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "One or more IDs of backend VMs.<br />\nSpecifying the same ID several times has no effect as each backend VM has equal weight.",
+          "item_type": "string"
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LoadBalancerName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the load balancer."
+        }
+      ],
+      "response": {
+        "schema": "RegisterVmsInLoadBalancerResponse"
+      }
+    },
+    {
+      "key": "load_balancer.v1.LoadBalancerBackendMachine.UnlinkLoadBalancerBackendMachines",
+      "id": "UnlinkLoadBalancerBackendMachines",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "load_balancer_backend_machine",
+      "http_method": "POST",
+      "path": "/UnlinkLoadBalancerBackendMachines",
+      "description": "Detaches one or more backend virtual machines (VMs) from a load balancer. You need to specify at least the `BackendIps` or the `BackendVmIds` parameter.",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "BackendIps",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more public IPs of backend VMs.",
+          "item_type": "string"
+        },
+        {
+          "name": "BackendVmIds",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more IDs of backend VMs.",
+          "item_type": "string"
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LoadBalancerName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the load balancer."
+        }
+      ],
+      "response": {
+        "schema": "UnlinkLoadBalancerBackendMachinesResponse"
+      }
+    },
+    {
+      "key": "load_balancer.v1.LoadBalancer.UpdateLoadBalancer",
+      "id": "UpdateLoadBalancer",
+      "product": "load_balancer",
+      "version": "v1",
+      "resource": "load_balancer",
+      "http_method": "POST",
+      "path": "/UpdateLoadBalancer",
+      "description": "Modifies the specified attribute of a load balancer. You can specify only one attribute at a time.<br /><br />",
+      "tags": [
+        "LoadBalancer"
+      ],
+      "parameters": [
+        {
+          "name": "AccessLog",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Information about access logs.",
+          "ref": "AccessLog",
+          "properties": [
+            "IsEnabled",
+            "OsuBucketName",
+            "OsuBucketPrefix",
+            "PublicationInterval"
+          ]
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "HealthCheck",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Information about the health check configuration.",
+          "ref": "HealthCheck",
+          "properties": [
+            "CheckInterval",
+            "HealthyThreshold",
+            "Path",
+            "Port",
+            "Protocol",
+            "Timeout",
+            "UnhealthyThreshold"
+          ]
+        },
+        {
+          "name": "LoadBalancerName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the load balancer."
+        },
+        {
+          "name": "LoadBalancerPort",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The port on which the load balancer is listening (between `1` and `65535`, both included). This parameter is required if you want to update the server certificate."
+        },
+        {
+          "name": "PolicyNames",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "The name of the policy you want to enable for the listener.",
+          "item_type": "string"
+        },
+        {
+          "name": "PublicIp",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "(internet-facing only) The public IP you want to associate with the load balancer. The former public IP of the load balancer is then disassociated. If you specify an empty string and the former public IP belonged to you, it is disassociated and replaced by a public IP owned by 3DS OUTSCALE."
+        },
+        {
+          "name": "SecuredCookies",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, secure cookies are enabled for the load balancer."
+        },
+        {
+          "name": "SecurityGroups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "(Net only) One or more IDs of security groups you want to assign to the load balancer. You need to specify the already assigned security groups that you want to keep along with the new ones you are assigning. If the list is empty, the default security group of the Net is assigned to the load balancer.",
+          "item_type": "string"
+        },
+        {
+          "name": "ServerCertificateId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The OUTSCALE Resource Name (ORN) of the server certificate. For more information, see [Resource Identifiers > OUTSCALE Resource Names (ORNs)](https://docs.outscale.com/en/userguide/Resource-Identifiers.html#_outscale_resource_names_orns). If this parameter is specified, you must also specify the `LoadBalancerPort` parameter."
+        }
+      ],
+      "response": {
+        "schema": "UpdateLoadBalancerResponse",
+        "payload_field": "LoadBalancer",
+        "payload_schema": "LoadBalancer",
+        "payload_fields": [
+          "AccessLog",
+          "ApplicationStickyCookiePolicies",
+          "BackendIps",
+          "BackendVmIds",
+          "DnsName",
+          "HealthCheck",
+          "Listeners",
+          "LoadBalancerName",
+          "LoadBalancerStickyCookiePolicies",
+          "LoadBalancerType",
+          "NetId",
+          "PrivateIp",
+          "PublicIp",
+          "SecuredCookies",
+          "SecurityGroups",
+          "SourceSecurityGroup",
+          "State",
+          "Subnets",
+          "SubregionNames",
+          "Tags"
+        ]
+      }
+    }
+  ],
+  "warnings": [
+    "3 lecture(s) de liste sans jeton de page, rendue(s) en une réponse dont le contrat ne promet pas qu'elle soit complète : ReadLoadBalancerTags, ReadLoadBalancers, ReadVmsHealth"
+  ]
+}

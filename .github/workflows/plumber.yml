@@ -1,0 +1,73 @@
+# Politique de confiance sur les composants tiers du pipeline : ce qui peut être
+# utilisé, de qui, et épinglé comment. C'est le job qui lit `.plumber.yaml`.
+#
+# Il ne tourne que dans des contextes de confiance, poussée sur `main`, une fois
+# par semaine, ou à la demande, et **jamais sur `pull_request`**. Les trois
+# scanners qui ne lisent que des fichiers restent dans
+# `workflow-security.yml`, où ils gardent chaque pull request sans aucun secret.
+#
+# Il ne peut pas non plus tourner depuis une copie de travail nue : plumber
+# déduit le fournisseur du remote git et refuse un dépôt qui n'en a pas. C'est
+# une propriété qui mérite d'être gardée, un rapport de confiance doit savoir
+# sur quel dépôt il porte.
+name: Plumber
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "15 3 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plumber:
+    name: Plumber (politique de confiance)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Durcir le runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Même motif que les quatre autres scanners : un binaire de release dont
+      # la somme publiée est vérifiée, pas une action tierce.
+      - name: Installer plumber (binaire de release vérifié)
+        env:
+          PLUMBER_VERSION: "0.4.51"
+        run: |
+          set -euo pipefail
+          workdir="$(mktemp -d)"
+          base="https://github.com/getplumber/plumber/releases/download/v${PLUMBER_VERSION}"
+          asset="plumber-linux-amd64"
+          curl --retry 3 --retry-connrefused -fsSL -o "${workdir}/${asset}" "${base}/${asset}"
+          curl --retry 3 --retry-connrefused -fsSL -o "${workdir}/checksums.txt" "${base}/checksums.txt"
+          (cd "${workdir}" && grep " ${asset}$" checksums.txt | sha256sum -c -)
+          sudo install -m 0755 "${workdir}/${asset}" /usr/local/bin/plumber
+          plumber version
+
+      # `--min-score B` et non le défaut de 100 points : un seuil est un
+      # engagement sur ce qu'on a mesuré, et la politique est mesurée en local
+      # avec une autre version de plumber que celle épinglée ici. À resserrer
+      # sur `--min-points 100` dès que la première exécution verte confirme le
+      # score sur la version épinglée.
+      #
+      # Aucun `GH_TOKEN` ici : `branchMustBeProtected` est désactivé dans
+      # `.plumber.yaml` plutôt que laissé à s'abstenir en silence, faute d'un
+      # jeton à portée Administration. Ce qui le remplace est le job
+      # `La protection de branche est celle qui est déclarée`.
+      - name: Plumber
+        run: plumber analyze --min-score B

@@ -1,0 +1,217 @@
+{
+  "product": "net",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "net.v1.Net.CreateNet",
+      "id": "CreateNet",
+      "product": "net",
+      "version": "v1",
+      "resource": "net",
+      "http_method": "POST",
+      "path": "/CreateNet",
+      "description": "Creates a Net with a specified IP range.<br />\nThe IP range (network range) of your Net must be between a /28 netmask (16 IPs) and a /16 netmask (65536 IPs).<br /><br />\nFor more information, see [About Nets](https://docs.outscale.com/en/userguide/About-Nets.html).",
+      "tags": [
+        "Net"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "IpRange",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The IP range for the Net, in CIDR notation (for example, `10.0.0.0/16`)."
+        },
+        {
+          "name": "Tenancy",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The tenancy options for the VMs:<br />\n- `default` if a VM created in a Net can be launched with any tenancy.<br />\n- `dedicated` if it can be launched with dedicated tenancy VMs running on single-tenant hardware.<br />\n- `dedicated group ID`: if it can be launched in a dedicated group on single-tenant hardware."
+        }
+      ],
+      "response": {
+        "schema": "CreateNetResponse",
+        "payload_field": "Net",
+        "payload_schema": "Net",
+        "payload_fields": [
+          "DhcpOptionsSetId",
+          "IpRange",
+          "NetId",
+          "State",
+          "Tags",
+          "Tenancy"
+        ]
+      }
+    },
+    {
+      "key": "net.v1.Net.DeleteNet",
+      "id": "DeleteNet",
+      "product": "net",
+      "version": "v1",
+      "resource": "net",
+      "http_method": "POST",
+      "path": "/DeleteNet",
+      "description": "Deletes a specified Net.<br />\nBefore deleting the Net, you need to delete or detach all the resources associated with the Net:<br /><br />",
+      "tags": [
+        "Net"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the Net you want to delete."
+        }
+      ],
+      "response": {
+        "schema": "DeleteNetResponse"
+      }
+    },
+    {
+      "key": "net.v1.Net.ReadNets",
+      "id": "ReadNets",
+      "product": "net",
+      "version": "v1",
+      "resource": "net",
+      "http_method": "POST",
+      "path": "/ReadNets",
+      "description": "Lists one or more Nets.",
+      "tags": [
+        "Net"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersNet",
+          "properties": [
+            "DhcpOptionsSetIds",
+            "IpRanges",
+            "IsDefault",
+            "NetIds",
+            "States",
+            "TagKeys",
+            "TagValues",
+            "Tags"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadNetsResponse",
+        "payload_field": "Nets",
+        "payload_schema": "Net",
+        "payload_fields": [
+          "DhcpOptionsSetId",
+          "IpRange",
+          "NetId",
+          "State",
+          "Tags",
+          "Tenancy"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "net.v1.Net.UpdateNet",
+      "id": "UpdateNet",
+      "product": "net",
+      "version": "v1",
+      "resource": "net",
+      "http_method": "POST",
+      "path": "/UpdateNet",
+      "description": "Associates a DHCP options set with a specified Net.",
+      "tags": [
+        "Net"
+      ],
+      "parameters": [
+        {
+          "name": "DhcpOptionsSetId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the DHCP options set (or `default` if you want to associate the default one)."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the Net."
+        }
+      ],
+      "response": {
+        "schema": "UpdateNetResponse",
+        "payload_field": "Net",
+        "payload_schema": "Net",
+        "payload_fields": [
+          "DhcpOptionsSetId",
+          "IpRange",
+          "NetId",
+          "State",
+          "Tags",
+          "Tenancy"
+        ]
+      }
+    }
+  ]
+}

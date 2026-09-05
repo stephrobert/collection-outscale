@@ -1,0 +1,39 @@
+# Overrides de laboratoire : les mêmes arbitrages que vm.yml, sur le contrat
+# widget. Ils reproduisent ce que le contrat réel demande, pour que les tests
+# du modèle et du runtime ne dépendent pas d'Outscale.
+
+operations:
+
+  # Reproduit ReadConsoleOutput : une lecture que rien n'exerce, retirée des
+  # modules avec sa raison, et qui reste classée INFO.
+  widget.v1.WidgetConsole.ReadWidgetConsole:
+    expose: false
+    reason: >-
+      Reproduit ReadConsoleOutput : l'émulateur ne sert pas la route, aucune
+      cible ne peut exercer le module.
+
+  widget.v1.Widget.StartWidgets:
+    wait:
+      field: State
+      states:
+        start: running
+      reason: >-
+        Reproduit StartVms : le contrat ne dit pas l'état d'arrivée, un humain
+        le décide et le runtime le vérifie.
+
+  widget.v1.Widget.StopWidgets:
+    wait:
+      field: State
+      states:
+        stop: stopped
+      reason: Reproduit StopVms.
+
+  widget.v1.Widget.RebootWidgets:
+    wait:
+      field: State
+      states:
+        reboot: running
+      always: [reboot]
+      reason: >-
+        Reproduit RebootVms : l'état visé peut déjà être là, et l'action doit
+        quand même agir.

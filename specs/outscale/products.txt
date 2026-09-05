@@ -1,0 +1,56 @@
+# Produits Outscale suivis par le générateur, un par ligne.
+#
+#   <Tag> [<nom-produit>] <version>
+#
+# Outscale publie UN SEUL document OpenAPI (`outscale/osc-api`, outscale.yaml)
+# pour toute son API. Un produit n'est donc pas un fichier, c'est un **tag** :
+# chaque opération en porte exactement un (`ReadVms`, `StartVms` et `UpdateVm`
+# portent `Vm`), et le document ne déclare ni liste de tags ni hiérarchie. La
+# ligne indexe le tag tel que le contrat l'écrit, et `generator/source/base.py`
+# découpe le document dessus.
+#
+# La version est celle du chemin de l'API (`/api/v1`). La version du document
+# (`1.42.0`) se lit dans `info.version` et sort dans le rapport de dérive.
+#
+# Sans nom de produit, le nom est le tag en snake_case (`LoadBalancer` donne
+# `load_balancer`) : c'est le préfixe des modules et le nom du fichier
+# d'overrides.
+#
+# **Le périmètre est celui que la plateforme d'exemple exerce, et il s'arrête
+# là.** Le contrat porte 50 tags ; feint en sert 24 (100 routes sur 236,
+# mesuré sur son artefact `coverage/outscale-coverage.json`), et la stack HCL
+# d'`examples/stack/` en touche 22. Un module écrit que rien n'exerce est un
+# module dont on ignore s'il marche, et la collection en publierait le nom
+# comme si de rien n'était : les 28 autres tags ne sont pas indexés, et
+# `python -m generator products` les recense à chaque exécution avec leur
+# nombre d'opérations et leurs UNKNOWN, pour que l'écart reste visible. On
+# élargit quand l'exemple suit, jamais avant.
+#
+# Les deux tags que feint sert et que l'exemple ne touche pas, avec leur
+# raison : `FlexibleGpu`, parce qu'un GPU est une ressource facturée que
+# l'exemple ne doit pas déclarer sur le vrai cloud ; `NetAccessPoint`, parce
+# que feint ne sert que le catalogue (`ReadNetAccessPointServices`) et décline
+# les quatre opérations de la ressource elle-même.
+
+Vm v1
+Volume v1
+Snapshot v1
+Image v1
+Keypair v1
+Net v1
+Subnet v1
+SecurityGroup v1
+SecurityGroupRule v1
+PublicIp v1
+Nic v1
+RouteTable v1
+Route v1
+InternetService v1
+NatService v1
+NetPeering v1
+DhcpOption v1
+LoadBalancer v1
+Listener v1
+Tag v1
+Region v1
+Subregion v1

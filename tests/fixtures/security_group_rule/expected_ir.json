@@ -1,0 +1,221 @@
+{
+  "product": "security_group_rule",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "security_group_rule.v1.SecurityGroupRule.CreateSecurityGroupRule",
+      "id": "CreateSecurityGroupRule",
+      "product": "security_group_rule",
+      "version": "v1",
+      "resource": "security_group_rule",
+      "http_method": "POST",
+      "path": "/CreateSecurityGroupRule",
+      "description": "Adds one or more rules to a security group.<br />\nUse the `SecurityGroupId` parameter to specify the security group for which you want to create a rule.<br />\nUse the `Flow` parameter to specify if you want an inbound rule or an outbound rule.<br /><br />\nAn inbound rule allows the security group to receive traffic:\n* Either from a specific IP range (`IpRange` parameter) on a specific port range (`FromPortRange` and `ToPortRange` parameters) and specific protocol (`IpProtocol` parameter).\n* Or from another specific security group (`SecurityGroupAccountIdToLink` and `SecurityGroupNameToLink` parameters).<br />",
+      "tags": [
+        "SecurityGroupRule"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Flow",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The direction of the flow: `Inbound` or `Outbound`. You can specify `Outbound` for Nets only."
+        },
+        {
+          "name": "FromPortRange",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The beginning of the port range for the TCP and UDP protocols, or an ICMP type number. If you specify this parameter, you cannot specify the `Rules` parameter and its subparameters."
+        },
+        {
+          "name": "IpProtocol",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The IP protocol name (`tcp`, `udp`, `icmp`, or `-1` for all protocols). By default, `-1`. In a Net, this can also be an IP protocol number. For more information, see the [IANA.org website](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml). If you specify this parameter, you cannot specify the `Rules` parameter and its subparameters."
+        },
+        {
+          "name": "IpRange",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The IP range for the security group rule, in CIDR notation (for example, `10.0.0.0/16`). If you specify this parameter, you cannot specify the `Rules` parameter and its subparameters."
+        },
+        {
+          "name": "Rules",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Information about the security group rule to create. If you specify this parent parameter and its subparameters, you cannot specify the following parent parameters: `FromPortRange`, `IpProtocol`, `IpRange`, and `ToPortRange`.",
+          "item_type": "object",
+          "ref": "SecurityGroupRule"
+        },
+        {
+          "name": "SecurityGroupAccountIdToLink",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The OUTSCALE account ID that owns the source or destination security group specified in the `SecurityGroupNameToLink` parameter.<br />With OSC CLI, you must wrap the value in two pairs of quotes to make sure it is parsed as a string: `--SecurityGroupAccountIdToLink '&quot;12345678&quot;'`."
+        },
+        {
+          "name": "SecurityGroupId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the security group for which you want to create a rule."
+        },
+        {
+          "name": "SecurityGroupNameToLink",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The ID of a source or destination security group that you want to link to the security group of the rule."
+        },
+        {
+          "name": "ToPortRange",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The end of the port range for the TCP and UDP protocols, or an ICMP code number. If you specify this parameter, you cannot specify the `Rules` parameter and its subparameters."
+        }
+      ],
+      "response": {
+        "schema": "CreateSecurityGroupRuleResponse",
+        "payload_field": "SecurityGroup",
+        "payload_schema": "SecurityGroup",
+        "payload_fields": [
+          "AccountId",
+          "Description",
+          "InboundRules",
+          "NetId",
+          "OutboundRules",
+          "SecurityGroupId",
+          "SecurityGroupName",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "security_group_rule.v1.SecurityGroupRule.DeleteSecurityGroupRule",
+      "id": "DeleteSecurityGroupRule",
+      "product": "security_group_rule",
+      "version": "v1",
+      "resource": "security_group_rule",
+      "http_method": "POST",
+      "path": "/DeleteSecurityGroupRule",
+      "description": "Deletes one or more inbound or outbound rules from a security group.<br />\nFor the rule to be deleted, the values specified in the deletion request must exactly match the value of the existing rule.<br />\nIn case of TCP and UDP protocols, you have to indicate the destination port or range of ports. In case of ICMP protocol, you have to specify the ICMP type and code numbers.<br />\nRules (IP permissions) consist of the protocol, IP range or source security group.<br />\nTo remove outbound access to a destination security group, we recommend to use a set of IP permissions. We also recommend to specify the protocol in a set of IP permissions.<br />",
+      "tags": [
+        "SecurityGroupRule"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Flow",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The direction of the flow: `Inbound` or `Outbound`. You can specify `Outbound` for Nets only."
+        },
+        {
+          "name": "FromPortRange",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The beginning of the port range for the TCP and UDP protocols, or an ICMP type number."
+        },
+        {
+          "name": "IpProtocol",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The IP protocol name (`tcp`, `udp`, `icmp`, or `-1` for all protocols). By default, `-1`. In a Net, this can also be an IP protocol number. For more information, see the [IANA.org website](https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)."
+        },
+        {
+          "name": "IpRange",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The IP range for the security group rule, in CIDR notation (for example, `10.0.0.0/16`)."
+        },
+        {
+          "name": "Rules",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "One or more rules you want to delete from the security group.",
+          "item_type": "object",
+          "ref": "SecurityGroupRule"
+        },
+        {
+          "name": "SecurityGroupAccountIdToUnlink",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The OUTSCALE account ID of the owner of the security group you want to delete a rule from."
+        },
+        {
+          "name": "SecurityGroupId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the security group you want to delete a rule from."
+        },
+        {
+          "name": "SecurityGroupNameToUnlink",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The ID of the source security group. If you are in the Public Cloud, you can also specify the name of the source security group."
+        },
+        {
+          "name": "ToPortRange",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The end of the port range for the TCP and UDP protocols, or an ICMP code number."
+        }
+      ],
+      "response": {
+        "schema": "DeleteSecurityGroupRuleResponse",
+        "payload_field": "SecurityGroup",
+        "payload_schema": "SecurityGroup",
+        "payload_fields": [
+          "AccountId",
+          "Description",
+          "InboundRules",
+          "NetId",
+          "OutboundRules",
+          "SecurityGroupId",
+          "SecurityGroupName",
+          "Tags"
+        ]
+      }
+    }
+  ]
+}

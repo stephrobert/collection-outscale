@@ -1,0 +1,9 @@
+# Index du contrat de laboratoire : deux tags, comme deux produits.
+#
+# `Widget` reproduit la ressource principale (lecture paginée, actions sur une
+# liste d'identifiants, secret, charge utile indécidable) ; `Gadget` reproduit
+# une ressource dont l'action porte un identifiant seul et dont l'état est
+# imbriqué (`State.Name`), comme `NetPeering` sur le contrat réel. `Other` et
+# l'opération sans tag ne sont pas indexés : le recensement les compte.
+Widget v1
+Gadget v1

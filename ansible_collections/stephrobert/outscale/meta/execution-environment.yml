@@ -1,0 +1,17 @@
+---
+# Ce que doit installer un environnement d'exécution construit pour cette
+# collection. `ansible-builder` lit ce fichier ; sans lui, il retomberait sur
+# `requirements.txt` et `bindep.txt` à la racine, qui décrivent l'outillage de
+# développement de ce dépôt et n'ont rien à faire dans une image.
+#
+# La dépendance déclarée ici est la vraie : les modules exécutent leurs appels
+# par le SDK Exoscale, et sans lui ils échouent avec `missing_required_lib`.
+# `version: 3` est **exigé** par le format, et son absence ne se voit pas :
+# `ansible-builder` n'est lancé nulle part dans ce dépôt, et `ansible-test
+# sanity` ne juge pas ce fichier. C'est `ansible-lint` en profil production qui
+# l'a dit à `collection-scaleway`, la première fois qu'on l'a lancé.
+version: 3
+
+dependencies:
+  python: meta/ee-requirements.txt
+  system: meta/ee-bindep.txt

@@ -1,0 +1,188 @@
+{
+  "product": "dhcp_option",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "dhcp_option.v1.DhcpOption.CreateDhcpOptions",
+      "id": "CreateDhcpOptions",
+      "product": "dhcp_option",
+      "version": "v1",
+      "resource": "dhcp_option",
+      "http_method": "POST",
+      "path": "/CreateDhcpOptions",
+      "description": "Creates a set of DHCP options, that you can then associate with a Net using the [UpdateNet](#updatenet) method.<br /><br />\nFor more information, see [About DHCP Options](https://docs.outscale.com/en/userguide/About-DHCP-Options.html).",
+      "tags": [
+        "DhcpOption"
+      ],
+      "parameters": [
+        {
+          "name": "DomainName",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Specify a domain name (for example, `MyCompany.com`). You can specify only one domain name. You must specify at least one of the following parameters: `DomainName`, `DomainNameServers`, `LogServers`, or `NtpServers`."
+        },
+        {
+          "name": "DomainNameServers",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "The IPs of domain name servers. If no IPs are specified, the `OutscaleProvidedDNS` value is set by default. You must specify at least one of the following parameters: `DomainName`, `DomainNameServers`, `LogServers`, or `NtpServers`.",
+          "item_type": "string"
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LogServers",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "The IPs of the log servers. You must specify at least one of the following parameters: `DomainName`, `DomainNameServers`, `LogServers`, or `NtpServers`.",
+          "item_type": "string"
+        },
+        {
+          "name": "NtpServers",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "The IPs of the Network Time Protocol (NTP) servers. You must specify at least one of the following parameters: `DomainName`, `DomainNameServers`, `LogServers`, or `NtpServers`.",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "CreateDhcpOptionsResponse",
+        "payload_field": "DhcpOptionsSet",
+        "payload_schema": "DhcpOptionsSet",
+        "payload_fields": [
+          "Default",
+          "DhcpOptionsSetId",
+          "DomainName",
+          "DomainNameServers",
+          "LogServers",
+          "NtpServers",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "dhcp_option.v1.DhcpOption.DeleteDhcpOptions",
+      "id": "DeleteDhcpOptions",
+      "product": "dhcp_option",
+      "version": "v1",
+      "resource": "dhcp_option",
+      "http_method": "POST",
+      "path": "/DeleteDhcpOptions",
+      "description": "Deletes a specified DHCP options set.<br />\nBefore deleting a DHCP options set, you must disassociate it from the Nets you associated it with. To do so, you need to associate with each Net a new set of DHCP options, or the `default` one if you do not want to associate any DHCP options with the Net.<br /><br />",
+      "tags": [
+        "DhcpOption"
+      ],
+      "parameters": [
+        {
+          "name": "DhcpOptionsSetId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the DHCP options set you want to delete."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        }
+      ],
+      "response": {
+        "schema": "DeleteDhcpOptionsResponse"
+      }
+    },
+    {
+      "key": "dhcp_option.v1.DhcpOption.ReadDhcpOptions",
+      "id": "ReadDhcpOptions",
+      "product": "dhcp_option",
+      "version": "v1",
+      "resource": "dhcp_option",
+      "http_method": "POST",
+      "path": "/ReadDhcpOptions",
+      "description": "Gets information about the content of one or more DHCP options sets.",
+      "tags": [
+        "DhcpOption"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersDhcpOptions",
+          "properties": [
+            "Default",
+            "DhcpOptionsSetIds",
+            "DomainNameServers",
+            "DomainNames",
+            "LogServers",
+            "NtpServers",
+            "TagKeys",
+            "TagValues",
+            "Tags"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadDhcpOptionsResponse",
+        "payload_field": "DhcpOptionsSets",
+        "payload_schema": "DhcpOptionsSet",
+        "payload_fields": [
+          "Default",
+          "DhcpOptionsSetId",
+          "DomainName",
+          "DomainNameServers",
+          "LogServers",
+          "NtpServers",
+          "Tags"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    }
+  ]
+}

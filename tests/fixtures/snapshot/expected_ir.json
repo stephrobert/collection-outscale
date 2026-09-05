@@ -1,0 +1,407 @@
+{
+  "product": "snapshot",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "snapshot.v1.Snapshot.CreateSnapshot",
+      "id": "CreateSnapshot",
+      "product": "snapshot",
+      "version": "v1",
+      "resource": "snapshot",
+      "http_method": "POST",
+      "path": "/CreateSnapshot",
+      "description": "Creates a snapshot. Snapshots are point-in-time images of a volume that you can use to back up your data or to create replicas of this volume.<br />\nYou can use this method in three different ways:\n* **Creating from a volume**: You create a snapshot from one of your volumes.<br />\n* **Copying a snapshot**: You copy an existing snapshot. The source snapshot can be one of your own snapshots, or a snapshot owned by another OUTSCALE account that has granted you permission via the [UpdateSnapshot](#updatesnapshot) method.<br />\n* **Importing from a bucket**: You import a snapshot located in an OUTSCALE Object Storage (OOS) bucket. First, the owner of the source snapshot must export it to a bucket by using the [CreateSnapshotExportTask](#createsnapshotexporttask) method. Then, they must grant you permission to read the snapshot via a pre-signed URL. For more information, see [Creating a Pre-Signed URL](https://docs.outscale.com/en/userguide/Creating-a-Pre-Signed-URL.html).",
+      "tags": [
+        "Snapshot"
+      ],
+      "parameters": [
+        {
+          "name": "ClientToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "A unique identifier which enables you to manage the idempotency.<br />With OSC CLI, if you want to specify a number for this value, you must wrap it in two pairs of quotes to make sure the value is parsed as a string: `--ClientToken '&quot;12345678&quot;'`."
+        },
+        {
+          "name": "Description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "A description for the snapshot."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "FileLocation",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "**(when importing from a bucket)** The pre-signed URL of the snapshot you want to import. For more information, see [Creating a Pre-signed URL](https://docs.outscale.com/en/userguide/Creating-a-Pre-Signed-URL.html)."
+        },
+        {
+          "name": "SnapshotSize",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "**(when importing from a bucket)** The size of the snapshot you want to create in your account, in bytes. This size must be greater than or equal to the size of the original, uncompressed snapshot.",
+          "format": "int64"
+        },
+        {
+          "name": "SourceRegionName",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "**(when copying a snapshot)** The name of the source Region, which must be the same as the Region of your account."
+        },
+        {
+          "name": "SourceSnapshotId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "**(when copying a snapshot)** The ID of the snapshot you want to copy."
+        },
+        {
+          "name": "VolumeId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "**(when creating from a volume)** The ID of the volume you want to create a snapshot of."
+        }
+      ],
+      "response": {
+        "schema": "CreateSnapshotResponse",
+        "payload_field": "Snapshot",
+        "payload_schema": "Snapshot",
+        "payload_fields": [
+          "AccountAlias",
+          "AccountId",
+          "ClientToken",
+          "CreationDate",
+          "Description",
+          "PermissionsToCreateVolume",
+          "Progress",
+          "SnapshotId",
+          "State",
+          "Tags",
+          "VolumeId",
+          "VolumeSize"
+        ]
+      }
+    },
+    {
+      "key": "snapshot.v1.SnapshotExportTask.CreateSnapshotExportTask",
+      "id": "CreateSnapshotExportTask",
+      "product": "snapshot",
+      "version": "v1",
+      "resource": "snapshot_export_task",
+      "http_method": "POST",
+      "path": "/CreateSnapshotExportTask",
+      "description": "Exports a snapshot to an OUTSCALE Object Storage (OOS) bucket that belongs to you. This action enables you to create a backup of your snapshot.<br /><br />\nYou can share this snapshot with others OUTSCALE accounts by granting permission to read it via pre-signed URLs. For more information, see [Creating a Pre-Signed URL](https://docs.outscale.com/en/userguide/Creating-a-Pre-Signed-URL.html).<br /><br />\n**[IMPORTANT]**<br />\nExport tasks can only be canceled while in the `pending/queued` state.<br /><br />\nFor more information, see [About Snapshots](https://docs.outscale.com/en/userguide/About-Snapshots.html).",
+      "tags": [
+        "Snapshot"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "OsuExport",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Information about the OOS export task to create.",
+          "ref": "OsuExportToCreate",
+          "properties": [
+            "DiskImageFormat",
+            "OsuApiKey",
+            "OsuBucket",
+            "OsuManifestUrl",
+            "OsuPrefix"
+          ]
+        },
+        {
+          "name": "SnapshotId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the snapshot to export."
+        }
+      ],
+      "response": {
+        "schema": "CreateSnapshotExportTaskResponse",
+        "payload_field": "SnapshotExportTask",
+        "payload_schema": "SnapshotExportTask",
+        "payload_fields": [
+          "Comment",
+          "OsuExport",
+          "Progress",
+          "SnapshotId",
+          "State",
+          "Tags",
+          "TaskId"
+        ]
+      }
+    },
+    {
+      "key": "snapshot.v1.Snapshot.DeleteSnapshot",
+      "id": "DeleteSnapshot",
+      "product": "snapshot",
+      "version": "v1",
+      "resource": "snapshot",
+      "http_method": "POST",
+      "path": "/DeleteSnapshot",
+      "description": "Deletes a specified snapshot.<br />\nYou cannot delete a snapshot that is currently used by an OUTSCALE machine image (OMI). To do so, you first need to delete the corresponding OMI. For more information, see the [DeleteImage](#deleteimage) method.",
+      "tags": [
+        "Snapshot"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "SnapshotId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the snapshot you want to delete."
+        }
+      ],
+      "response": {
+        "schema": "DeleteSnapshotResponse"
+      }
+    },
+    {
+      "key": "snapshot.v1.SnapshotExportTask.ReadSnapshotExportTasks",
+      "id": "ReadSnapshotExportTasks",
+      "product": "snapshot",
+      "version": "v1",
+      "resource": "snapshot_export_task",
+      "http_method": "POST",
+      "path": "/ReadSnapshotExportTasks",
+      "description": "Lists one or more snapshot export tasks.",
+      "tags": [
+        "Snapshot"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersSnapshotExportTask",
+          "properties": [
+            "SnapshotIds",
+            "TaskIds"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadSnapshotExportTasksResponse",
+        "payload_field": "SnapshotExportTasks",
+        "payload_schema": "SnapshotExportTask",
+        "payload_fields": [
+          "Comment",
+          "OsuExport",
+          "Progress",
+          "SnapshotId",
+          "State",
+          "Tags",
+          "TaskId"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "snapshot.v1.Snapshot.ReadSnapshots",
+      "id": "ReadSnapshots",
+      "product": "snapshot",
+      "version": "v1",
+      "resource": "snapshot",
+      "http_method": "POST",
+      "path": "/ReadSnapshots",
+      "description": "Lists one or more snapshots that are available to you and the permissions to create volumes from them.",
+      "tags": [
+        "Snapshot"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersSnapshot",
+          "properties": [
+            "AccountAliases",
+            "AccountIds",
+            "ClientTokens",
+            "Descriptions",
+            "FromCreationDate",
+            "PermissionsToCreateVolumeAccountIds",
+            "PermissionsToCreateVolumeGlobalPermission",
+            "Progresses",
+            "SnapshotIds",
+            "States",
+            "TagKeys",
+            "TagValues",
+            "Tags",
+            "ToCreationDate",
+            "VolumeIds",
+            "VolumeSizes"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadSnapshotsResponse",
+        "payload_field": "Snapshots",
+        "payload_schema": "Snapshot",
+        "payload_fields": [
+          "AccountAlias",
+          "AccountId",
+          "ClientToken",
+          "CreationDate",
+          "Description",
+          "PermissionsToCreateVolume",
+          "Progress",
+          "SnapshotId",
+          "State",
+          "Tags",
+          "VolumeId",
+          "VolumeSize"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "snapshot.v1.Snapshot.UpdateSnapshot",
+      "id": "UpdateSnapshot",
+      "product": "snapshot",
+      "version": "v1",
+      "resource": "snapshot",
+      "http_method": "POST",
+      "path": "/UpdateSnapshot",
+      "description": "Modifies the permissions for a specified snapshot.<br />\nYou must specify either the `Additions` or the `Removals` parameter.<br />\nAfter sharing a snapshot with an OUTSCALE account, the other account can create a copy of it that they own. For more information about copying snapshots, see [CreateSnapshot](#createsnapshot).",
+      "tags": [
+        "Snapshot"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "PermissionsToCreateVolume",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Information about the permissions for the resource.<br />\nSpecify either the `Additions` or the `Removals` parameter.",
+          "ref": "PermissionsOnResourceCreation",
+          "properties": [
+            "Additions",
+            "Removals"
+          ]
+        },
+        {
+          "name": "SnapshotId",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The ID of the snapshot."
+        }
+      ],
+      "response": {
+        "schema": "UpdateSnapshotResponse",
+        "payload_field": "Snapshot",
+        "payload_schema": "Snapshot",
+        "payload_fields": [
+          "AccountAlias",
+          "AccountId",
+          "ClientToken",
+          "CreationDate",
+          "Description",
+          "PermissionsToCreateVolume",
+          "Progress",
+          "SnapshotId",
+          "State",
+          "Tags",
+          "VolumeId",
+          "VolumeSize"
+        ]
+      }
+    }
+  ]
+}

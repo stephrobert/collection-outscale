@@ -1,0 +1,173 @@
+{
+  "product": "keypair",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "keypair.v1.Keypair.CreateKeypair",
+      "id": "CreateKeypair",
+      "product": "keypair",
+      "version": "v1",
+      "resource": "keypair",
+      "http_method": "POST",
+      "path": "/CreateKeypair",
+      "description": "Creates a keypair to use with your virtual machines (VMs).<br />\nYou can use this method in two different ways:\n* **Creating a keypair**: In that case, 3DS OUTSCALE creates a 2048-bit RSA keypair, stores its public key in your OUTSCALE account, and returns its private key in the response of the call so that you can save it in a file.<br />\nWhen you save the returned private key, make sure you replace the `\\n` escape sequences with real line breaks.\n* **Importing a keypair created locally**: If you already have a keypair that you have created locally with a third-party tool, you can import its public key in your account. The following types of key can be imported: RSA (2048 bits or preferably 4096 bits), Ed25519, and ECDSA (256 bits, 384 bits, or 521 bits). The following formats can be used: PEM, PKCS8, RFC4716, and OpenSSH.",
+      "tags": [
+        "Keypair"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "KeypairName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "A unique name for the keypair, with a maximum length of 255 [ASCII printable characters](https://en.wikipedia.org/wiki/ASCII#Printable_characters)."
+        },
+        {
+          "name": "PublicKey",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The public key to import in your account, if you are importing an existing keypair. This value must be Base64-encoded."
+        }
+      ],
+      "response": {
+        "schema": "CreateKeypairResponse",
+        "payload_field": "Keypair",
+        "payload_schema": "KeypairCreated",
+        "payload_fields": [
+          "KeypairFingerprint",
+          "KeypairId",
+          "KeypairName",
+          "KeypairType",
+          "PrivateKey",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "keypair.v1.Keypair.DeleteKeypair",
+      "id": "DeleteKeypair",
+      "product": "keypair",
+      "version": "v1",
+      "resource": "keypair",
+      "http_method": "POST",
+      "path": "/DeleteKeypair",
+      "description": "Deletes the specified keypair.<br />\nThis action deletes the public key stored by 3DS OUTSCALE, thus deleting the keypair.",
+      "tags": [
+        "Keypair"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "KeypairId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The ID of the keypair you want to delete."
+        },
+        {
+          "name": "KeypairName",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The name of the keypair you want to delete."
+        }
+      ],
+      "response": {
+        "schema": "DeleteKeypairResponse"
+      }
+    },
+    {
+      "key": "keypair.v1.Keypair.ReadKeypairs",
+      "id": "ReadKeypairs",
+      "product": "keypair",
+      "version": "v1",
+      "resource": "keypair",
+      "http_method": "POST",
+      "path": "/ReadKeypairs",
+      "description": "Lists one or more of your keypairs.",
+      "tags": [
+        "Keypair"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersKeypair",
+          "properties": [
+            "KeypairFingerprints",
+            "KeypairIds",
+            "KeypairNames",
+            "KeypairTypes",
+            "TagKeys",
+            "TagValues",
+            "Tags"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included). By default, `100`."
+        }
+      ],
+      "response": {
+        "schema": "ReadKeypairsResponse",
+        "payload_field": "Keypairs",
+        "payload_schema": "Keypair",
+        "payload_fields": [
+          "KeypairFingerprint",
+          "KeypairId",
+          "KeypairName",
+          "KeypairType",
+          "Tags"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    }
+  ]
+}

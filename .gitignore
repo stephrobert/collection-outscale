@@ -1,0 +1,37 @@
+# Ce qu'une commande peut reproduire ne se versionne pas, et `git status` doit
+# rester vide après `mise run check`, `mise run sanity` et `mise run package`.
+# La CI le vérifie, par `mise run check:worktree`.
+
+# Artefacts des tâches : build/reports, build/docs, build/dist, build/example
+build/
+
+# Environnements et caches d'outils
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# `ansible-test` écrit ici quand il tourne depuis le dépôt.
+/ansible_collections/stephrobert/outscale/tests/output/
+
+# `antsibull-changelog` reconstruit ce cache à chaque exécution.
+/ansible_collections/stephrobert/outscale/changelogs/.plugin-cache.yaml
+
+# Terraform : les fournisseurs téléchargés et l'état d'un run. Le verrou des
+# fournisseurs (`.terraform.lock.hcl`) est versionné, lui : c'est ce qui rend
+# le plan reproductible d'un poste à la CI.
+/examples/stack/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# Collections installées pour un essai local, et archives.
+.ansible/
+*.tar.gz
+*.retry
+
+# Réglages locaux de mise, propres à un poste.
+.mise.local.toml

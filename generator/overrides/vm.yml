@@ -1,0 +1,73 @@
+# Décisions humaines sur le produit `vm` (tag `Vm` du contrat).
+#
+# Chaque entrée porte sa raison, et la raison dit ce que l'opération est, pas
+# ce qu'on en fait. La question à laquelle elle répond : si quelqu'un veut
+# supprimer cet override dans six mois, qu'est-ce qui l'en empêchera ?
+
+operations:
+
+  # ---- Les lectures que rien n'exerce ------------------------------------
+  #
+  # feint 0.12.1 décline ces deux routes (mesuré sur son artefact
+  # `coverage/outscale-coverage.json`, le 5 septembre 2026), et la plateforme
+  # d'exemple ne parle qu'à feint. Un module écrit que rien n'exerce est un
+  # module dont on ignore s'il marche, et la collection en publierait le nom
+  # comme si de rien n'était. L'opération reste classée INFO et compte dans la
+  # couverture ; elle n'a pas de module tant que l'exemple ne peut pas la
+  # jouer. Le rapport la liste sous « classées, mais sans module, par
+  # décision ».
+
+  vm.v1.ConsoleOutput.ReadConsoleOutput:
+    expose: false
+    reason: >-
+      feint 0.12.1 ne sert pas ReadConsoleOutput, et la sortie console d'une
+      machine n'existe que sur le vrai cloud : aucune cible ne peut exercer le
+      module tant que l'exemple ne tourne que contre l'émulateur.
+
+  vm.v1.VmStopHistory.ReadVmsStopHistory:
+    expose: false
+    reason: >-
+      feint 0.12.1 ne sert pas ReadVmsStopHistory, apparue dans le contrat
+      1.42.0 : aucune cible ne peut exercer le module tant que l'exemple ne
+      tourne que contre l'émulateur.
+
+  # ---- Les états qu'une action laisse derrière elle -----------------------
+  #
+  # L'API répond tout de suite : StopVms rend `stopping`, et la machine passe
+  # `stopped` plus tard. Le contrat ne dit pas l'état d'arrivée ; il le laisse
+  # entendre dans la description de `Vm.State` (`pending | running | stopping |
+  # stopped | shutting-down | terminated | quarantine`). Un humain le décide,
+  # et le runtime relit la machine par `ReadVms` filtré sur `VmIds` jusqu'à
+  # l'état visé.
+  #
+  # `reboot` est déclaré `always` : il vise `running` et doit redémarrer une
+  # machine qui tourne. `start` vise `running` et n'a rien à faire sur une
+  # machine qui tourne.
+
+  vm.v1.Vm.StartVms:
+    wait:
+      field: State
+      states:
+        start: running
+      reason: >-
+        Le contrat ne dit pas l'état d'arrivée ; `Vm.State` le décrit en
+        prose, et `running` est l'état d'une machine démarrée.
+
+  vm.v1.Vm.StopVms:
+    wait:
+      field: State
+      states:
+        stop: stopped
+      reason: >-
+        StopVms rend `stopping` dans sa réponse ; l'état durable est `stopped`,
+        et c'est celui qu'un playbook attend avant de toucher au disque.
+
+  vm.v1.Vm.RebootVms:
+    wait:
+      field: State
+      states:
+        reboot: running
+      always: [reboot]
+      reason: >-
+        Un redémarrage vise `running`, et doit agir même sur une machine qui
+        tourne : c'est le sens de l'action.

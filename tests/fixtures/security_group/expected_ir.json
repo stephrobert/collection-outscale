@@ -1,0 +1,199 @@
+{
+  "product": "security_group",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "security_group.v1.SecurityGroup.CreateSecurityGroup",
+      "id": "CreateSecurityGroup",
+      "product": "security_group",
+      "version": "v1",
+      "resource": "security_group",
+      "http_method": "POST",
+      "path": "/CreateSecurityGroup",
+      "description": "Creates a security group.<br />\nThis action creates a security group either in the public Cloud or in a specified Net. By default, a default security group for use in the public Cloud and a default security group for use in a Net are created.<br />\nWhen launching a virtual machine (VM), if no security group is explicitly specified, the appropriate default security group is assigned to the VM. Default security groups include a default rule granting VMs network access to each other.<br />\nWhen creating a security group, you specify a name. Two security groups for use in the public Cloud or for use in a Net cannot have the same name.<br />\nYou can have up to 500 security groups in the public Cloud. You can create up to 500 security groups per Net.<br />\nTo add or remove rules, use the [CreateSecurityGroupRule](#createsecuritygrouprule) method.<br /><br />\nFor more information, see [About Security Groups](https://docs.outscale.com/en/userguide/About-Security-Groups.html).",
+      "tags": [
+        "SecurityGroup"
+      ],
+      "parameters": [
+        {
+          "name": "Description",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "A description for the security group.<br />\nThis description can contain between 1 and 255 characters. Allowed characters are `a-z`, `A-Z`, `0-9`, accented letters, spaces, and `_.-:/()#,@[]+=&;{}!$*`."
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The ID of the Net for the security group."
+        },
+        {
+          "name": "SecurityGroupName",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The name of the security group.<br />\nThis name must not start with `sg-`.<br />\nThis name must be unique and contain between 1 and 255 characters. Allowed characters are `a-z`, `A-Z`, `0-9`, spaces, and `_.-:/()#,@[]+=&;{}!$*`."
+        }
+      ],
+      "response": {
+        "schema": "CreateSecurityGroupResponse",
+        "payload_field": "SecurityGroup",
+        "payload_schema": "SecurityGroup",
+        "payload_fields": [
+          "AccountId",
+          "Description",
+          "InboundRules",
+          "NetId",
+          "OutboundRules",
+          "SecurityGroupId",
+          "SecurityGroupName",
+          "Tags"
+        ]
+      }
+    },
+    {
+      "key": "security_group.v1.SecurityGroup.DeleteSecurityGroup",
+      "id": "DeleteSecurityGroup",
+      "product": "security_group",
+      "version": "v1",
+      "resource": "security_group",
+      "http_method": "POST",
+      "path": "/DeleteSecurityGroup",
+      "description": "Deletes a specified security group.<br />\nYou can specify either the name of the security group or its ID.<br />\nThis action fails if the specified group is associated with a virtual machine (VM) or referenced by another security group.",
+      "tags": [
+        "SecurityGroup"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "SecurityGroupId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The ID of the security group you want to delete."
+        },
+        {
+          "name": "SecurityGroupName",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The name of the security group."
+        }
+      ],
+      "response": {
+        "schema": "DeleteSecurityGroupResponse"
+      }
+    },
+    {
+      "key": "security_group.v1.SecurityGroup.ReadSecurityGroups",
+      "id": "ReadSecurityGroups",
+      "product": "security_group",
+      "version": "v1",
+      "resource": "security_group",
+      "http_method": "POST",
+      "path": "/ReadSecurityGroups",
+      "description": "Lists one or more security groups.<br />\nYou can specify either the name of the security groups or their IDs.",
+      "tags": [
+        "SecurityGroup"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersSecurityGroup",
+          "properties": [
+            "Descriptions",
+            "InboundRuleAccountIds",
+            "InboundRuleFromPortRanges",
+            "InboundRuleIpRanges",
+            "InboundRuleProtocols",
+            "InboundRuleSecurityGroupIds",
+            "InboundRuleSecurityGroupNames",
+            "InboundRuleToPortRanges",
+            "NetIds",
+            "OutboundRuleAccountIds",
+            "OutboundRuleFromPortRanges",
+            "OutboundRuleIpRanges",
+            "OutboundRuleProtocols",
+            "OutboundRuleSecurityGroupIds",
+            "OutboundRuleSecurityGroupNames",
+            "OutboundRuleToPortRanges",
+            "SecurityGroupIds",
+            "SecurityGroupNames",
+            "TagKeys",
+            "TagValues",
+            "Tags"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadSecurityGroupsResponse",
+        "payload_field": "SecurityGroups",
+        "payload_schema": "SecurityGroup",
+        "payload_fields": [
+          "AccountId",
+          "Description",
+          "InboundRules",
+          "NetId",
+          "OutboundRules",
+          "SecurityGroupId",
+          "SecurityGroupName",
+          "Tags"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    }
+  ]
+}

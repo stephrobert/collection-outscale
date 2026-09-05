@@ -1,0 +1,3 @@
+# Paquets système dont les modules ont besoin. Aucun : le SDK Outscale est du
+# Python pur et signe ses requêtes (AWS Signature v4) avec la bibliothèque
+# standard et `requests`.

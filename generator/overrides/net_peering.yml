@@ -1,0 +1,27 @@
+# Décisions humaines sur le produit `net_peering` (tag `NetPeering`).
+
+operations:
+
+  # Un peering est proposé par un Net et accepté ou refusé par l'autre. Le
+  # contrat porte l'état dans un objet (`NetPeering.State` a `Name` et
+  # `Message`), d'où le chemin pointé. Les états viennent de la description de
+  # `NetPeeringState.Name` (`pending-acceptance | active | rejected | failed |
+  # expired | deleted`).
+
+  net_peering.v1.NetPeering.AcceptNetPeering:
+    wait:
+      field: State.Name
+      states:
+        accept: active
+      reason: >-
+        Accepter un peering en attente le rend `active` ; un peering déjà
+        actif n'a rien à accepter, et le module le dit par `changed=false`.
+
+  net_peering.v1.NetPeering.RejectNetPeering:
+    wait:
+      field: State.Name
+      states:
+        reject: rejected
+      reason: >-
+        Refuser un peering en attente le rend `rejected` ; l'API refuse de
+        rejeter un peering actif, et un peering déjà rejeté n'a rien à faire.

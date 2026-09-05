@@ -1,0 +1,45 @@
+# Identité de la collection. Le générateur lit ce fichier : le namespace, le
+# nom et la version qu'il déclare finissent dans chaque module produit.
+#
+# `stephrobert.outscale` dit ce que ce dépôt est : une chaîne de génération et
+# la collection de démonstration qu'elle produit. `outscale.*` appartient à
+# Outscale, et le prendre serait un squat.
+#
+# Le renommer se fait ici **et** dans le chemin du répertoire :
+# `load_collection` exige que les deux concordent.
+namespace: stephrobert
+name: outscale
+version: 0.1.0
+readme: README.md
+authors:
+  - Stéphane Robert (@stephrobert)
+# Publié sur Galaxy, donc en anglais : c'est la frontière de langue du dépôt.
+description: >-
+  Day-2 Ansible modules for the Outscale API, produced by this repository's
+  generator. Terraform provisions resources, this collection operates existing
+  ones.
+license:
+  - GPL-3.0-or-later
+tags:
+  - outscale
+  - cloud
+  - infrastructure
+# **Où ça vient, et où le signaler.** Cette collection est générée : un
+# utilisateur qui trouve un défaut dans un module ne doit surtout pas le
+# corriger dans le module, qui sera réécrit à la prochaine génération. Le
+# correctif appartient au contrat, à une règle de classification ou à un
+# override, et ces liens sont les seuls chemins de retour depuis la page
+# Galaxy vers l'endroit où la réparation est possible.
+repository: https://github.com/stephrobert/collection-outscale
+issues: https://github.com/stephrobert/collection-outscale/issues
+homepage: https://github.com/stephrobert/collection-outscale
+documentation: https://github.com/stephrobert/collection-outscale/tree/main/docs
+dependencies: {}
+# La collection ne contient que ce qui se livre : le générateur, le contrat et
+# les tests du dépôt vivent au-dessus de `ansible_collections/`, hors de ce
+# répertoire.
+build_ignore:
+  # `tests` et non `tests/output` : écarter le contenu laisse le répertoire
+  # lui-même dans l'archive, vide, et un contrôle qui ne regarde que les
+  # fichiers ne le voit pas. Mesuré sur `collection-scaleway`.
+  - tests

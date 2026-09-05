@@ -1,0 +1,331 @@
+---
+# Les modules de la collection, appelés sur la plateforme d'exemple.
+#
+# **Aucun identifiant n'est écrit à la main.** Tout vient des sorties de la
+# stack Terraform (`-e @plateforme-<run>.json`), de l'inventaire dynamique ou
+# d'un module appelé plus haut. Un exemple qui code en dur un identifiant ne
+# prouve ni l'inventaire ni les modules.
+#
+# **Tout module livré est appelé ici.** C'est la porte `coverage:check`, et sa
+# liste d'exceptions est vide : ce que l'exemple ne peut pas jouer n'est pas
+# généré. Le journal du plugin de rappel dit ensuite ce qui s'est réellement
+# joué, et une route que feint déclinerait serait appelée sans être jouée.
+#
+# **Écrire puis réécrire.** Une écriture unique ne prouve aucune idempotence :
+# `stop` et `accept` sont joués deux fois, et le compte des idempotences lit
+# `changed` sur la seconde, il ne fait pas confiance aux assertions.
+
+- name: Les modules de la collection, sur la plateforme que l'inventaire a découverte
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    web_b_id: "{{ vm_ids['web-b'] }}"
+    app_id: "{{ vm_ids['app'] }}"
+
+  tasks:
+    # ---- Le parc, vu par les modules de lecture ----------------------------
+
+    - name: Les machines de la plateforme, par leurs identifiants
+      stephrobert.outscale.vm_info:
+        filters:
+          VmIds: "{{ vm_ids.values() | list }}"
+      register: machines
+
+    - name: L'API rend les trois machines que la plateforme a créées
+      ansible.builtin.assert:
+        that:
+          - machines.vms | length == expected.total
+          - machines is not changed
+          - machines.vms | map(attribute='VmId') | sort == vm_ids.values() | sort
+        quiet: true
+
+    - name: Toutes les machines de la région, sans filtre
+      stephrobert.outscale.vm_info:
+      register: toutes
+
+    - name: La liste sans filtre contient celles de la plateforme
+      ansible.builtin.assert:
+        that:
+          - vm_ids.values() | difference(toutes.vms | map(attribute='VmId')) | length == 0
+        quiet: true
+
+    - name: Les types de machine
+      stephrobert.outscale.vm_type_info:
+      register: types
+
+    - name: L'état des machines de la plateforme
+      stephrobert.outscale.vm_state_info:
+        filters:
+          VmIds: "{{ vm_ids.values() | list }}"
+      register: etats
+
+    - name: Le mot de passe administrateur de la machine applicative
+      stephrobert.outscale.vm_admin_password_info:
+        vm_id: "{{ app_id }}"
+      register: mot_de_passe
+      no_log: true
+
+    - name: La lecture rend l'identifiant de la machine interrogée
+      ansible.builtin.assert:
+        that:
+          - mot_de_passe.admin_password.VmId == app_id
+        quiet: true
+
+    - name: Les volumes
+      stephrobert.outscale.volume_info:
+        filters:
+          VolumeIds: "{{ volume_ids.values() | list }}"
+      register: volumes
+
+    - name: Deux volumes, dont celui attaché à la machine applicative
+      ansible.builtin.assert:
+        that:
+          - volumes.volumes | length == 2
+        quiet: true
+
+    - name: L'instantané de l'image dorée
+      stephrobert.outscale.snapshot_info:
+        filters:
+          SnapshotIds: ["{{ snapshot_id }}"]
+      register: instantanes
+
+    - name: L'image dorée
+      stephrobert.outscale.image_info:
+        filters:
+          ImageIds: ["{{ image_id }}"]
+      register: images
+
+    - name: L'image est celle que la stack a bâtie depuis l'instantané
+      ansible.builtin.assert:
+        that:
+          - instantanes.snapshots | length == 1
+          - images.images | length == 1
+          - images.images[0].ImageId == image_id
+        quiet: true
+
+    - name: La clé de la plateforme
+      stephrobert.outscale.keypair_info:
+        filters:
+          KeypairNames: ["{{ keypair_name }}"]
+      register: cles
+
+    - name: Les trois Nets
+      stephrobert.outscale.net_info:
+        filters:
+          NetIds: "{{ net_ids.values() | list }}"
+      register: nets
+
+    - name: Les sous-réseaux du Net workload
+      stephrobert.outscale.subnet_info:
+        filters:
+          NetIds: ["{{ net_ids.workload }}"]
+      register: sous_reseaux
+
+    - name: Trois Nets, trois sous-réseaux dans workload
+      ansible.builtin.assert:
+        that:
+          - cles.keypairs | length == 1
+          - nets.nets | length == 3
+          - sous_reseaux.subnets | length == 3
+        quiet: true
+
+    - name: Les groupes de sécurité, un par étage
+      stephrobert.outscale.security_group_info:
+        filters:
+          SecurityGroupIds: "{{ security_group_ids.values() | list }}"
+      register: groupes
+
+    - name: Les adresses publiques de la plateforme
+      stephrobert.outscale.public_ip_info:
+        filters:
+          PublicIpIds: "{{ public_ip_ids.values() | list }}"
+      register: adresses
+
+    - name: Les plages d'adresses publiques de la région
+      stephrobert.outscale.public_ip_range_info:
+      register: plages
+
+    - name: L'interface créée à part, attachée à la machine applicative
+      stephrobert.outscale.nic_info:
+        filters:
+          NicIds: ["{{ nic_id }}"]
+      register: interfaces
+
+    - name: L'interface est attachée à la machine applicative
+      ansible.builtin.assert:
+        that:
+          - groupes.security_groups | length == 2
+          - adresses.public_ips | length == 3
+          - interfaces.nics | length == 1
+          - interfaces.nics[0].LinkNic.VmId == app_id
+        quiet: true
+
+    - name: Les tables de routage
+      stephrobert.outscale.route_table_info:
+        filters:
+          RouteTableIds: "{{ route_table_ids.values() | list }}"
+      register: tables
+
+    - name: Le service Internet
+      stephrobert.outscale.internet_service_info:
+        filters:
+          InternetServiceIds: ["{{ internet_service_id }}"]
+      register: igw
+
+    - name: Le service NAT
+      stephrobert.outscale.nat_service_info:
+        filters:
+          NatServiceIds: ["{{ nat_service_id }}"]
+      register: nat
+
+    - name: Le jeu d'options DHCP
+      stephrobert.outscale.dhcp_option_info:
+        filters:
+          DhcpOptionsSetIds: ["{{ dhcp_options_set_id }}"]
+      register: dhcp
+
+    - name: Le plan de routage est celui de la stack
+      ansible.builtin.assert:
+        that:
+          - tables.route_tables | length == 2
+          - igw.internet_services | length == 1
+          - nat.nat_services | length == 1
+          - dhcp.dhcp_options | length == 1
+        quiet: true
+
+    - name: Le load balancer devant l'étage web
+      stephrobert.outscale.load_balancer_info:
+        filters:
+          LoadBalancerNames: ["{{ load_balancer_name }}"]
+      register: balanceurs
+
+    - name: Il porte les deux machines web
+      ansible.builtin.assert:
+        that:
+          - balanceurs.load_balancers | length == 1
+          - balanceurs.load_balancers[0].BackendVmIds | sort == [vm_ids['web-a'], vm_ids['web-b']] | sort
+        quiet: true
+
+    - name: Les tags de la plateforme
+      stephrobert.outscale.tag_info:
+        filters:
+          Keys: [exemple]
+          Values: ["{{ prefix }}"]
+      register: tags
+
+    - name: Les trois machines portent le tag de ce run
+      ansible.builtin.assert:
+        that:
+          - tags.tags | length == 3
+        quiet: true
+
+    - name: Les régions
+      stephrobert.outscale.region_info:
+      register: regions
+
+    - name: Les sous-régions
+      stephrobert.outscale.subregion_info:
+      register: sous_regions
+
+    - name: La région de la stack est déclarée, et ses sous-régions aussi
+      ansible.builtin.assert:
+        that:
+          - region in (regions.regions | map(attribute='RegionName'))
+          - subregions | difference(sous_regions.subregions | map(attribute='SubregionName')) | length == 0
+        quiet: true
+
+    # ---- Les actions : écrire, puis réécrire -------------------------------
+
+    - name: Arrêter web-b
+      stephrobert.outscale.vm_action:
+        action: stop
+        vm_ids: ["{{ web_b_id }}"]
+      register: arret
+
+    - name: L'arrêt a été envoyé, attendu, et la machine est arrêtée
+      ansible.builtin.assert:
+        that:
+          - arret is changed
+          - arret.states[web_b_id] == 'stopped'
+        quiet: true
+
+    - name: Arrêter web-b, une seconde fois
+      stephrobert.outscale.vm_action:
+        action: stop
+        vm_ids: ["{{ web_b_id }}"]
+      register: arret_bis
+
+    - name: Démarrer web-b
+      stephrobert.outscale.vm_action:
+        action: start
+        vm_ids: ["{{ web_b_id }}"]
+      register: demarrage
+
+    - name: Redémarrer web-b, qui tourne
+      stephrobert.outscale.vm_action:
+        action: reboot
+        vm_ids: ["{{ web_b_id }}"]
+      register: redemarrage
+
+    - name: Démarrer, puis redémarrer, ont agi, et la machine tourne
+      ansible.builtin.assert:
+        that:
+          - demarrage is changed
+          - demarrage.states[web_b_id] == 'running'
+          - redemarrage is changed
+          - redemarrage.states[web_b_id] == 'running'
+        quiet: true
+
+    - name: Accepter le peering vers services
+      stephrobert.outscale.net_peering_action:
+        action: accept
+        net_peering_id: "{{ net_peering_ids.to_services }}"
+      register: acceptation
+
+    - name: Accepter le peering vers services, une seconde fois
+      stephrobert.outscale.net_peering_action:
+        action: accept
+        net_peering_id: "{{ net_peering_ids.to_services }}"
+      register: acceptation_bis
+
+    - name: Refuser le peering vers sandbox
+      stephrobert.outscale.net_peering_action:
+        action: reject
+        net_peering_id: "{{ net_peering_ids.to_sandbox }}"
+      register: refus
+
+    - name: Les peerings de la plateforme, relus
+      stephrobert.outscale.net_peering_info:
+        filters:
+          NetPeeringIds: "{{ net_peering_ids.values() | list }}"
+      register: peerings
+
+    - name: L'un est actif, l'autre refusé, et la lecture le confirme
+      ansible.builtin.assert:
+        that:
+          - acceptation is changed
+          - acceptation.states[net_peering_ids.to_services] == 'active'
+          - refus is changed
+          - refus.states[net_peering_ids.to_sandbox] == 'rejected'
+          - peerings.net_peerings | length == 2
+          - (peerings.net_peerings | selectattr('NetPeeringId', 'equalto', net_peering_ids.to_services) | first).State.Name == 'active'
+        quiet: true
+
+    # ---- Ce que ce run a prouvé, lu sur `changed`, pas sur des intentions --
+
+    - name: Le compte des idempotences prouvées
+      ansible.builtin.set_fact:
+        idempotences_prouvees: >-
+          {{ (['vm_action.stop'] if arret_bis is not changed else [])
+             + (['net_peering_action.accept'] if acceptation_bis is not changed else []) }}
+        non_emules: []
+
+    - name: Les deux réécritures ont rendu changed=false
+      ansible.builtin.assert:
+        that:
+          - arret_bis is not changed
+          - acceptation_bis is not changed
+        fail_msg: "une seconde écriture a rendu changed : l'idempotence n'est pas tenue"
+        quiet: true

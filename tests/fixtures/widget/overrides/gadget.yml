@@ -1,0 +1,17 @@
+# Overrides de laboratoire du produit gadget : l'état imbriqué de NetPeering.
+
+operations:
+
+  gadget.v1.Gadget.AcceptGadget:
+    wait:
+      field: State.Name
+      states:
+        accept: active
+      reason: Reproduit AcceptNetPeering, dont l'état est un objet `State.Name`.
+
+  gadget.v1.Gadget.RejectGadget:
+    wait:
+      field: State.Name
+      states:
+        reject: rejected
+      reason: Reproduit RejectNetPeering.

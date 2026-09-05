@@ -1,0 +1,701 @@
+# Contrat de laboratoire. Il reproduit délibérément les formes mesurées sur le
+# contrat réel d'Outscale 1.42.0, pour que les tests du générateur ne rougissent
+# pas le jour où Outscale ajoute une machine :
+#
+# * tout est un POST sur `/<OperationId>`, un tag par opération, pas de liste
+#   `tags` racine ;
+# * chaque requête est un schéma `<Op>Request` avec `DryRun`, chaque réponse un
+#   `<Op>Response` avec `ResponseContext` ;
+# * `ReadWidgets` pagine par `NextPageToken` et `ResultsPerPage`, `ReadWidgetTypes`
+#   rend sa liste en une fois ;
+# * `ReadWidgetSecret` rend deux propriétés : charge utile indécidable, et
+#   valeur sensible ;
+# * `FiltersWidget.CreationDates` porte le `oneOf` date | date-time du réel ;
+# * `UpdateWidget.Performance` référence un enum nommé, `BootMode` en porte un
+#   inline, et `LegacyFlag` est déprécié ;
+# * `AcceptGadget` et `RejectGadget` portent un identifiant seul, dont le
+#   filtre de lecture est au pluriel, et l'état est un objet `State.Name` ;
+# * `GET /Ping` et `POST /Orphan` ne sont pas classables ni rattachables : le
+#   recensement les compte, le produit indexé ne les voit pas.
+openapi: 3.0.0
+info:
+  title: Widget API
+  version: 9.9.9
+  description: |-
+    Un produit de test.
+
+    Le second paragraphe ne doit pas sortir.
+servers:
+  - url: https://api.{region}.widget.test/api/v1
+    variables:
+      region:
+        default: eu-west-2
+        enum:
+          - eu-west-2
+          - cloudgouv-eu-west-1
+security:
+  - ApiKeyAuth: []
+paths:
+  /ReadWidgets:
+    post:
+      operationId: ReadWidgets
+      description: Lists one or more widgets.
+      tags: [Widget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadWidgetsRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadWidgetsResponse'
+  /ReadWidgetTypes:
+    post:
+      operationId: ReadWidgetTypes
+      description: Lists the widget types available.
+      tags: [Widget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadWidgetTypesRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadWidgetTypesResponse'
+  /ReadWidgetSecret:
+    post:
+      operationId: ReadWidgetSecret
+      description: Reads the secret of a widget.
+      tags: [Widget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadWidgetSecretRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadWidgetSecretResponse'
+  /ReadWidgetConsole:
+    post:
+      operationId: ReadWidgetConsole
+      description: Reads the console output of a widget.
+      tags: [Widget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadWidgetConsoleRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadWidgetConsoleResponse'
+  /CreateWidget:
+    post:
+      operationId: CreateWidget
+      description: Creates a widget.
+      tags: [Widget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWidgetRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateWidgetResponse'
+  /DeleteWidgets:
+    post:
+      operationId: DeleteWidgets
+      description: Deletes widgets.
+      tags: [Widget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteWidgetsRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteWidgetsResponse'
+  /UpdateWidget:
+    post:
+      operationId: UpdateWidget
+      description: Modifies a widget.
+      tags: [Widget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWidgetRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateWidgetResponse'
+  /StartWidgets:
+    post:
+      operationId: StartWidgets
+      description: Starts widgets.
+      tags: [Widget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartWidgetsRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartWidgetsResponse'
+  /StopWidgets:
+    post:
+      operationId: StopWidgets
+      description: Stops widgets.
+      tags: [Widget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StopWidgetsRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StopWidgetsResponse'
+  /RebootWidgets:
+    post:
+      operationId: RebootWidgets
+      description: Reboots widgets.
+      tags: [Widget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RebootWidgetsRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RebootWidgetsResponse'
+  /LinkGadget:
+    post:
+      operationId: LinkGadget
+      description: Links a gadget to a widget.
+      tags: [Widget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkGadgetRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkGadgetResponse'
+  /ReadGadgets:
+    post:
+      operationId: ReadGadgets
+      description: Lists one or more gadgets.
+      tags: [Gadget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReadGadgetsRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadGadgetsResponse'
+  /AcceptGadget:
+    post:
+      operationId: AcceptGadget
+      description: Accepts a gadget.
+      tags: [Gadget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcceptGadgetRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptGadgetResponse'
+  /RejectGadget:
+    post:
+      operationId: RejectGadget
+      description: Rejects a gadget.
+      tags: [Gadget]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectGadgetRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RejectGadgetResponse'
+  /Ping:
+    get:
+      operationId: Ping
+      description: A GET the contract does not carry today.
+      tags: [Other]
+      responses:
+        '200':
+          description: OK
+  /Orphan:
+    post:
+      operationId: Orphan
+      description: An operation without any tag.
+      responses:
+        '200':
+          description: OK
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+  schemas:
+    ResponseContext:
+      type: object
+      additionalProperties: false
+      properties:
+        RequestId:
+          type: string
+    Tag:
+      type: object
+      additionalProperties: false
+      properties:
+        Key:
+          type: string
+        Value:
+          type: string
+    WidgetPerformance:
+      type: string
+      description: The performance of the widget.
+      enum: [medium, high, highest]
+      default: high
+    Widget:
+      type: object
+      additionalProperties: false
+      properties:
+        WidgetId:
+          type: string
+        State:
+          type: string
+          description: The state of the widget (`pending` | `running` | `stopped`).
+        WidgetType:
+          type: string
+        Performance:
+          $ref: '#/components/schemas/WidgetPerformance'
+        Tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+    WidgetType:
+      type: object
+      additionalProperties: false
+      properties:
+        WidgetTypeName:
+          type: string
+        VcoreCount:
+          type: integer
+    WidgetState:
+      type: object
+      additionalProperties: false
+      properties:
+        WidgetId:
+          type: string
+        CurrentState:
+          type: string
+        PreviousState:
+          type: string
+    GadgetState:
+      type: object
+      additionalProperties: false
+      properties:
+        Name:
+          type: string
+          description: The state of the gadget (`pending-acceptance` | `active` | `rejected`).
+        Message:
+          type: string
+    Gadget:
+      type: object
+      additionalProperties: false
+      properties:
+        GadgetId:
+          type: string
+        State:
+          $ref: '#/components/schemas/GadgetState'
+    FiltersWidget:
+      type: object
+      additionalProperties: false
+      properties:
+        WidgetIds:
+          type: array
+          description: One or more IDs of widgets.
+          items:
+            type: string
+        States:
+          type: array
+          items:
+            type: string
+        Tags:
+          type: array
+          items:
+            type: string
+        CreationDates:
+          type: array
+          items:
+            oneOf:
+              - type: string
+                format: date
+              - type: string
+                format: date-time
+    FiltersWidgetType:
+      type: object
+      additionalProperties: false
+      properties:
+        WidgetTypeNames:
+          type: array
+          items:
+            type: string
+    FiltersGadget:
+      type: object
+      additionalProperties: false
+      properties:
+        GadgetIds:
+          type: array
+          items:
+            type: string
+    ReadWidgetsRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        Filters:
+          $ref: '#/components/schemas/FiltersWidget'
+          description: One or more filters.
+        NextPageToken:
+          type: string
+          format: byte
+        ResultsPerPage:
+          type: integer
+    ReadWidgetsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        NextPageToken:
+          type: string
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+        Widgets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Widget'
+    ReadWidgetTypesRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        Filters:
+          $ref: '#/components/schemas/FiltersWidgetType'
+    ReadWidgetTypesResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+        WidgetTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/WidgetType'
+    ReadWidgetSecretRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        WidgetId:
+          type: string
+          description: The ID of the widget.
+      required: [WidgetId]
+    ReadWidgetSecretResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+        Secret:
+          type: string
+        WidgetId:
+          type: string
+    ReadWidgetConsoleRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        WidgetId:
+          type: string
+      required: [WidgetId]
+    ReadWidgetConsoleResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+        ConsoleOutput:
+          type: string
+        WidgetId:
+          type: string
+    CreateWidgetRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        WidgetType:
+          type: string
+        BootMode:
+          type: string
+          enum: [uefi, legacy]
+      required: [WidgetType]
+    CreateWidgetResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+        Widget:
+          $ref: '#/components/schemas/Widget'
+    DeleteWidgetsRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        WidgetIds:
+          type: array
+          items:
+            type: string
+      required: [WidgetIds]
+    DeleteWidgetsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+    UpdateWidgetRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        WidgetId:
+          type: string
+        WidgetType:
+          type: string
+        Performance:
+          $ref: '#/components/schemas/WidgetPerformance'
+        LegacyFlag:
+          type: boolean
+          deprecated: true
+        UserData:
+          type: string
+          format: byte
+          nullable: true
+        Options:
+          type: object
+          additionalProperties:
+            type: string
+      required: [WidgetId]
+    UpdateWidgetResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+        Widget:
+          $ref: '#/components/schemas/Widget'
+    StartWidgetsRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        WidgetIds:
+          type: array
+          description: One or more IDs of the widgets you want to start.
+          items:
+            type: string
+      required: [WidgetIds]
+    StartWidgetsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+        Widgets:
+          type: array
+          items:
+            $ref: '#/components/schemas/WidgetState'
+    StopWidgetsRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        WidgetIds:
+          type: array
+          items:
+            type: string
+        ForceStop:
+          type: boolean
+          description: Forces the widget to stop.
+      required: [WidgetIds]
+    StopWidgetsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+        Widgets:
+          type: array
+          items:
+            $ref: '#/components/schemas/WidgetState'
+    RebootWidgetsRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        WidgetIds:
+          type: array
+          items:
+            type: string
+      required: [WidgetIds]
+    RebootWidgetsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+    LinkGadgetRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        WidgetId:
+          type: string
+        GadgetId:
+          type: string
+      required: [WidgetId, GadgetId]
+    LinkGadgetResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+    ReadGadgetsRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        Filters:
+          $ref: '#/components/schemas/FiltersGadget'
+        NextPageToken:
+          type: string
+        ResultsPerPage:
+          type: integer
+    ReadGadgetsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        NextPageToken:
+          type: string
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+        Gadgets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Gadget'
+    AcceptGadgetRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        GadgetId:
+          type: string
+          description: The ID of the gadget you want to accept.
+      required: [GadgetId]
+    AcceptGadgetResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+        Gadget:
+          $ref: '#/components/schemas/Gadget'
+    RejectGadgetRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        DryRun:
+          type: boolean
+        GadgetId:
+          type: string
+      required: [GadgetId]
+    RejectGadgetResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        ResponseContext:
+          $ref: '#/components/schemas/ResponseContext'
+        Gadget:
+          $ref: '#/components/schemas/Gadget'

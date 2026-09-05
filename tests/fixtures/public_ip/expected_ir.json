@@ -1,0 +1,322 @@
+{
+  "product": "public_ip",
+  "version": "v1",
+  "title": "3DS OUTSCALE API",
+  "description": "Welcome to the OUTSCALE API documentation.<br />\nThe OUTSCALE API enables you to manage your resources in the OUTSCALE Cloud. This documentation describes the different actions available along with code examples.<br /><br />\nThrottling: To protect against overloads, the number of identical requests allowed in a given time period is limited.<br />\nBrute force: To protect against brute force attacks, the number of failed authentication attempts in a given time period is limited.<br /><br />\nNote that the OUTSCALE Cloud is compatible with Amazon Web Services (AWS) APIs, but there are [differences in resource names](https://docs.outscale.com/en/userguide/About-the-APIs.html) between AWS and the OUTSCALE API.<br />\nYou can also manage your resources using the [Cockpit](https://docs.outscale.com/en/userguide/About-Cockpit.html) web interface.<br /><br />\nAn OpenAPI description of this API is also available for download: <button>[GitHub repository](https://github.com/outscale/osc-api)</button><br />\n# Authentication Schemes\n### Access Key/Secret Key\nThe main way to authenticate your requests to the OUTSCALE API is to use an access key and a secret key.<br />\nThe mechanism behind this is based on AWS Signature Version 4, whose technical implementation details are described in [Signature of API Requests](https://docs.outscale.com/en/userguide/Signature-of-API-Requests.html).<br /><br />\nIn practice, the way to specify your access key and secret key depends on the tool or SDK you want to use to interact with the API.<br />",
+  "source": "outscale.v1.yml",
+  "document_version": "1.42.0",
+  "regions": [
+    "ap-northeast-1",
+    "cloudgouv-eu-west-1",
+    "eu-west-2",
+    "us-east-2",
+    "us-west-1"
+  ],
+  "operations": [
+    {
+      "key": "public_ip.v1.PublicIp.CreatePublicIp",
+      "id": "CreatePublicIp",
+      "product": "public_ip",
+      "version": "v1",
+      "resource": "public_ip",
+      "http_method": "POST",
+      "path": "/CreatePublicIp",
+      "description": "Acquires a public IP for your account.<br />\nA public IP is a static IP designed for dynamic Cloud computing. It can be associated with a virtual machine (VM) in the public Cloud, a VM in a Net, a network interface card (NIC), or a NAT service.<br /><br />\nFor more information, see [About Public IPs](https://docs.outscale.com/en/userguide/About-Public-IPs.html).",
+      "tags": [
+        "PublicIp"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        }
+      ],
+      "response": {
+        "schema": "CreatePublicIpResponse",
+        "payload_field": "PublicIp",
+        "payload_schema": "PublicIp",
+        "payload_fields": [
+          "LinkPublicIpId",
+          "NatServiceId",
+          "NetAccessPointIds",
+          "NicAccountId",
+          "NicId",
+          "PrivateIp",
+          "PublicIp",
+          "PublicIpId",
+          "Tags",
+          "VmId"
+        ]
+      }
+    },
+    {
+      "key": "public_ip.v1.PublicIp.DeletePublicIp",
+      "id": "DeletePublicIp",
+      "product": "public_ip",
+      "version": "v1",
+      "resource": "public_ip",
+      "http_method": "POST",
+      "path": "/DeletePublicIp",
+      "description": "Releases a public IP.<br />\nYou can release a public IP associated with your OUTSCALE account. This address is released in the public IP pool and can be used by someone else. Before releasing a public IP, ensure you updated all your resources communicating with this address.",
+      "tags": [
+        "PublicIp"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "PublicIp",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The public IP. In the public Cloud, this parameter is required."
+        },
+        {
+          "name": "PublicIpId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The ID representing the association of the public IP with the VM or the NIC. In a Net, this parameter is required."
+        }
+      ],
+      "response": {
+        "schema": "DeletePublicIpResponse"
+      }
+    },
+    {
+      "key": "public_ip.v1.PublicIp.LinkPublicIp",
+      "id": "LinkPublicIp",
+      "product": "public_ip",
+      "version": "v1",
+      "resource": "public_ip",
+      "http_method": "POST",
+      "path": "/LinkPublicIp",
+      "description": "Associates a public IP with a virtual machine (VM) or a network interface card (NIC), in the public Cloud or in a Net. You can associate a public IP with only one VM or network interface at a time.<br />\nTo associate a public IP in a Net, ensure that the Net has an internet service attached. For more information, see the [LinkInternetService](#linkinternetservice) method.<br />\nBy default, the public IP is disassociated every time you stop and start the VM. For a persistent association, you can add the `osc.fcu.eip.auto-attach` tag to the VM with the public IP as value. For more information, see the [CreateTags](#createtags) method.<br /><br />",
+      "tags": [
+        "PublicIp"
+      ],
+      "parameters": [
+        {
+          "name": "AllowRelink",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, allows the public IP to be associated with the VM or NIC that you specify even if it is already associated with another VM or NIC. If false, prevents the public IP from being associated with the VM or NIC that you specify if it is already associated with another VM or NIC. (By default, true in the public Cloud, false in a Net.)"
+        },
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NicId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "(Net only) The ID of the NIC. This parameter is required if the VM has more than one NIC attached. Otherwise, you need to specify the `VmId` parameter instead. You cannot specify both parameters at the same time."
+        },
+        {
+          "name": "PrivateIp",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "(Net only) The primary or secondary private IP of the specified NIC. By default, the primary private IP."
+        },
+        {
+          "name": "PublicIp",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The public IP. This parameter is required unless you use the `PublicIpId` parameter."
+        },
+        {
+          "name": "PublicIpId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The allocation ID of the public IP. This parameter is required unless you use the `PublicIp` parameter."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The ID of the VM.<br />\n- In the public Cloud, this parameter is required.<br />\n- In a Net, this parameter is required if the VM has only one NIC. Otherwise, you need to specify the `NicId` parameter instead. You cannot specify both parameters at the same time."
+        }
+      ],
+      "response": {
+        "schema": "LinkPublicIpResponse",
+        "payload_field": "LinkPublicIpId"
+      }
+    },
+    {
+      "key": "public_ip.v1.PublicIpRange.ReadPublicIpRanges",
+      "id": "ReadPublicIpRanges",
+      "product": "public_ip",
+      "version": "v1",
+      "resource": "public_ip_range",
+      "http_method": "POST",
+      "path": "/ReadPublicIpRanges",
+      "description": "Gets the public IPv4 addresses in CIDR notation for the Region specified in the endpoint of the request. For more information, see [About Regions and Subregions](https://docs.outscale.com/en/userguide/About-Regions-and-Subregions.html).",
+      "tags": [
+        "PublicIp"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadPublicIpRangesResponse",
+        "payload_field": "PublicIps",
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "public_ip.v1.PublicIp.ReadPublicIps",
+      "id": "ReadPublicIps",
+      "product": "public_ip",
+      "version": "v1",
+      "resource": "public_ip",
+      "http_method": "POST",
+      "path": "/ReadPublicIps",
+      "description": "Lists one or more public IPs allocated to your OUTSCALE account.<br />\nBy default, this action returns information about all your public IPs: available or associated with a virtual machine (VM), a network interface card (NIC) or a NAT service.",
+      "tags": [
+        "PublicIp"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "Filters",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "One or more filters.",
+          "ref": "FiltersPublicIp",
+          "properties": [
+            "LinkPublicIpIds",
+            "NicAccountIds",
+            "NicIds",
+            "Placements",
+            "PrivateIps",
+            "PublicIpIds",
+            "PublicIps",
+            "TagKeys",
+            "TagValues",
+            "Tags",
+            "VmIds"
+          ]
+        },
+        {
+          "name": "NextPageToken",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The token to request the next page of results. Each token refers to a specific page.",
+          "format": "byte"
+        },
+        {
+          "name": "ResultsPerPage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The maximum number of logs returned in a single response (between `1` and `1000`, both included)."
+        }
+      ],
+      "response": {
+        "schema": "ReadPublicIpsResponse",
+        "payload_field": "PublicIps",
+        "payload_schema": "PublicIp",
+        "payload_fields": [
+          "LinkPublicIpId",
+          "NatServiceId",
+          "NetAccessPointIds",
+          "NicAccountId",
+          "NicId",
+          "PrivateIp",
+          "PublicIp",
+          "PublicIpId",
+          "Tags",
+          "VmId"
+        ],
+        "is_list": true,
+        "page_token": "NextPageToken"
+      }
+    },
+    {
+      "key": "public_ip.v1.PublicIp.UnlinkPublicIp",
+      "id": "UnlinkPublicIp",
+      "product": "public_ip",
+      "version": "v1",
+      "resource": "public_ip",
+      "http_method": "POST",
+      "path": "/UnlinkPublicIp",
+      "description": "Disassociates a public IP from the virtual machine (VM) or network interface card (NIC) it is associated with.<br /><br />",
+      "tags": [
+        "PublicIp"
+      ],
+      "parameters": [
+        {
+          "name": "DryRun",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "If true, checks whether you have the required permissions to perform the action."
+        },
+        {
+          "name": "LinkPublicIpId",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The ID representing the association of the public IP with the VM or the NIC. This parameter is required unless you use the `PublicIp` parameter."
+        },
+        {
+          "name": "PublicIp",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The public IP. This parameter is required unless you use the `LinkPublicIpId` parameter."
+        }
+      ],
+      "response": {
+        "schema": "UnlinkPublicIpResponse"
+      }
+    }
+  ]
+}

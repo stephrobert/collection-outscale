@@ -1,0 +1,412 @@
+{
+  "mutations": [
+    {
+      "name": "override-champ-inconnu",
+      "why": "Une faute de frappe dans un nom de champ produirait un override silencieusement inerte.",
+      "file": "generator/overrides/loader.py",
+      "find": "    unknown = set(raw) - KNOWN_FIELDS\n    if unknown:",
+      "replace": "    unknown = set(raw) - KNOWN_FIELDS\n    if unknown and False:",
+      "test": "tests/unit/generator/test_overrides.py::test_un_champ_inconnu_est_refuse"
+    },
+    {
+      "name": "override-sans-raison",
+      "why": "Un changement de classification sans raison est indéfendable à la relecture.",
+      "file": "generator/overrides/loader.py",
+      "find": "    if generation is not None and not raw.get(\"reason\"):",
+      "replace": "    if generation is not None and not raw.get(\"reason\") and False:",
+      "test": "tests/unit/generator/test_overrides.py::test_une_classification_sans_raison_est_refusee"
+    },
+    {
+      "name": "override-expose-sans-raison",
+      "why": "Ne pas publier un module est une décision : sans raison, personne ne saura si l'obstacle existe encore.",
+      "file": "generator/overrides/loader.py",
+      "find": "    if expose is False and not raw.get(\"reason\"):",
+      "replace": "    if expose is False and not raw.get(\"reason\") and False:",
+      "test": "tests/unit/generator/test_overrides.py::test_retirer_un_module_sans_raison_est_refuse"
+    },
+    {
+      "name": "override-orphelin",
+      "why": "Un override qui ne désigne aucune opération décrit une API qui n'existe plus, ou une clé fautive.",
+      "file": "generator/overrides/loader.py",
+      "find": "        return tuple(sorted(key for key in self.operations if key not in known))",
+      "replace": "        return tuple(sorted(key for key in self.operations if key not in known and False))",
+      "test": "tests/unit/generator/test_overrides.py::test_un_override_orphelin_est_signale"
+    },
+    {
+      "name": "override-parametre-sans-raison",
+      "why": "Renommer, typer ou masquer un paramètre du contrat est un arbitrage, pas une correction.",
+      "file": "generator/overrides/loader.py",
+      "find": "        if decide and not declaration.get(\"reason\"):",
+      "replace": "        if decide and not declaration.get(\"reason\") and False:",
+      "test": "tests/unit/generator/test_overrides.py::test_un_renommage_doption_sans_raison_est_refuse"
+    },
+    {
+      "name": "override-always-inconnu",
+      "why": "Une action `always` sans état attendu agirait sans rien vérifier, et personne ne saurait pourquoi.",
+      "file": "generator/overrides/loader.py",
+      "find": "    hors_etats = sorted(set(always) - set(states))\n    if hors_etats:",
+      "replace": "    hors_etats = sorted(set(always) - set(states))\n    if hors_etats and False:",
+      "test": "tests/unit/generator/test_overrides.py::test_une_action_always_sans_etat_attendu_est_refusee"
+    },
+    {
+      "name": "type-inconnu-leve",
+      "why": "Un type que le contrat tait ne doit pas devenir une chaîne par défaut.",
+      "file": "generator/ansible/mapping.py",
+      "find": "    if ansible_type is None:\n        raise UnmappedType",
+      "replace": "    if ansible_type is None and False:\n        raise UnmappedType",
+      "test": "tests/unit/generator/test_mapping.py::test_un_type_inconnu_leve_plutot_que_de_devenir_une_chaine"
+    },
+    {
+      "name": "no_log-sur-secret",
+      "why": "Un secret sans `no_log` finit dans le journal d'Ansible.",
+      "file": "generator/ansible/mapping.py",
+      "find": "    return any(fragment in name for fragment in _SENSITIVE_FRAGMENTS)",
+      "replace": "    return any(fragment in name for fragment in _SENSITIVE_FRAGMENTS) and False",
+      "test": "tests/unit/generator/test_mapping.py::test_un_champ_sensible_recoit_no_log"
+    },
+    {
+      "name": "identifiant-nest-pas-un-secret",
+      "why": "`keypair_name` désigne une clé sans la porter : le masquer cacherait un nom de ressource, et un faux positif ici se lirait comme une politique.",
+      "file": "generator/ansible/mapping.py",
+      "find": "    if name.endswith((\"_id\", \"_ids\", \"_name\", \"_names\")):\n        return False",
+      "replace": "    if name.endswith((\"_id\", \"_ids\", \"_name\", \"_names\")) and False:\n        return False",
+      "test": "tests/unit/generator/test_mapping.py::test_un_identifiant_ou_un_nom_nest_jamais_le_secret_quil_designe"
+    },
+    {
+      "name": "no_log-explicite-pour-sanity",
+      "why": "Un nom que sanity soupçonne sans `no_log` explicite fait échouer validate-modules : le mapping doit dire que ce n'est pas un secret.",
+      "file": "generator/ansible/mapping.py",
+      "find": "    elif looks_secret_to_sanity(option_name(parameter)):",
+      "replace": "    elif looks_secret_to_sanity(option_name(parameter)) and False:",
+      "test": "tests/unit/generator/test_mapping.py::test_un_nom_que_sanity_soupconne_sans_etre_un_secret_le_dit_explicitement"
+    },
+    {
+      "name": "produit-non-redouble",
+      "why": "`vm_vm_type_info` n'est pas un nom qu'un opérateur aurait écrit.",
+      "file": "generator/ansible/mapping.py",
+      "find": "    if resource == product or resource.startswith(product + \"_\"):",
+      "replace": "    if (resource == product or resource.startswith(product + \"_\")) and False:",
+      "test": "tests/unit/generator/test_mapping.py::test_le_produit_nest_pas_redouble_dans_le_nom_du_module"
+    },
+    {
+      "name": "classifieur-non-post-inconnu",
+      "why": "Une méthode que le contrat ne porte pas est une forme à mesurer ; la classer sur son verbe dirait quelque chose que personne n'a vérifié.",
+      "file": "generator/classifier/rules.py",
+      "find": "    if method is not HTTPMethod.POST:",
+      "replace": "    if method is not HTTPMethod.POST and False:",
+      "test": "tests/unit/generator/test_classifier.py::test_une_methode_autre_que_post_est_declaree_inconnue"
+    },
+    {
+      "name": "classifieur-lien-est-lifecycle",
+      "why": "Relier deux ressources est le graphe de Terraform : classé en action, `LinkVolume` deviendrait un module.",
+      "file": "generator/classifier/rules.py",
+      "find": "    if verb in _LINK_VERBS:",
+      "replace": "    if verb in _LINK_VERBS and False:",
+      "test": "tests/unit/generator/test_classifier.py::test_relier_deux_ressources_releve_du_cycle_de_vie"
+    },
+    {
+      "name": "parser-pagination-portee",
+      "why": "Une liste rendue sur sa première page est un mensonge : l'IR doit porter le jeton pour que le runtime déroule.",
+      "file": "generator/parser/openapi.py",
+      "find": "        if requests_page:\n            page_token = PAGE_TOKEN",
+      "replace": "        if requests_page and False:\n            page_token = PAGE_TOKEN",
+      "test": "tests/unit/generator/test_parser.py::test_la_pagination_est_portee_par_lir"
+    },
+    {
+      "name": "parser-contexte-retire",
+      "why": "Sans retirer `ResponseContext`, toute réponse aurait deux propriétés et aucune charge utile ne serait décidable.",
+      "file": "generator/parser/openapi.py",
+      "find": "    properties.pop(RESPONSE_CONTEXT, None)",
+      "replace": "    properties.pop(RESPONSE_CONTEXT + \"x\", None)",
+      "test": "tests/unit/generator/test_parser.py::test_le_contexte_de_reponse_nest_jamais_la_charge_utile"
+    },
+    {
+      "name": "parser-charge-utile-indecidable",
+      "why": "Une réponse à plusieurs propriétés rendue comme si la première était la ressource mentirait en silence.",
+      "file": "generator/parser/openapi.py",
+      "find": "    if len(properties) > 1:",
+      "replace": "    if len(properties) > 1 and False:",
+      "test": "tests/unit/generator/test_parser.py::test_une_reponse_a_plusieurs_proprietes_est_signalee"
+    },
+    {
+      "name": "parser-oneof-de-types-differents",
+      "why": "Un `oneOf` de types différents n'est pas une chaîne : il doit rester inconnu et se voir dans le rapport.",
+      "file": "generator/parser/openapi.py",
+      "find": "        if len(variants) == 1 and (only := variants.pop()) in _SCALAR_TYPES and only not in (",
+      "replace": "        if len(variants) >= 1 and (only := variants.pop()) in _SCALAR_TYPES and only not in (",
+      "test": "tests/unit/generator/test_parser.py::test_un_oneof_de_dates_est_une_chaine"
+    },
+    {
+      "name": "parser-liste-sans-jeton-signalee",
+      "why": "Une liste rendue en une fois sans que le contrat promette qu'elle soit complète doit être dite dans les limites.",
+      "file": "generator/parser/openapi.py",
+      "find": "    if unpaginated:\n        warnings.append(",
+      "replace": "    if unpaginated and False:\n        warnings.append(",
+      "test": "tests/unit/generator/test_parser.py::test_une_liste_sans_jeton_de_page_est_signalee_et_non_inventee"
+    },
+    {
+      "name": "source-operation-sans-tag-comptee",
+      "why": "Une opération sans tag n'appartient à aucun produit : la compter est la seule façon de ne pas la perdre.",
+      "file": "generator/source/base.py",
+      "find": "            if not tags:\n                untagged.append(identifier)",
+      "replace": "            if not tags:\n                untagged.append(identifier + \"x\")",
+      "test": "tests/unit/generator/test_source.py::test_le_recensement_compte_chaque_operation_une_fois"
+    },
+    {
+      "name": "source-ligne-mal-formee",
+      "why": "Une ligne d'index à quatre champs lue en silence indexerait le mauvais tag.",
+      "file": "generator/source/base.py",
+      "find": "        else:\n            raise ValueError(f\"{index} : ligne mal formée : {line!r}\")",
+      "replace": "        else:\n            tag, product, version = fields[0], fields[1], fields[2]",
+      "test": "tests/unit/generator/test_source.py::test_une_ligne_mal_formee_est_refusee"
+    },
+    {
+      "name": "mode-strict-temoin",
+      "why": "`report --strict` sort en 0 sur un dépôt sain comme sur un mode strict cassé : sans témoin, un contrôle qui cherche une absence est indiscernable d'un contrôle qui n'a rien regardé.",
+      "file": "generator/cli.py",
+      "find": "    if arguments.strict and (plan.unknown or plan.orphan_overrides):",
+      "replace": "    if arguments.strict and (plan.unknown or plan.orphan_overrides) and False:",
+      "test": "tests/unit/generator/test_cli.py::test_le_mode_strict_sort_en_2_sur_une_operation_non_classee"
+    },
+    {
+      "name": "modele-drapeaux-de-requete",
+      "why": "`DryRun` et `NextPageToken` exposés comme options rendraient une page au lieu d'une liste, ou une erreur DryRunOperation.",
+      "file": "generator/ansible/models.py",
+      "find": "        if name in COMMON_PARAMETERS or name in REQUEST_FLAGS:",
+      "replace": "        if name in COMMON_PARAMETERS:",
+      "test": "tests/unit/generator/test_models.py::test_les_drapeaux_de_requete_ne_deviennent_pas_des_options"
+    },
+    {
+      "name": "modele-deux-lectures-refusees",
+      "why": "Deux lectures sur une ressource disent une ressource mal déduite ; en garder une au hasard cacherait l'autre.",
+      "file": "generator/ansible/models.py",
+      "find": "    if len(operations) != 1:\n        raise AmbiguousModule(",
+      "replace": "    if len(operations) != 1 and False:\n        raise AmbiguousModule(",
+      "test": "tests/unit/generator/test_models.py::test_deux_lectures_sur_une_ressource_sont_refusees"
+    },
+    {
+      "name": "modele-filtre-pluralise",
+      "why": "`NetPeeringId` n'est pas dans `Filters`, `NetPeeringIds` l'est : sans le pluriel, aucun état ne serait relu après accept.",
+      "file": "generator/ansible/models.py",
+      "find": "        (key for key in (contract_name, contract_name + \"s\") if key in filters.properties), None",
+      "replace": "        (key for key in (contract_name,) if key in filters.properties), None",
+      "test": "tests/unit/generator/test_models.py::test_un_identifiant_seul_retrouve_son_filtre_au_pluriel"
+    },
+    {
+      "name": "modele-parametre-sans-type",
+      "why": "Un paramètre dont le contrat tait le type ne doit pas devenir une chaîne par défaut : le module est écarté en nommant le paramètre.",
+      "file": "generator/ansible/models.py",
+      "find": "        if parameter.type is ApiType.UNKNOWN:\n            raise UntypedParameter(",
+      "replace": "        if parameter.type is ApiType.UNKNOWN and False:\n            raise UntypedParameter(",
+      "test": "tests/unit/generator/test_models.py::test_un_override_type_rend_un_parametre_sans_type_possible"
+    },
+    {
+      "name": "modele-secret-dit",
+      "why": "Un module qui rend un mot de passe sans le dire fait journaliser un secret.",
+      "file": "generator/ansible/models.py",
+      "find": "    sensitive = bool(SENSITIVE_WORDS & set(split_words(item.operation.id)))",
+      "replace": "    sensitive = False",
+      "test": "tests/unit/generator/test_models.py::test_une_lecture_de_secret_le_dit_dans_sa_documentation"
+    },
+    {
+      "name": "en-tete-replie",
+      "why": "Un en-tête de plus de 160 caractères fait refuser le module par ansible-test sanity.",
+      "file": "generator/renderer/modules.py",
+      "find": "        width=HEADER_WIDTH,",
+      "replace": "        width=HEADER_WIDTH * 1000,",
+      "test": "tests/unit/generator/test_renderer.py::test_len_tete_des_operations_se_replie_sous_la_limite_de_sanity"
+    },
+    {
+      "name": "runtime-nom-du-contrat",
+      "why": "Le runtime doit envoyer le nom du contrat, pas celui de l'option : le SDK refuse `vm_ids`.",
+      "file": "ansible_collections/stephrobert/outscale/plugins/module_utils/outscale.py",
+      "find": "            kwargs[api_name] = value",
+      "replace": "            kwargs[option] = value",
+      "test": "tests/unit/collection/test_runtime.py::test_le_runtime_envoie_le_nom_du_contrat_et_non_celui_de_loption"
+    },
+    {
+      "name": "runtime-deroule-les-pages",
+      "why": "Une liste rendue sur sa première page est un mensonge.",
+      "file": "ansible_collections/stephrobert/outscale/plugins/module_utils/outscale.py",
+      "find": "        if not token or token in seen:\n            break",
+      "replace": "        if not token or token in seen or True:\n            break",
+      "test": "tests/unit/collection/test_runtime.py::test_une_liste_se_deroule_jusqua_la_derniere_page"
+    },
+    {
+      "name": "runtime-jeton-qui-boucle",
+      "why": "Un jeton rendu deux fois de suite ferait boucler sans fin : mieux vaut une liste tronquée dite.",
+      "file": "ansible_collections/stephrobert/outscale/plugins/module_utils/outscale.py",
+      "find": "        if not token or token in seen:\n            break",
+      "replace": "        if not token:\n            break",
+      "test": "tests/unit/collection/test_runtime.py::test_un_jeton_qui_boucle_arrete_la_lecture"
+    },
+    {
+      "name": "runtime-etat-deja-atteint",
+      "why": "`start` sur une machine qui tourne n'a rien à faire ; sans cette garde, le module envoie l'action et rend `changed` sur rien.",
+      "file": "ansible_collections/stephrobert/outscale/plugins/module_utils/outscale.py",
+      "find": "        if all(state == action.expected_state for state in current.values()):",
+      "replace": "        if all(state == action.expected_state for state in current.values()) and False:",
+      "test": "tests/unit/collection/test_runtime.py::test_une_action_dont_letat_est_deja_atteint_ne_change_rien"
+    },
+    {
+      "name": "runtime-relit-jusqua-letat",
+      "why": "L'API répond avant que la machine ait changé d'état : sans la relecture, le module rend `changed` sur un état qu'il n'a pas vu.",
+      "file": "ansible_collections/stephrobert/outscale/plugins/module_utils/outscale.py",
+      "find": "    if verifies and wait:\n        extra[\"states\"] = poll_states(",
+      "replace": "    if verifies and wait and False:\n        extra[\"states\"] = poll_states(",
+      "test": "tests/unit/collection/test_runtime.py::test_apres_lacceptation_le_module_relit_jusqua_letat_attendu"
+    },
+    {
+      "name": "runtime-echec-dattente-dit-changed",
+      "why": "Après l'acceptation par l'API, la ressource a changé ; un échec sans `changed` ferait croire à un playbook rejoué qu'il n'a rien fait.",
+      "file": "ansible_collections/stephrobert/outscale/plugins/module_utils/outscale.py",
+      "find": "            module.fail_json(\n                changed=True,\n                msg=(\n                    f\"the action was accepted",
+      "replace": "            module.fail_json(\n                changed=False,\n                msg=(\n                    f\"the action was accepted",
+      "test": "tests/unit/collection/test_runtime.py::test_un_etat_jamais_atteint_echoue_en_disant_changed"
+    },
+    {
+      "name": "runtime-identifiant-non-rendu",
+      "why": "Un identifiant que la lecture ne rend pas doit être une erreur : deviner son état ferait passer une machine absente pour arrêtée.",
+      "file": "ansible_collections/stephrobert/outscale/plugins/module_utils/outscale.py",
+      "find": "        missing = sorted(set(ids) - set(states))\n        if missing:",
+      "replace": "        missing = sorted(set(ids) - set(states))\n        if missing and False:",
+      "test": "tests/unit/collection/test_runtime.py::test_un_identifiant_que_la_lecture_ne_rend_pas_est_une_erreur"
+    },
+    {
+      "name": "runtime-check-mode-nenvoie-rien",
+      "why": "En check mode, une action envoyée est une action faite.",
+      "file": "ansible_collections/stephrobert/outscale/plugins/module_utils/outscale.py",
+      "find": "    if module.check_mode:\n        extra = {\"states\": current} if current else {}",
+      "replace": "    if module.check_mode and False:\n        extra = {\"states\": current} if current else {}",
+      "test": "tests/unit/collection/test_runtime.py::test_le_check_mode_lit_letat_mais_nenvoie_rien"
+    },
+    {
+      "name": "sanity-sur-collection-invisible",
+      "why": "Dans un dépôt git, ansible-test demande la liste des fichiers à git : sur une collection non suivie, il sort en 0 sans rien examiner.",
+      "file": "scripts/sanity.py",
+      "find": "    if under_git and tracked == 0:",
+      "replace": "    if under_git and tracked == 0 and False:",
+      "test": "tests/unit/outillage/test_verdicts.py::test_sanity_refuse_une_collection_que_git_ne_suit_pas"
+    },
+    {
+      "name": "sanity-qui-ne-mesure-rien",
+      "why": "`All targets skipped` sort en 0 : c'est la seule chose qui distingue une collection saine d'une mesure qui n'a pas eu lieu.",
+      "file": "scripts/sanity.py",
+      "find": "    return NOTHING_TESTED not in output",
+      "replace": "    return NOTHING_TESTED not in output or True",
+      "test": "tests/unit/outillage/test_verdicts.py::test_sanity_refuse_un_vert_qui_na_rien_examine"
+    },
+    {
+      "name": "archive-repertoire-interdit",
+      "why": "Une garde qui ne regarde que les fichiers ne voit pas un répertoire interdit, même vide.",
+      "file": "scripts/package.py",
+      "find": "if chemin.split(\"/\", 1)[0] in FORBIDDEN}",
+      "replace": "if chemin.split(\"/\", 1)[0] in FORBIDDEN and False}",
+      "test": "tests/unit/outillage/test_verdicts.py::test_un_repertoire_interdit_meme_vide_est_une_fuite"
+    },
+    {
+      "name": "archive-plugin-oublie",
+      "why": "Sans cette moitié, une archive vide passerait tous les contrôles de fuite.",
+      "file": "scripts/package.py",
+      "find": "    manquants = [attendu for attendu in required_entries(collection) if attendu not in contenu]",
+      "replace": "    manquants = [attendu for attendu in required_entries(collection) if attendu not in contenu and False]",
+      "test": "tests/unit/outillage/test_verdicts.py::test_une_archive_qui_oublie_un_plugin_est_refusee"
+    },
+    {
+      "name": "release-tag-discordant",
+      "why": "L'archive est nommée d'après galaxy.yml, pas d'après le tag : une version publiée est immuable.",
+      "file": "scripts/release.py",
+      "find": "    elif normaliser(tag) != collection.version:",
+      "replace": "    elif normaliser(tag) != collection.version and False:",
+      "test": "tests/unit/outillage/test_release.py::test_un_tag_qui_ne_dit_pas_la_version_de_galaxy_est_refuse"
+    },
+    {
+      "name": "release-arbre-sale",
+      "why": "Une archive construite sur des modifications non versionnées ne se reproduit pas.",
+      "file": "scripts/release.py",
+      "find": "    if sale:",
+      "replace": "    if sale and False:",
+      "test": "tests/unit/outillage/test_release.py::test_un_arbre_sale_est_refuse"
+    },
+    {
+      "name": "release-fragments-en-attente",
+      "why": "Les fragments en attente décrivent ce que la version apporte, et resteraient dehors.",
+      "file": "scripts/release.py",
+      "find": "    if fragments:",
+      "replace": "    if fragments and False:",
+      "test": "tests/unit/outillage/test_release.py::test_des_fragments_en_attente_sont_refuses"
+    },
+    {
+      "name": "derive-tag-non-indexe",
+      "why": "Un seul document porte tous les tags et le golden ne suit que les indexés : sans le recensement, une opération apparue dans un tag non indexé passe en silence.",
+      "file": "scripts/drift_report.py",
+      "find": "        if a != b:",
+      "replace": "        if a != b and False:",
+      "test": "tests/unit/outillage/test_drift.py::test_un_produit_non_indexe_qui_grossit_est_nomme"
+    },
+    {
+      "name": "compteurs-perimes",
+      "why": "Un nombre recopié à la main vieillit en silence et se lit exactement comme une mesure : le contrôle doit rougir sur un bloc périmé.",
+      "file": "scripts/readme_counters.py",
+      "find": "        if attendu != texte:\n            perimes.append(nom)",
+      "replace": "        if attendu != texte and False:\n            perimes.append(nom)",
+      "test": "tests/unit/outillage/test_compteurs.py::test_un_bloc_perime_fait_echouer_le_controle"
+    },
+    {
+      "name": "couverture-module-non-appele",
+      "why": "Un module livré qu'aucun playbook n'appelle est un module dont on ignore s'il marche ; la porte doit le refuser.",
+      "file": "scripts/example_coverage.py",
+      "find": "        \"non_couverts\": sorted(ecrits - appeles - set(declares)),",
+      "replace": "        \"non_couverts\": sorted(set()),",
+      "test": "tests/unit/outillage/test_couverture_exemple.py::test_un_module_non_couvert_et_non_declare_est_refuse"
+    },
+    {
+      "name": "couverture-commentaire-ne-compte-pas",
+      "why": "Un module cité dans un commentaire suffirait sinon à franchir la porte : le contrôle mesurerait la prose, pas ce qui se joue.",
+      "file": "scripts/example_coverage.py",
+      "find": "        document = yaml.safe_load(chemin.read_text(encoding=\"utf-8\"))\n        for tache in _taches(document):",
+      "replace": "        document = yaml.safe_load(chemin.read_text(encoding=\"utf-8\"))\n        for mot in chemin.read_text(encoding=\"utf-8\").split():\n            if mot.startswith(PREFIXE):\n                trouves.add(mot[len(PREFIXE) :].rstrip(\":\"))\n        for tache in _taches(document):",
+      "test": "tests/unit/outillage/test_couverture_exemple.py::test_un_module_nomme_en_commentaire_ne_compte_pas"
+    },
+    {
+      "name": "couverture-declaration-perimee",
+      "why": "Une déclaration sans cible sur un module que l'exemple appelle raconte un obstacle qui n'existe plus.",
+      "file": "scripts/example_coverage.py",
+      "find": "        \"declarations_perimees\": sorted(set(declares) & appeles),",
+      "replace": "        \"declarations_perimees\": sorted(set()),",
+      "test": "tests/unit/outillage/test_couverture_exemple.py::test_une_declaration_perimee_est_refusee"
+    },
+    {
+      "name": "matrice-borne-jamais-eprouvee",
+      "why": "Une borne au-delà du verrou est une version promise et jamais éprouvée.",
+      "file": "scripts/ansible_matrix.py",
+      "find": "    if (major, minor) > locked:",
+      "replace": "    if (major, minor) > locked and False:",
+      "test": "tests/unit/outillage/test_matrix.py::test_une_borne_au_dela_du_verrou_est_refusee"
+    },
+    {
+      "name": "artefact-route-declinee-pas-jouee",
+      "why": "Une route que feint décline n'exerce rien ; la compter ferait passer une limite de l'émulateur pour une preuve de couverture.",
+      "file": "scripts/example.py",
+      "find": "        if tache.get(\"verdict\") in (\"ok\", \"changed\") and not NON_SERVI.search(",
+      "replace": "        if tache.get(\"verdict\") in (\"ok\", \"changed\") and True or NON_SERVI.search(",
+      "test": "tests/unit/outillage/test_artefact_exemple.py::test_une_route_que_feint_decline_est_appelee_mais_pas_jouee"
+    },
+    {
+      "name": "artefact-tache-sautee-pas-jouee",
+      "why": "Une tâche sautée par un `when` n'a parlé à personne ; la compter ferait de l'artefact un compteur de bonnes intentions.",
+      "file": "scripts/example.py",
+      "find": "        if tache.get(\"verdict\") in (\"ok\", \"changed\") and not NON_SERVI.search(",
+      "replace": "        if tache.get(\"verdict\") in (\"ok\", \"changed\", \"skipped\") and not NON_SERVI.search(",
+      "test": "tests/unit/outillage/test_artefact_exemple.py::test_une_tache_sautee_nest_pas_une_couverture"
+    },
+    {
+      "name": "residu-ressource-apparue",
+      "why": "Le différentiel de résidu est la seule garantie qu'aucune ressource ne survit ; sans lui, une adresse orpheline passe pour un compte inchangé.",
+      "file": "scripts/residue.py",
+      "find": "        if identifiant not in avant.get(nom, {})\n    ]\n    disparus",
+      "replace": "        if identifiant not in avant.get(nom, {}) and False\n    ]\n    disparus",
+      "test": "tests/unit/outillage/test_artefact_exemple.py::test_une_ressource_apparue_est_un_residu"
+    }
+  ]
+}

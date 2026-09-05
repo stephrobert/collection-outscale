@@ -1,0 +1,46 @@
+# L'inventaire dynamique de la plateforme d'exemple.
+#
+# Ansible reconnaît le plugin au nom du fichier : il doit finir par
+# `outscale.yml` ou `osc.yml`. Les identifiants, la région et l'URL de l'API
+# viennent de l'environnement (`OSC_ACCESS_KEY`, `OSC_SECRET_KEY`,
+# `OSC_REGION`, `OSC_ENDPOINT_API`), ce que `feint env outscale` exporte, et
+# ce que le SDK lit de lui-même. Rien d'un compte n'est écrit ici.
+plugin: stephrobert.outscale.vm
+
+# Les filtres de l'API, avec les mots du contrat (`FiltersVm`) : ils partent
+# tels quels dans `ReadVms`. Un test confronte ces noms au contrat versionné.
+filters:
+  VmStateNames:
+    - running
+
+# Le nom d'hôte : le tag `Name`, sinon l'identifiant. Deux machines du même
+# nom ne s'écrasent pas : la région puis l'identifiant sont ajoutés.
+hostnames:
+  - tag:Name
+  - id
+
+# `ansible_host` : l'adresse publique d'abord, sinon la privée. Une machine
+# sans adresse reste dans l'inventaire, pour les tâches en `delegate_to:
+# localhost` qui passent par les modules de la collection.
+address_priority:
+  - public_ipv4
+  - private_ipv4
+require_address: false
+
+# Les groupes natifs `osc_*`.
+group_by:
+  - region
+  - subregion
+  - state
+  - tags
+  - vm_type
+
+# Ce qu'Ansible construit lui-même sur les hostvars `outscale_*`.
+compose:
+  ansible_user: "'outscale'"
+keyed_groups:
+  - prefix: image
+    key: outscale_image_id
+
+# Un `ReadVms` qui échoue est une erreur, pas un inventaire vide.
+strict: true
