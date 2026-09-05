@@ -82,6 +82,11 @@ run = "plumber analyze --min-score B"
 
 [tasks.test]
 description = "Lancer les tests du générateur et de la collection"
+# `depends` et non un simple ordre : mise lance les dépendances de `check` en
+# parallèle, et `generate` réécrivait `plugins/modules/` pendant que pytest le
+# collectait. Mesuré : `test_des_modules_ont_ete_generes` rouge sur un
+# répertoire vide, avec 304 tests verts autour.
+depends = ["generate"]
 run = "python -m pytest tests/unit"
 
 [tasks.lint]

@@ -14,6 +14,7 @@ Le code de sortie est le plus sévère rencontré, pas celui du dernier produit.
 from __future__ import annotations
 
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -25,16 +26,24 @@ from generator.source.base import DEFAULT_SPEC_ROOT, VendoredSpecSource
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def clear_modules(modules_dir: Path) -> list[Path]:
-    """Retire les modules de la génération précédente, et rend ce qu'il a retiré.
+def remove_stale(modules_dir: Path, before: float) -> list[Path]:
+    """Retire les modules que la génération n'a pas réécrits, et rend ce qu'il a retiré.
 
-    Le générateur écrit sans jamais retirer. Mesuré : une règle de dérivation
-    corrigée a fait disparaître douze modules fantômes du plan, et les douze
-    fichiers sont restés sur le disque, dans l'archive et dans le README. Un
-    module que la génération n'écrit plus n'existe plus ; le retirer avant de
-    régénérer est ce qui rend `check:generated` capable de le voir.
+    Le générateur écrit sans jamais retirer. Mesuré chez collection-exoscale :
+    une règle de dérivation corrigée a fait disparaître douze modules fantômes
+    du plan, et les douze fichiers sont restés sur le disque, dans l'archive et
+    dans le README. Un module que la génération n'écrit plus n'existe plus.
+
+    **Après** la génération, et non avant : vider le répertoire d'abord
+    laissait un lecteur concurrent (pytest, sous `mise run check`, qui lance
+    ses dépendances en parallèle) collecter un répertoire vide. Ce qui n'a pas
+    été réécrit depuis `before` est périmé, et c'est tout ce qui part.
     """
-    removed = sorted(path for path in modules_dir.glob("*.py") if not path.name.startswith("_"))
+    removed = sorted(
+        path
+        for path in modules_dir.glob("*.py")
+        if not path.name.startswith("_") and path.stat().st_mtime < before
+    )
     for path in removed:
         path.unlink()
     return removed
@@ -51,14 +60,16 @@ def main() -> int:
         return 1
 
     modules_dir = load_collection().modules_dir
-    removed = clear_modules(modules_dir)
-    print(f"{len(removed)} module(s) de la génération précédente retiré(s) avant de régénérer\n")
+    debut = time.time()
 
     pire = 0
     for produit, version in produits:
         code = generator_main(["generate", produit, "--api-version", version])
         pire = max(pire, code)
         print()
+
+    removed = remove_stale(modules_dir, debut)
+    print(f"{len(removed)} module(s) de la génération précédente retiré(s) après régénération")
     return pire
 
 
