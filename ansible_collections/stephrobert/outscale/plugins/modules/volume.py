@@ -25,8 +25,8 @@ author:
 options:
   iops:
     description: The new number of I/O operations per second (IOPS). This parameter can be
-      specified only if you update an `io1` volume or if you change the type of the volume
-      for an `io1`.
+      specified only if you update an C(io1) volume or if you change the type of the volume
+      for an C(io1).
     type: int
   size:
     description: The new size of the volume, in gibibytes (GiB). This value must be equal
@@ -37,8 +37,8 @@ options:
     type: str
     required: true
   volume_type:
-    description: The new type of the volume (`standard` \| `io1` \| `gp2`). If you update
-      to an `io1` volume, you must also specify the `Iops` parameter.
+    description: The new type of the volume (C(standard) \| C(io1) \| C(gp2)). If you update
+      to an C(io1) volume, you must also specify the C(Iops) parameter.
     type: str
 extends_documentation_fragment:
 - stephrobert.outscale.outscale

@@ -26,7 +26,7 @@ options:
     description: A new description for the NIC.
     type: str
   link_nic:
-    description: 'Information about the NIC attachment. If you are modifying the `DeleteOnVmDeletion`
+    description: 'Information about the NIC attachment. If you are modifying the C(DeleteOnVmDeletion)
       attribute, you must specify the ID of the NIC attachment. Accepted keys: C(DeleteOnVmDeletion),
       C(LinkNicId).'
     type: dict

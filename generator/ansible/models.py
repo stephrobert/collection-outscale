@@ -867,6 +867,8 @@ def _collect_options(
 _MARKDOWN_LINK = re.compile(r"\[([^\]]+)\]\((https?://[^)\s]+)\)")
 #: Un saut de ligne HTML du contrat : `<br />`. 426 dans le contrat 1.42.0.
 _HTML_BREAK = re.compile(r"\s*<br\s*/?>\s*")
+#: Un code Markdown du contrat : `` `io1` ``. 1054 dans le contrat 1.42.0.
+_MARKDOWN_CODE = re.compile(r"`([^`\n]+)`")
 
 
 def _ansible_markup(text: str) -> str:
@@ -875,9 +877,11 @@ def _ansible_markup(text: str) -> str:
     Mesuré : antsibull-docs refuse un lien `[texte](url)` (« Link is formatted
     in Markdown style »), ce qui a rougi les cinq jobs `collection` d'une pull
     request ; et un `<br />` arrive tel quel dans la page. Le lien devient
-    `L(texte, url)`, le saut de ligne un espace, et rien d'autre n'est touché.
+    `L(texte, url)`, le code `` `io1` `` devient `C(io1)`, le saut de ligne un
+    espace, et rien d'autre n'est touché.
     """
     text = _MARKDOWN_LINK.sub(lambda match: f"L({match.group(1)}, {match.group(2)})", text)
+    text = _MARKDOWN_CODE.sub(lambda match: f"C({match.group(1)})", text)
     return _HTML_BREAK.sub(" ", text).strip()
 
 

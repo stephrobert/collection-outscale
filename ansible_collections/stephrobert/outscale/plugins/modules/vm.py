@@ -75,9 +75,9 @@ options:
     type: str
     required: true
   vm_initiated_shutdown_behavior:
-    description: The VM behavior when you stop it. If set to `stop`, the VM stops. If set
-      to `restart`, the VM stops then automatically restarts. If set to `terminate`, the VM
-      stops and is terminated.
+    description: The VM behavior when you stop it. If set to C(stop), the VM stops. If set
+      to C(restart), the VM stops then automatically restarts. If set to C(terminate), the
+      VM stops and is terminated.
     type: str
   vm_type:
     description: The type of VM. For more information, see L(VM Types, https://docs.outscale.com/en/userguide/VM-Types.html).

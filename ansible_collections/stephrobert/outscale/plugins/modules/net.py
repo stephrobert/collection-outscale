@@ -23,7 +23,7 @@ author:
 - Stéphane Robert (@stephrobert)
 options:
   dhcp_options_set_id:
-    description: The ID of the DHCP options set (or `default` if you want to associate the
+    description: The ID of the DHCP options set (or C(default) if you want to associate the
       default one).
     type: str
     required: true

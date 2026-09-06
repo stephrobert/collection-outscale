@@ -31,8 +31,8 @@ options:
     type: str
     required: true
   permissions_to_launch:
-    description: 'Information about the permissions for the resource. Specify either the `Additions`
-      or the `Removals` parameter. Accepted keys: C(Additions), C(Removals).'
+    description: 'Information about the permissions for the resource. Specify either the C(Additions)
+      or the C(Removals) parameter. Accepted keys: C(Additions), C(Removals).'
     type: dict
   product_codes:
     description: The product codes associated with the OMI. Any previously set value is deleted.
