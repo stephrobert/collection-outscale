@@ -21,7 +21,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Protocol
+from typing import Any, Optional, Protocol
 
 from ..models import ProviderResult
 
@@ -39,7 +39,10 @@ class DiscoveryContext:
 
 #: Une fabrique de client : une région, un client qui parle à cette région.
 #: `None` demande le client de la région que le SDK résout lui-même.
-ClientFactory = Callable[[str | None], Any]
+#: `Optional` et non `str | None` : cet alias est évalué à l'exécution, et le
+#: pylint d'`ansible-test sanity` (ansible-core 2.18 et plus) y voit une
+#: opération binaire non prise en charge, mesuré en CI sur les quatre versions.
+ClientFactory = Callable[[Optional[str]], Any]  # noqa: UP045
 
 
 class InventoryProvider(Protocol):

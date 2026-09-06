@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 import example
+import pytest
 import residue
 
 
@@ -123,3 +124,40 @@ def test_le_libelle_dune_ressource_est_son_tag_name() -> None:
     assert residue.libelle({"Tags": [{"Key": "Name", "Value": "web"}]}) == "web"
     assert residue.libelle({"LoadBalancerName": "front"}) == "front"
     assert residue.libelle({}) == "sans nom"
+
+
+# ---- le client de l'exercice ---------------------------------------------------
+
+
+def test_le_client_de_lexercice_vise_lendpoint_de_lenvironnement(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Mesuré en CI au premier run : un `Gateway` construit sans endpoint vise
+    `https://api.eu-west-2.outscale.com`, et une requête aux clés factices est
+    partie vers l'API réelle. Le client se construit depuis l'environnement de
+    l'exercice, endpoint compris, ou pas du tout."""
+    import osc_sdk_python
+
+    recu: dict[str, Any] = {}
+
+    class _Gateway:
+        def __init__(self, **kwargs: Any) -> None:
+            recu.update(kwargs)
+
+    monkeypatch.setattr(osc_sdk_python, "Gateway", _Gateway)
+    example._gateway(
+        {
+            "OSC_ACCESS_KEY": "a",
+            "OSC_SECRET_KEY": "b",
+            "OSC_REGION": "eu-west-2",
+            "OSC_ENDPOINT_API": "http://127.0.0.1:4811/api/v1",
+        }
+    )
+    assert recu["endpoints"].api == "http://127.0.0.1:4811/api/v1"
+    assert recu["access_key"] == "a" and recu["secret_key"] == "b"
+
+
+def test_sans_endpoint_dans_lenvironnement_aucun_client_nest_construit() -> None:
+    """Le cas voisin : sans `OSC_ENDPOINT_API`, le SDK viserait l'API réelle. Refus."""
+    with pytest.raises(KeyError, match="OSC_ENDPOINT_API"):
+        example._gateway({"OSC_ACCESS_KEY": "a", "OSC_SECRET_KEY": "b"})

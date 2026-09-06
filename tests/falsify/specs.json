@@ -407,6 +407,14 @@
       "find": "        if identifiant not in avant.get(nom, {})\n    ]\n    disparus",
       "replace": "        if identifiant not in avant.get(nom, {}) and False\n    ]\n    disparus",
       "test": "tests/unit/outillage/test_artefact_exemple.py::test_une_ressource_apparue_est_un_residu"
+    },
+    {
+      "name": "exemple-client-sans-endpoint",
+      "why": "Un client construit sans endpoint vise l'API réelle : mesuré en CI, une requête aux clés factices est partie vers api.eu-west-2.outscale.com.",
+      "file": "scripts/example.py",
+      "find": "        endpoints=Endpoint(api=env[\"OSC_ENDPOINT_API\"]),",
+      "replace": "        endpoints=Endpoint(),",
+      "test": "tests/unit/outillage/test_artefact_exemple.py::test_le_client_de_lexercice_vise_lendpoint_de_lenvironnement"
     }
   ]
 }

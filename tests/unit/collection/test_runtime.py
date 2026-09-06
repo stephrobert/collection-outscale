@@ -339,7 +339,13 @@ def test_sans_etat_attendu_laction_est_envoyee_sans_lecture(
 
 def test_le_check_mode_lit_letat_mais_nenvoie_rien(monkeypatch: pytest.MonkeyPatch) -> None:
     gateway = _use(monkeypatch, _Gateway(["stopped"]))
-    module = _Module({"action": "start", "vm_ids": ["i-1"], "wait": True}, check_mode=True)
+    # `wait_timeout` court : une garde neutralisée par la falsification enverrait
+    # l'action puis relirait l'état jusqu'au délai, pause comprise ; à 600 s,
+    # c'était dix minutes de boucle avant l'échec attendu, mesuré sous `check`.
+    module = _Module(
+        {"action": "start", "vm_ids": ["i-1"], "wait": True, "wait_timeout": 1},
+        check_mode=True,
+    )
     with pytest.raises(SystemExit):
         runtime.run_action_module(module, _action_spec())
     assert [nom for nom, _ in gateway.calls] == ["ReadVms"]
@@ -350,7 +356,10 @@ def test_le_check_mode_dit_changed_false_quand_letat_est_deja_la(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _use(monkeypatch, _Gateway(["running"]))
-    module = _Module({"action": "start", "vm_ids": ["i-1"], "wait": True}, check_mode=True)
+    module = _Module(
+        {"action": "start", "vm_ids": ["i-1"], "wait": True, "wait_timeout": 1},
+        check_mode=True,
+    )
     with pytest.raises(SystemExit):
         runtime.run_action_module(module, _action_spec())
     assert module.exited is not None and module.exited["changed"] is False
