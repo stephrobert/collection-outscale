@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from generator.ansible.models import build_module_specs
 from generator.plan import ProductPlan
 from generator.renderer.modules import HEADER_WIDTH, operation_header, render_module
@@ -83,3 +85,22 @@ def test_le_golden_ne_porte_aucune_ligne_trop_longue() -> None:
         ]
         assert longues == [], f"{chemin.name} : lignes {longues}"
     assert json.dumps([]) == "[]"
+
+
+def test_un_jeton_long_ne_produit_pas_une_ligne_que_sanity_refuse() -> None:
+    """L'émetteur YAML colle un jeton long à une ligne courte plutôt que de
+    couper avant : un lien du contrat de 145 caractères a fait 186 sur
+    `subregion_info`. Une largeur plus étroite force la coupure."""
+    from generator.renderer.modules import _yaml_block
+
+    lien = "https://docs.example.invalid/" + "a" * 120
+    bloc = _yaml_block({"x": {"description": [f"Short words then {lien} and more words."]}})
+    assert all(len(ligne) <= PEP8_LIMIT for ligne in bloc.splitlines()), bloc
+    assert lien in bloc
+
+
+def test_un_jeton_plus_long_que_la_limite_est_refuse_plutot_que_publie() -> None:
+    from generator.renderer.modules import RenderError, _yaml_block
+
+    with pytest.raises(RenderError, match="caractères"):
+        _yaml_block({"x": {"description": ["y" * 200]}})

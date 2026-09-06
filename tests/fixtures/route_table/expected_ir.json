@@ -12,6 +12,100 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateRouteTableResponse",
+      "fields": [
+        {
+          "name": "RouteTable",
+          "type": "object",
+          "ref": "RouteTable",
+          "description": "Information about the route table."
+        }
+      ]
+    },
+    {
+      "name": "DeleteRouteTableResponse"
+    },
+    {
+      "name": "LinkRouteTableResponse",
+      "fields": [
+        {
+          "name": "LinkRouteTableId",
+          "type": "string",
+          "description": "The ID of the association between the route table and the Subnet."
+        }
+      ]
+    },
+    {
+      "name": "ReadRouteTablesResponse",
+      "fields": [
+        {
+          "name": "RouteTables",
+          "type": "array",
+          "item_type": "object",
+          "ref": "RouteTable",
+          "description": "Information about one or more route tables."
+        }
+      ]
+    },
+    {
+      "name": "RouteTable",
+      "fields": [
+        {
+          "name": "LinkRouteTables",
+          "type": "array",
+          "item_type": "object",
+          "ref": "LinkRouteTable",
+          "description": "One or more associations between the route table and Subnets."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "description": "The ID of the Net for the route table."
+        },
+        {
+          "name": "RoutePropagatingVirtualGateways",
+          "type": "array",
+          "item_type": "object",
+          "ref": "RoutePropagatingVirtualGateway",
+          "description": "Information about virtual gateways propagating routes."
+        },
+        {
+          "name": "RouteTableId",
+          "type": "string",
+          "description": "The ID of the route table."
+        },
+        {
+          "name": "Routes",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Route",
+          "description": "One or more routes in the route table."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the route table."
+        }
+      ]
+    },
+    {
+      "name": "UnlinkRouteTableResponse"
+    },
+    {
+      "name": "UpdateRouteTableLinkResponse",
+      "fields": [
+        {
+          "name": "LinkRouteTableId",
+          "type": "string",
+          "description": "The ID of the association between the route table and the Subnet."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "route_table.v1.RouteTable.CreateRouteTable",

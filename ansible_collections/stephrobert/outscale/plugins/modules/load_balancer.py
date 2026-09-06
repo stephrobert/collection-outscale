@@ -65,8 +65,15 @@ EXAMPLES = r"""
 - name: Set the settings of a load balancer
   stephrobert.outscale.load_balancer:
     region: eu-west-2
-    load_balancer_name: example-id
-    public_ip: example-id
+    load_balancer_name: my-load-balancer
+    secured_cookies: true
+- name: Preview the change on a load balancer without writing
+  stephrobert.outscale.load_balancer:
+    region: eu-west-2
+    load_balancer_name: my-load-balancer
+    secured_cookies: true
+  check_mode: true
+  diff: true
 """
 
 RETURN = r"""
@@ -74,6 +81,124 @@ load_balancer:
   description: The load balancer, read after the update.
   returned: always
   type: dict
+  contains:
+    AccessLog:
+      description:
+      - Information about access logs.
+      returned: when the API returns it
+      type: dict
+    ApplicationStickyCookiePolicies:
+      description:
+      - The stickiness policies defined for the load balancer.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    BackendIps:
+      description:
+      - One or more public IPs of backend VMs.
+      returned: when the API returns it
+      type: list
+      elements: str
+    BackendVmIds:
+      description:
+      - One or more IDs of backend VMs for the load balancer.
+      returned: when the API returns it
+      type: list
+      elements: str
+    DnsName:
+      description:
+      - The DNS name of the load balancer.
+      returned: when the API returns it
+      type: str
+    HealthCheck:
+      description:
+      - Information about the health check configuration.
+      returned: when the API returns it
+      type: dict
+    Listeners:
+      description:
+      - The listeners for the load balancer.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    LoadBalancerName:
+      description:
+      - The name of the load balancer.
+      returned: when the API returns it
+      type: str
+    LoadBalancerStickyCookiePolicies:
+      description:
+      - The policies defined for the load balancer.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    LoadBalancerType:
+      description:
+      - The type of load balancer. Valid only for load balancers in a Net. If C(LoadBalancerType)
+        is C(internet-facing), the load balancer has a public DNS name that resolves to a
+        public IP. If C(LoadBalancerType) is C(internal), the load balancer has a public DNS
+        name that resolves to a private IP.
+      returned: when the API returns it
+      type: str
+    NetId:
+      description:
+      - The ID of the Net for the load balancer.
+      returned: when the API returns it
+      type: str
+    PrivateIp:
+      description:
+      - The primary private IP of the load balancer.
+      returned: when the API returns it
+      type: str
+    PublicIp:
+      description:
+      - (internet-facing only) The public IP associated with the load balancer.
+      returned: when the API returns it
+      type: str
+    SecuredCookies:
+      description:
+      - Whether secure cookies are enabled for the load balancer.
+      returned: when the API returns it
+      type: bool
+    SecurityGroups:
+      description:
+      - One or more IDs of security groups for the load balancers. Valid only for load balancers
+        in a Net.
+      returned: when the API returns it
+      type: list
+      elements: str
+    SourceSecurityGroup:
+      description:
+      - Information about the source security group of the load balancer, which you can use
+        as part of your inbound rules for your registered VMs. To only allow traffic from
+        load balancers, add a security group rule that specifies this source security group
+        as the inbound source.
+      returned: when the API returns it
+      type: dict
+    State:
+      description:
+      - The state of the load balancer (C(provisioning) | C(starting) | C(reloading) | C(active)
+        | C(reconfiguring) | C(deleting) | C(deleted)).
+      returned: when the API returns it
+      type: str
+    Subnets:
+      description:
+      - The ID of the Subnet in which the load balancer was created.
+      returned: when the API returns it
+      type: list
+      elements: str
+    SubregionNames:
+      description:
+      - The ID of the Subregion in which the load balancer was created.
+      returned: when the API returns it
+      type: list
+      elements: str
+    Tags:
+      description:
+      - One or more tags associated with the load balancer.
+      returned: when the API returns it
+      type: list
+      elements: dict
 changes:
   description: 'What differed, by option: the value the API returned before, and the value
     you asked for.'

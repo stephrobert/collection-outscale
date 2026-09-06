@@ -14,10 +14,10 @@ from __future__ import annotations
 
 DOCUMENTATION = r"""
 module: public_ip_info
-short_description: Gather information about Outscale public ips
+short_description: Gather information about Outscale public IPs
 version_added: 0.1.0
 description:
-- List Outscale public ips, optionally filtered. This module never changes anything.
+- List Outscale public IPs, optionally filtered. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
@@ -34,11 +34,18 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: List public ips
+- name: List public IPs
   stephrobert.outscale.public_ip_info:
     region: eu-west-2
   register: result
-- name: List public ips matching a filter
+- name: Read public IPs by ID
+  stephrobert.outscale.public_ip_info:
+    region: eu-west-2
+    filters:
+      PublicIpIds:
+      - example-id
+  register: result
+- name: List public IPs matching a tag
   stephrobert.outscale.public_ip_info:
     region: eu-west-2
     filters:
@@ -49,10 +56,64 @@ EXAMPLES = r"""
 
 RETURN = r"""
 public_ips:
-  description: The public ips.
+  description: The public IPs.
   returned: always
   type: list
   elements: dict
+  contains:
+    LinkPublicIpId:
+      description:
+      - (Required in a Net) The ID representing the association of the public IP with the
+        VM or the NIC.
+      returned: when the API returns it
+      type: str
+    NatServiceId:
+      description:
+      - The ID of the NAT service associated with the public IP (if any).
+      returned: when the API returns it
+      type: str
+    NetAccessPointIds:
+      description:
+      - The IDs of the Net access points associated with the public IP (if any).
+      returned: when the API returns it
+      type: list
+      elements: str
+    NicAccountId:
+      description:
+      - The OUTSCALE account ID of the owner of the NIC.
+      returned: when the API returns it
+      type: str
+    NicId:
+      description:
+      - The ID of the NIC the public IP is associated with (if any).
+      returned: when the API returns it
+      type: str
+    PrivateIp:
+      description:
+      - The private IP associated with the NIC or load balancer.
+      returned: when the API returns it
+      type: str
+    PublicIp:
+      description:
+      - The public IP.
+      returned: when the API returns it
+      type: str
+    PublicIpId:
+      description:
+      - The allocation ID of the public IP.
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the public IP.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    VmId:
+      description:
+      - The ID of the VM the public IP is associated with (if any).
+      returned: when the API returns it
+      type: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

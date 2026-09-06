@@ -14,10 +14,10 @@ from __future__ import annotations
 
 DOCUMENTATION = r"""
 module: dhcp_option_info
-short_description: Gather information about Outscale dhcp options
+short_description: Gather information about Outscale DHCP options
 version_added: 0.1.0
 description:
-- List Outscale dhcp options, optionally filtered. This module never changes anything.
+- List Outscale DHCP options, optionally filtered. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
@@ -33,11 +33,18 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: List dhcp options
+- name: List DHCP options
   stephrobert.outscale.dhcp_option_info:
     region: eu-west-2
   register: result
-- name: List dhcp options matching a filter
+- name: List DHCP options filtered by DhcpOptionsSetIds
+  stephrobert.outscale.dhcp_option_info:
+    region: eu-west-2
+    filters:
+      DhcpOptionsSetIds:
+      - example-id
+  register: result
+- name: List DHCP options matching a tag
   stephrobert.outscale.dhcp_option_info:
     region: eu-west-2
     filters:
@@ -48,10 +55,50 @@ EXAMPLES = r"""
 
 RETURN = r"""
 dhcp_options:
-  description: The dhcp options.
+  description: The DHCP options.
   returned: always
   type: list
   elements: dict
+  contains:
+    Default:
+      description:
+      - If true, the DHCP options set is a default one. If false, it is not.
+      returned: when the API returns it
+      type: bool
+    DhcpOptionsSetId:
+      description:
+      - The ID of the DHCP options set.
+      returned: when the API returns it
+      type: str
+    DomainName:
+      description:
+      - The domain name.
+      returned: when the API returns it
+      type: str
+    DomainNameServers:
+      description:
+      - One or more IPs for the domain name servers.
+      returned: when the API returns it
+      type: list
+      elements: str
+    LogServers:
+      description:
+      - One or more IPs for the log servers.
+      returned: when the API returns it
+      type: list
+      elements: str
+    NtpServers:
+      description:
+      - One or more IPs for the NTP servers.
+      returned: when the API returns it
+      type: list
+      elements: str
+    Tags:
+      description:
+      - One or more tags associated with the DHCP options set.
+      returned: when the API returns it
+      type: list
+      elements: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

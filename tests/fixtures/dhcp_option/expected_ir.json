@@ -12,6 +12,79 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateDhcpOptionsResponse",
+      "fields": [
+        {
+          "name": "DhcpOptionsSet",
+          "type": "object",
+          "ref": "DhcpOptionsSet",
+          "description": "Information about the DHCP options set."
+        }
+      ]
+    },
+    {
+      "name": "DeleteDhcpOptionsResponse"
+    },
+    {
+      "name": "DhcpOptionsSet",
+      "fields": [
+        {
+          "name": "Default",
+          "type": "boolean",
+          "description": "If true, the DHCP options set is a default one. If false, it is not."
+        },
+        {
+          "name": "DhcpOptionsSetId",
+          "type": "string",
+          "description": "The ID of the DHCP options set."
+        },
+        {
+          "name": "DomainName",
+          "type": "string",
+          "description": "The domain name."
+        },
+        {
+          "name": "DomainNameServers",
+          "type": "array",
+          "item_type": "string",
+          "description": "One or more IPs for the domain name servers."
+        },
+        {
+          "name": "LogServers",
+          "type": "array",
+          "item_type": "string",
+          "description": "One or more IPs for the log servers."
+        },
+        {
+          "name": "NtpServers",
+          "type": "array",
+          "item_type": "string",
+          "description": "One or more IPs for the NTP servers."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the DHCP options set."
+        }
+      ]
+    },
+    {
+      "name": "ReadDhcpOptionsResponse",
+      "fields": [
+        {
+          "name": "DhcpOptionsSets",
+          "type": "array",
+          "item_type": "object",
+          "ref": "DhcpOptionsSet",
+          "description": "Information about one or more DHCP options sets."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "dhcp_option.v1.DhcpOption.CreateDhcpOptions",

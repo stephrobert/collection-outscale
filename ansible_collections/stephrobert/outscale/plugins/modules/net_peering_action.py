@@ -44,10 +44,15 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: Run accept on a net peering
+- name: Accept a net peering
   stephrobert.outscale.net_peering_action:
     region: eu-west-2
     action: accept
+    net_peering_id: example-id
+- name: Reject a net peering
+  stephrobert.outscale.net_peering_action:
+    region: eu-west-2
+    action: reject
     net_peering_id: example-id
 """
 
@@ -56,6 +61,44 @@ result:
   description: The API response of the action, without the response context.
   returned: when the action was sent
   type: dict
+  contains:
+    NetPeering:
+      description:
+      - Information about the Net peering.
+      returned: after C(accept)
+      type: dict
+      contains:
+        AccepterNet:
+          description:
+          - Information about the accepter Net.
+          returned: when the API returns it
+          type: dict
+        ExpirationDate:
+          description:
+          - The date and time (UTC) at which the Net peerings expire.
+          returned: when the API returns it
+          type: str
+        NetPeeringId:
+          description:
+          - The ID of the Net peering.
+          returned: when the API returns it
+          type: str
+        SourceNet:
+          description:
+          - Information about the source Net.
+          returned: when the API returns it
+          type: dict
+        State:
+          description:
+          - Information about the state of the Net peering.
+          returned: when the API returns it
+          type: dict
+        Tags:
+          description:
+          - One or more tags associated with the Net peering.
+          returned: when the API returns it
+          type: list
+          elements: dict
 states:
   description: The C(State.Name) of each net peering, by identifier, read after the action.
   returned: when an expected state is declared for the action

@@ -24,7 +24,7 @@ author:
 - Contrat de laboratoire (@lab)
 options:
   widget_id:
-    description: Not documented by the Outscale API contract.
+    description: The ID of the widget.
     type: str
     required: true
   widget_type:
@@ -53,7 +53,14 @@ EXAMPLES = r"""
   lab.widget.widget:
     region: eu-west-2
     widget_id: example-id
-    widget_type: example-id
+    performance: medium
+- name: Preview the change on a widget without writing
+  lab.widget.widget:
+    region: eu-west-2
+    widget_id: example-id
+    performance: medium
+  check_mode: true
+  diff: true
 """
 
 RETURN = r"""
@@ -61,6 +68,33 @@ widget:
   description: The widget, read after the update.
   returned: always
   type: dict
+  contains:
+    WidgetId:
+      description:
+      - The ID of the widget.
+      returned: when the API returns it
+      type: str
+    State:
+      description:
+      - The state of the widget (C(pending) | C(running) | C(stopped)).
+      returned: when the API returns it
+      type: str
+    WidgetType:
+      description:
+      - The type of the widget.
+      returned: when the API returns it
+      type: str
+    Performance:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: when the API returns it
+      type: list
+      elements: dict
 changes:
   description: 'What differed, by option: the value the API returned before, and the value
     you asked for.'

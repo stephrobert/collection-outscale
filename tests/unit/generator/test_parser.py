@@ -224,3 +224,19 @@ def test_un_etat_imbrique_est_une_propriete_de_la_ressource(gadget_service: ApiS
     liste = gadget_service.operation("ReadGadgets")
     assert liste is not None and liste.response is not None
     assert liste.response.payload_fields == ("GadgetId", "State")
+
+
+def test_les_ressources_rendues_sont_portees_une_fois_par_schema(
+    widget_service: ApiService,
+) -> None:
+    """Les enveloppes de réponse et les schémas qu'elles portent, et rien d'autre.
+
+    `Tag` n'est rendu par aucune réponse : il n'entre pas. Recopier les schémas
+    du contrat ferait un IR que personne ne relit en diff.
+    """
+    noms = [objet.name for objet in widget_service.objects]
+    assert noms == sorted(noms), "l'IR se sérialise dans un ordre stable"
+    assert "Widget" in noms and "StopWidgetsResponse" in noms
+    assert "Tag" not in noms
+    assert widget_service.object("Widget") is not None
+    assert widget_service.object("Tag") is None

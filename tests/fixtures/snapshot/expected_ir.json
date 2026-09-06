@@ -12,6 +12,179 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateSnapshotExportTaskResponse",
+      "fields": [
+        {
+          "name": "SnapshotExportTask",
+          "type": "object",
+          "ref": "SnapshotExportTask",
+          "description": "Information about the snapshot export task."
+        }
+      ]
+    },
+    {
+      "name": "CreateSnapshotResponse",
+      "fields": [
+        {
+          "name": "Snapshot",
+          "type": "object",
+          "ref": "Snapshot",
+          "description": "Information about the snapshot."
+        }
+      ]
+    },
+    {
+      "name": "DeleteSnapshotResponse"
+    },
+    {
+      "name": "ReadSnapshotExportTasksResponse",
+      "fields": [
+        {
+          "name": "SnapshotExportTasks",
+          "type": "array",
+          "item_type": "object",
+          "ref": "SnapshotExportTask",
+          "description": "Information about one or more snapshot export tasks."
+        }
+      ]
+    },
+    {
+      "name": "ReadSnapshotsResponse",
+      "fields": [
+        {
+          "name": "Snapshots",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Snapshot",
+          "description": "Information about one or more snapshots and their permissions."
+        }
+      ]
+    },
+    {
+      "name": "Snapshot",
+      "fields": [
+        {
+          "name": "AccountAlias",
+          "type": "string",
+          "description": "The account alias of the owner of the snapshot."
+        },
+        {
+          "name": "AccountId",
+          "type": "string",
+          "description": "The OUTSCALE account ID of the owner of the snapshot."
+        },
+        {
+          "name": "ClientToken",
+          "type": "string",
+          "description": "The idempotency token provided when creating the snapshot."
+        },
+        {
+          "name": "CreationDate",
+          "type": "string",
+          "description": "The date and time (UTC) at which the snapshot was created."
+        },
+        {
+          "name": "Description",
+          "type": "string",
+          "description": "The description of the snapshot."
+        },
+        {
+          "name": "PermissionsToCreateVolume",
+          "type": "object",
+          "ref": "PermissionsOnResource",
+          "description": "Permissions for the resource."
+        },
+        {
+          "name": "Progress",
+          "type": "integer",
+          "description": "The progress of the snapshot, as a percentage."
+        },
+        {
+          "name": "SnapshotId",
+          "type": "string",
+          "description": "The ID of the snapshot."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the snapshot (`in-queue` \\| `pending` \\| `completed` \\| `error` \\| `deleting`)."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the snapshot."
+        },
+        {
+          "name": "VolumeId",
+          "type": "string",
+          "description": "The ID of the volume used to create the snapshot."
+        },
+        {
+          "name": "VolumeSize",
+          "type": "integer",
+          "description": "The size of the volume used to create the snapshot, in gibibytes (GiB)."
+        }
+      ]
+    },
+    {
+      "name": "SnapshotExportTask",
+      "fields": [
+        {
+          "name": "Comment",
+          "type": "string",
+          "description": "If the snapshot export task fails, an error message appears."
+        },
+        {
+          "name": "OsuExport",
+          "type": "object",
+          "ref": "OsuExportSnapshotExportTask",
+          "description": "Information about the snapshot export task."
+        },
+        {
+          "name": "Progress",
+          "type": "integer",
+          "description": "The progress of the snapshot export task, as a percentage."
+        },
+        {
+          "name": "SnapshotId",
+          "type": "string",
+          "description": "The ID of the snapshot to be exported."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the snapshot export task (`pending` \\| `initializing` \\| `preparing` \\| `uploading` \\| `completed` \\| `cancelled` \\| `failed`)."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the snapshot export task."
+        },
+        {
+          "name": "TaskId",
+          "type": "string",
+          "description": "The ID of the snapshot export task."
+        }
+      ]
+    },
+    {
+      "name": "UpdateSnapshotResponse",
+      "fields": [
+        {
+          "name": "Snapshot",
+          "type": "object",
+          "ref": "Snapshot",
+          "description": "Information about the snapshot."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "snapshot.v1.Snapshot.CreateSnapshot",

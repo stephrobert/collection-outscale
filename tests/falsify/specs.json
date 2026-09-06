@@ -28,8 +28,8 @@
       "name": "override-orphelin",
       "why": "Un override qui ne désigne aucune opération décrit une API qui n'existe plus, ou une clé fautive.",
       "file": "generator/overrides/loader.py",
-      "find": "        return tuple(sorted(key for key in self.operations if key not in known))",
-      "replace": "        return tuple(sorted(key for key in self.operations if key not in known and False))",
+      "find": "            if operation is None:",
+      "replace": "            if operation is None and False:",
       "test": "tests/unit/generator/test_overrides.py::test_un_override_orphelin_est_signale"
     },
     {
@@ -348,8 +348,8 @@
       "name": "compteurs-perimes",
       "why": "Un nombre recopié à la main vieillit en silence et se lit exactement comme une mesure : le contrôle doit rougir sur un bloc périmé.",
       "file": "scripts/readme_counters.py",
-      "find": "        if attendu != texte:\n            perimes.append(nom)",
-      "replace": "        if attendu != texte and False:\n            perimes.append(nom)",
+      "find": "        if voulu != texte:\n            perimes.append(nom)",
+      "replace": "        if voulu != texte and False:\n            perimes.append(nom)",
       "test": "tests/unit/outillage/test_compteurs.py::test_un_bloc_perime_fait_echouer_le_controle"
     },
     {
@@ -474,11 +474,11 @@
     },
     {
       "name": "modele-manage-exemple-scalaire",
-      "why": "L'exemple publié de vm réglerait `actions_on_next_boot: {}`, qui n'apprend rien : une option scalaire d'abord.",
+      "why": "L'exemple publié d'un module de gestion réglerait `actions_on_next_boot: {}`, qui n'apprend rien : une option scalaire avant un dictionnaire, quand rien de plus sûr n'existe.",
       "file": "generator/ansible/models.py",
-      "find": "            for name in scalars or list(self.compare):",
-      "replace": "            for name in list(self.compare):",
-      "test": "tests/unit/generator/test_vm_contract.py::test_lexemple_dun_module_de_gestion_regle_une_option_scalaire"
+      "find": "            if self.options[nom][\"type\"] not in (\"dict\", \"list\"):\n                return nom",
+      "replace": "            if self.options[nom][\"type\"] not in (\"dict\", \"list\") and False:\n                return nom",
+      "test": "tests/unit/generator/test_exemples_semantiques.py::test_lexemple_dun_module_de_gestion_prefere_un_scalaire_a_un_dictionnaire"
     },
     {
       "name": "modele-deux-ecritures-refusees",
@@ -519,6 +519,382 @@
       "find": "    text = _MARKDOWN_CODE.sub(lambda match: f\"C({match.group(1)})\", text)",
       "replace": "    text = text",
       "test": "tests/unit/generator/test_models.py::test_un_code_markdown_du_contrat_devient_une_constante_ansible"
+    },
+    {
+      "name": "cle-doverride-en-double",
+      "why": "YAML garde la dernière occurrence en silence : un second bloc efface la décision du premier, et le module publié change sans qu'aucun contrôle ne rougisse.",
+      "file": "generator/overrides/loader.py",
+      "find": "            if cle in vues:",
+      "replace": "            if cle in vues and False:",
+      "test": "tests/unit/generator/test_overrides_documentaires.py::test_une_cle_declaree_deux_fois_est_refusee"
+    },
+    {
+      "name": "description-doverride-sans-raison",
+      "why": "Le texte sort sur Galaxy sous le nom de la collection : sans raison, un lecteur ne peut pas le distinguer d'une phrase d'Outscale.",
+      "file": "generator/overrides/loader.py",
+      "find": "        if documente and not declaration.get(\"reason\"):",
+      "replace": "        if documente and not declaration.get(\"reason\") and False:",
+      "test": "tests/unit/generator/test_overrides_documentaires.py::test_une_description_publiee_sans_raison_est_refusee"
+    },
+    {
+      "name": "override-qui-recouvre-le-contrat",
+      "why": "Un override qui gagne sur le contrat fait diverger la page publiée de l'API, et rien sur la page ne dit d'où vient le texte.",
+      "file": "generator/ansible/models.py",
+      "find": "    text = _ansible_markup(parameter.description or comble or UNDOCUMENTED)",
+      "replace": "    text = _ansible_markup(comble or parameter.description or UNDOCUMENTED)",
+      "test": "tests/unit/generator/test_overrides_documentaires.py::test_le_contrat_gagne_toujours_sur_loverride"
+    },
+    {
+      "name": "orphelin-documentaire",
+      "why": "Le jour où l'amont documente le champ, l'override cesse d'être lu : un texte mort qu'une relecture croirait publié.",
+      "file": "generator/overrides/loader.py",
+      "find": "                if restriction.description and nom in documentes:",
+      "replace": "                if restriction.description and nom in documentes and False:",
+      "test": "tests/unit/generator/test_overrides_documentaires.py::test_un_override_qui_ne_comble_plus_rien_est_orphelin"
+    },
+    {
+      "name": "override-de-retour-sans-raison",
+      "why": "Le texte sortira sur Galaxy sous le nom de la collection, indiscernable d'une phrase d'Outscale.",
+      "file": "generator/overrides/loader.py",
+      "find": "            if not declaration.get(\"reason\"):\n                raise OverrideError(\n                    f\"{path} : returns.{schema}.{champ} publie une description sans `reason`. \"",
+      "replace": "            if not declaration.get(\"reason\") and False:\n                raise OverrideError(\n                    f\"{path} : returns.{schema}.{champ} publie une description sans `reason`. \"",
+      "test": "tests/unit/generator/test_overrides_documentaires.py::test_une_description_de_retour_sans_raison_est_refusee"
+    },
+    {
+      "name": "override-de-retour-devenu-inutile",
+      "why": "Un champ rendu que le contrat décrit désormais lui-même : la phrase écrite ici ne sort plus, et personne ne la relit.",
+      "file": "generator/overrides/loader.py",
+      "find": "                elif declare.description:",
+      "replace": "                elif declare.description and False:",
+      "test": "tests/unit/generator/test_overrides_documentaires.py::test_un_override_de_retour_qui_ne_designe_rien_est_orphelin"
+    },
+    {
+      "name": "exemple-doverride-ignore",
+      "why": "Une valeur d'exemple décidée avec sa raison qui ne sortirait pas laisserait `volume_type: example-id`, copiable et refusé.",
+      "file": "generator/ansible/models.py",
+      "find": "        if name in self.option_examples:\n            return self.option_examples[name]",
+      "replace": "        if name in self.option_examples and False:\n            return self.option_examples[name]",
+      "test": "tests/unit/generator/test_overrides_documentaires.py::test_une_valeur_dexemple_posee_par_override_sort_dans_lexemple"
+    },
+    {
+      "name": "retour-sans-ses-champs",
+      "why": "Nommer la clé de retour ne dit pas ce qu'on y trouve : sans `contains`, il faut appeler le module ou lire le contrat OpenAPI pour l'apprendre.",
+      "file": "generator/ansible/models.py",
+      "find": "    objet = service.object(schema)\n    if objet is None:",
+      "replace": "    objet = service.object(schema) and None\n    if objet is None:",
+      "test": "tests/unit/generator/test_retours_detailles.py::test_le_retour_dun_module_dinformation_liste_ses_champs"
+    },
+    {
+      "name": "ressource-de-reponse-inventee",
+      "why": "Un `contains` bâti sur un schéma que le contrat ne porte pas décrirait une réponse que personne n'a lue.",
+      "file": "generator/ir/models.py",
+      "find": "        for entry in self.objects:\n            if entry.name == name:",
+      "replace": "        for entry in self.objects:\n            if entry.name == name or True:",
+      "test": "tests/unit/generator/test_retours_detailles.py::test_une_ressource_inconnue_ne_produit_aucun_champ"
+    },
+    {
+      "name": "ir-qui-recopie-tous-les-schemas",
+      "why": "Recopier les 655 schémas du contrat ferait un IR que personne ne relit en diff, et le golden est ce qui rend la dérive visible.",
+      "file": "generator/parser/openapi.py",
+      "find": "    for nom in sorted(voulus):",
+      "replace": "    for nom in sorted(schemas):",
+      "test": "tests/unit/generator/test_parser.py::test_les_ressources_rendues_sont_portees_une_fois_par_schema"
+    },
+    {
+      "name": "depreciation-dun-champ-rendu-perdue",
+      "why": "Un lecteur bâtit sur un champ que le contrat déclare déprécié sans que rien ne le lui dise.",
+      "file": "generator/ansible/models.py",
+      "find": "        if champ.deprecated:\n            lignes.append(DEPRECATED_NOTICE)",
+      "replace": "        if champ.deprecated and False:\n            lignes.append(DEPRECATED_NOTICE)",
+      "test": "tests/unit/generator/test_retours_detailles.py::test_un_champ_deprecie_le_dit"
+    },
+    {
+      "name": "phrases-de-deux-enveloppes-fondues",
+      "why": "Garder la phrase de `StartVms` pour un champ que `StopVms` rend aussi ferait dire « started » d'un arrêt.",
+      "file": "generator/ansible/models.py",
+      "find": "            if len(distinctes) == 1",
+      "replace": "            if len(distinctes) >= 1",
+      "test": "tests/unit/generator/test_retours_detailles.py::test_les_phrases_de_deux_enveloppes_sortent_chacune_avec_son_action"
+    },
+    {
+      "name": "liste-de-chaines-dite-dict",
+      "why": "`ReadPublicIpRanges` rend des chaînes : une page qui dit `elements: dict` décrit une réponse que personne n'a lue.",
+      "file": "generator/ansible/models.py",
+      "find": "    return return_type(champ.item_type or ApiType.OBJECT)",
+      "replace": "    return \"dict\"",
+      "test": "tests/unit/generator/test_retours_detailles.py::test_une_liste_de_chaines_est_dite_comme_telle"
+    },
+    {
+      "name": "filtre-tags-invente",
+      "why": "Cinq lectures publiaient `Tags` sur un schéma `Filters` qui ne le porte pas : copiable, et refusé par l'API.",
+      "file": "generator/ansible/models.py",
+      "find": "        if FILTER_TAGS in self.filter_keys:",
+      "replace": "        if FILTER_TAGS in self.filter_keys or True:",
+      "test": "tests/unit/generator/test_exemples_semantiques.py::test_un_filtre_par_tag_ne_se_montre_que_si_le_schema_le_porte"
+    },
+    {
+      "name": "lecture-par-identifiant-absente",
+      "why": "Lire une ressource par son identifiant est la première chose qu'un opérateur cherche, et aucune tâche ne le montrait.",
+      "file": "generator/ansible/models.py",
+      "find": "        if cle_ids is not None:",
+      "replace": "        if cle_ids is not None and False:",
+      "test": "tests/unit/generator/test_exemples_semantiques.py::test_une_lecture_montre_comment_lire_par_identifiant"
+    },
+    {
+      "name": "gestion-sans-mode-simulation",
+      "why": "Les notes parlent du mode simulation depuis le premier module, et aucune tâche ne le montrait.",
+      "file": "generator/ansible/models.py",
+      "find": "                \"check_mode\": True,",
+      "replace": "                \"check_mode\": False,",
+      "test": "tests/unit/generator/test_exemples_semantiques.py::test_un_module_de_gestion_montre_le_mode_simulation"
+    },
+    {
+      "name": "simulation-qui-ne-simule-pas-lecriture",
+      "why": "Une simulation qui n'écrit pas la même chose que la tâche d'écriture ne simule rien.",
+      "file": "generator/ansible/models.py",
+      "find": "                fqcn: dict(task),\n                \"check_mode\": True,",
+      "replace": "                fqcn: {},\n                \"check_mode\": True,",
+      "test": "tests/unit/generator/test_exemples_semantiques.py::test_lexemple_de_simulation_porte_les_memes_parametres"
+    },
+    {
+      "name": "une-action-sur-trois",
+      "why": "« Run reboot on a vm » montrait une action sur trois : un lecteur ne trouvait ni `start` ni `stop` sur la page.",
+      "file": "generator/ansible/models.py",
+      "find": "        for action in self.actions:\n            task: dict[str, Any] = {\"region\": EXAMPLE_REGION, \"action\": action.name}",
+      "replace": "        for action in self.actions[:1]:\n            task: dict[str, Any] = {\"region\": EXAMPLE_REGION, \"action\": action.name}",
+      "test": "tests/unit/generator/test_exemples_semantiques.py::test_un_module_daction_montre_chaque_action"
+    },
+    {
+      "name": "verbe-du-sdk-dans-le-nom",
+      "why": "`Run reboot on a vm` nomme la tâche par le verbe du SDK, et ce nom reste dans la sortie d'Ansible de qui copie la tâche.",
+      "file": "generator/ansible/models.py",
+      "find": "            examples.append({\"name\": f\"{verbe} {cible}\", fqcn: task})",
+      "replace": "            examples.append({\"name\": f\"Run {action.name} on {cible}\", fqcn: task})",
+      "test": "tests/unit/generator/test_exemples_semantiques.py::test_aucun_exemple_ne_se_nomme_par_le_verbe_du_sdk"
+    },
+    {
+      "name": "ancre-yaml-dans-un-exemple",
+      "why": "Une ancre est du YAML valide qu'on ne peut pas copier tâche par tâche : la seconde tâche ne dit plus ce qu'elle envoie.",
+      "file": "generator/renderer/modules.py",
+      "find": "    def ignore_aliases(self, data: Any) -> bool:\n        return True",
+      "replace": "    def ignore_aliases(self, data: Any) -> bool:\n        return super().ignore_aliases(data)",
+      "test": "tests/unit/generator/test_exemples_semantiques.py::test_le_rendu_nemet_jamais_dancre_yaml"
+    },
+    {
+      "name": "bloc-yaml-trop-large-publie",
+      "why": "Un jeton long collé à une ligne courte fait 186 caractères, et sanity refuse le module ; le bloc doit se resserrer avant.",
+      "file": "generator/renderer/modules.py",
+      "find": "        if all(len(ligne) <= SANITY_LINE_LIMIT for ligne in text.splitlines()):",
+      "replace": "        if all(len(ligne) <= SANITY_LINE_LIMIT for ligne in text.splitlines()) or True:",
+      "test": "tests/unit/generator/test_renderer.py::test_un_jeton_long_ne_produit_pas_une_ligne_que_sanity_refuse"
+    },
+    {
+      "name": "reglage-dexemple-sans-preference",
+      "why": "Sans préférer une valeur d'enum, l'exemple de `vm` réglait `bsu_optimized`, dont le contrat dit « This parameter is not available ».",
+      "file": "generator/ansible/models.py",
+      "find": "            if self.options[nom].get(\"choices\"):\n                return nom",
+      "replace": "            if self.options[nom].get(\"choices\") and False:\n                return nom",
+      "test": "tests/unit/generator/test_vm_contract.py::test_lexemple_dun_module_de_gestion_regle_une_option_scalaire"
+    },
+    {
+      "name": "acronyme-en-minuscules",
+      "why": "« Manage the settings of an Outscale vm » sur treize pages : l'identifiant collé dans une phrase de référence.",
+      "file": "generator/ansible/models.py",
+      "find": "    return \" \".join(ACRONYMES.get(mot, mot) for mot in mots.split(\" \"))",
+      "replace": "    return \" \".join(ACRONYMES.get(mot.upper(), mot) for mot in mots.split(\" \"))",
+      "test": "tests/unit/generator/test_vocabulaire.py::test_la_phrase_courte_ecrit_la_ressource_comme_le_contrat"
+    },
+    {
+      "name": "barre-echappee-publiee",
+      "why": "78 `\\|` dans le contrat, recopiés sur 18 modules : l'échappement d'un tableau Markdown sur une page Ansible.",
+      "file": "generator/ansible/models.py",
+      "find": "    text = _MARKDOWN_PIPE.sub(\"|\", text)",
+      "replace": "    text = text or _MARKDOWN_PIPE.sub(\"|\", text)",
+      "test": "tests/unit/generator/test_vocabulaire.py::test_une_barre_echappee_du_contrat_redevient_une_barre"
+    },
+    {
+      "name": "depreciation-doption-perdue",
+      "why": "`vm_initiated_shutdown_behavior` est déprécié depuis 1.42.0, et la page ne le disait pas.",
+      "file": "generator/ansible/models.py",
+      "find": "    if parameter.deprecated:\n        lignes.append(DEPRECATED_NOTICE)",
+      "replace": "    if parameter.deprecated and False:\n        lignes.append(DEPRECATED_NOTICE)",
+      "test": "tests/unit/generator/test_vocabulaire.py::test_une_option_depreciee_le_dit"
+    },
+    {
+      "name": "repli-de-description-accepte",
+      "why": "« Not documented by the Outscale API contract. » est une phrase publiée, pas une absence : sans ce refus elle part sur Galaxy pour toujours.",
+      "file": "scripts/docs_quality.py",
+      "find": "    return bool(lignes) and REPLI not in \" \".join(lignes)",
+      "replace": "    return bool(lignes)",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_un_repli_de_description_est_bloquant"
+    },
+    {
+      "name": "exemple-a-trou-accepte",
+      "why": "`region: <region>` n'est pas du YAML qu'on copie : c'est un formulaire vide.",
+      "file": "scripts/docs_quality.py",
+      "find": "PLACEHOLDER = re.compile(r\"<[a-z_]+>\")",
+      "replace": "PLACEHOLDER = re.compile(r\"<\\x00jamais\\x00>\")",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_un_exemple_a_trou_est_bloquant"
+    },
+    {
+      "name": "mesure-documentaire-sur-zero-page",
+      "why": "Zéro défaut sur zéro page est le vert qui a déjà menti une fois ici : un `ansible-test sanity` vert sur zéro fichier examiné.",
+      "file": "scripts/docs_quality.py",
+      "find": "    if total.modules == 0:",
+      "replace": "    if total.modules == 0 and False:",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_une_mesure_sur_zero_page_est_une_erreur"
+    },
+    {
+      "name": "cle-de-filtre-inconnue-acceptee",
+      "why": "Cinq lectures publiaient `Tags` sur un schéma qui ne le porte pas : sans ce détecteur, un filtre faux repart sur Galaxy.",
+      "file": "scripts/docs_quality.py",
+      "find": "            for inconnue in sorted(set(map(str, filtres)) - acceptees):",
+      "replace": "            for inconnue in sorted(set(map(str, filtres)) - acceptees - set(map(str, filtres))):",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_une_cle_de_filtre_que_loption_naccepte_pas_est_bloquante"
+    },
+    {
+      "name": "action-exclue-acceptee",
+      "why": "Une action citée que l'`argument_spec` refuse promet ce que le module ne fait pas.",
+      "file": "scripts/docs_quality.py",
+      "find": "        for valeur in sorted(citees - choix):",
+      "replace": "        for valeur in sorted(citees - choix - citees):",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_une_action_que_le_module_refuse_ne_doit_pas_etre_citee"
+    },
+    {
+      "name": "vocabulaire-du-contrat-accepte",
+      "why": "Sans ce détecteur, « vm » et « dhcp » reviennent dans une phrase de référence sans qu'on s'en aperçoive.",
+      "file": "scripts/docs_quality.py",
+      "find": "        trouve = JARGON.search(MARQUAGE.sub(\" \", phrase))",
+      "replace": "        trouve = None and JARGON.search(MARQUAGE.sub(\" \", phrase))",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_le_vocabulaire_des_identifiants_dans_une_phrase_est_bloquant"
+    },
+    {
+      "name": "marquage-dansible-lu-comme-un-mot",
+      "why": "`C(id)` cite la valeur d'une option : sans retirer le marquage, le détecteur signalait le plugin d'inventaire à tort.",
+      "file": "scripts/docs_quality.py",
+      "find": "        trouve = JARGON.search(MARQUAGE.sub(\" \", phrase))",
+      "replace": "        trouve = JARGON.search(phrase)",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_un_nom_dans_le_marquage_dansible_nest_pas_du_vocabulaire"
+    },
+    {
+      "name": "nom-doperation-accepte-par-la-porte",
+      "why": "Sans ce détecteur, un exemple nommé par l'identifiant du SDK repart sur Galaxy.",
+      "file": "scripts/docs_quality.py",
+      "find": "        if NOM_PAR_LE_VERBE.match(titre) or mots & identifiants:",
+      "replace": "        if (NOM_PAR_LE_VERBE.match(titre) or mots & identifiants) and False:",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_un_exemple_nomme_par_le_contrat_est_bloquant"
+    },
+    {
+      "name": "champ-de-retour-hors-mesure",
+      "why": "collection-scaleway a laissé partir cent replis dans ses RETURN : la surface publiée s'était élargie, la porte non.",
+      "file": "scripts/docs_quality.py",
+      "find": "    for champ, detail in (contains or {}).items():",
+      "replace": "    for champ, detail in ((contains or {}) and {}).items():",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_un_champ_de_retour_sans_description_est_bloquant_a_tous_les_niveaux"
+    },
+    {
+      "name": "liste-de-chaines-comptee-comme-composite",
+      "why": "Reprocher à `ReadPublicIpRanges` de ne pas détailler des chaînes reprocherait au module d'être correct.",
+      "file": "scripts/docs_quality.py",
+      "find": "            (corps or {}).get(\"type\") == \"list\" and (corps or {}).get(\"elements\") == \"dict\"",
+      "replace": "            (corps or {}).get(\"type\") == \"list\"",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_une_liste_de_chaines_na_rien_a_detailler"
+    },
+    {
+      "name": "plugin-dinventaire-hors-mesure",
+      "why": "Le plugin d'inventaire est la page qu'un utilisateur lit en premier : surveiller les trente-deux suivantes et pas celle-là laisse le trou au pire endroit.",
+      "file": "scripts/docs_quality.py",
+      "find": "    a_examiner = sorted(modules_dir.glob(\"*.py\")) + sorted(inventaire_dir.glob(\"*.py\"))",
+      "replace": "    a_examiner = sorted(modules_dir.glob(\"*.py\")) + sorted(inventaire_dir.glob(\"*.pyc\"))",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_le_plugin_dinventaire_entre_dans_la_mesure"
+    },
+    {
+      "name": "exemples-multi-documents-ignores",
+      "why": "Un plugin publie plusieurs fichiers d'inventaire séparés par `---` : n'en lire qu'un laisse les autres hors de la mesure.",
+      "file": "scripts/docs_quality.py",
+      "find": "        documents = [d for d in yaml.safe_load_all(trouve.group(1)) if d is not None]",
+      "replace": "        documents = [d for d in [yaml.safe_load(trouve.group(1))] if d is not None]",
+      "test": "tests/unit/outillage/test_docs_quality.py::test_les_exemples_dun_plugin_sont_des_fichiers_entiers"
+    },
+    {
+      "name": "documentation-impubliable-publiable",
+      "why": "Une page Galaxy est immuable : un module qui y arrive avec un filtre que l'API refuse ne s'explique nulle part, et la version ne se reprend pas.",
+      "file": "scripts/release.py",
+      "find": "        if bloquants:",
+      "replace": "        if bloquants and False:",
+      "test": "tests/unit/outillage/test_release.py::test_une_documentation_impubliable_est_refusee"
+    },
+    {
+      "name": "tag-hors-de-main-publiable",
+      "why": "Le workflow de publication se déclenche sur un tag, et un tag est mobile : sans cette garde, rien ne vérifie que ce qui part a traversé une pull request.",
+      "file": "scripts/release.py",
+      "find": "    if tag is not None and not sur_la_branche_principale(tag):",
+      "replace": "    if tag is not None and not sur_la_branche_principale(tag) and False:",
+      "test": "tests/unit/outillage/test_release.py::test_un_tag_hors_de_main_est_refuse"
+    },
+    {
+      "name": "rupture-pre-1-0-force-la-majeure",
+      "why": "Déclarer les interfaces stables est un acte humain : une rupture en `0.x` ne doit pas écrire `1.0.0` toute seule.",
+      "file": "scripts/version.py",
+      "find": "        if majeure == 0:",
+      "replace": "        if majeure == 0 and False:",
+      "test": "tests/unit/outillage/test_version.py::test_une_rupture_avant_1_0_0_incremente_la_mineure"
+    },
+    {
+      "name": "version-sans-fragment",
+      "why": "Une version sans changement décrit n'apporte rien à personne : sans fragment, le script doit dire qu'il n'y a rien à publier.",
+      "file": "scripts/version.py",
+      "find": "        if any(section in sections for section in declencheurs):",
+      "replace": "        if any(section in sections for section in declencheurs) or True:",
+      "test": "tests/unit/outillage/test_version.py::test_sans_fragment_il_ny_a_rien_a_publier"
+    },
+    {
+      "name": "lien-publie-vers-une-branche",
+      "why": "Sur Galaxy, la page annonce une version et son lien menait à `main` : le lecteur d'une version publiée atterrissait sur les fichiers d'aujourd'hui.",
+      "file": "scripts/readme_counters.py",
+      "find": "    return lien_du_depot(depot).sub(rf\"\\g<1>{version}\\g<3>\", texte)",
+      "replace": "    return lien_du_depot(depot).sub(r\"\\g<1>main\\g<3>\", texte)",
+      "test": "tests/unit/outillage/test_liens_versionnes.py::test_un_lien_du_depot_prend_la_version_publiee"
+    },
+    {
+      "name": "lien-dun-autre-projet-reecrit",
+      "why": "Une substitution qui prend toutes les URL GitHub fait pointer un lien d'un autre projet sur un tag de ce dépôt, dans un dépôt qui ne le porte pas.",
+      "file": "scripts/readme_counters.py",
+      "find": "    return re.compile(rf\"({re.escape(depot)}/(?:blob|tree)/)([^/\\s)]+)(/)\")",
+      "replace": "    return re.compile(rf\"(https://github\\.com/[^/]+/[^/]+/(?:blob|tree)/)([^/\\s)]+)(/)\")",
+      "test": "tests/unit/outillage/test_liens_versionnes.py::test_un_lien_vers_un_autre_projet_nest_pas_reecrit"
+    },
+    {
+      "name": "qualite-documentaire-non-publiee",
+      "why": "Un chiffre qui ne sort nulle part est un chiffre que personne ne surveille.",
+      "file": "scripts/readme_counters.py",
+      "find": "        f\"  {qualite.modules} published pages: \"",
+      "replace": "        \"\" or f\"  {qualite.modules} \"",
+      "test": "tests/unit/outillage/test_liens_versionnes.py::test_le_bloc_derive_publie_la_qualite_documentaire"
+    },
+    {
+      "name": "serie-de-compatibilite-recopiee",
+      "why": "Une série écrite en dur se lit comme une mesure, et vieillit en silence à la version suivante.",
+      "file": "scripts/readme_counters.py",
+      "find": "            f\"| {_serie(collection.version)} | {versions} | `{_sdk_exige(collection)}` |\",",
+      "replace": "            f\"| {_serie('0.1.0')} | {versions} | `{_sdk_exige(collection)}` |\",",
+      "test": "tests/unit/outillage/test_liens_versionnes.py::test_la_table_de_compatibilite_suit_la_version_et_la_matrice"
+    },
+    {
+      "name": "versionnement-compte-depuis-une-vieille-version",
+      "why": "Illustrer un correctif par `0.1.1` sur une page en 0.2.0 se lit comme un texte hérité.",
+      "file": "scripts/readme_counters.py",
+      "find": "    majeure, mineure, correctif = (int(x) for x in load_collection().version.split(\".\", 2))",
+      "replace": "    majeure, mineure, correctif = (int(x) for x in \"0.1.0\".split(\".\", 2))",
+      "test": "tests/unit/outillage/test_liens_versionnes.py::test_les_exemples_de_versionnement_se_comptent_depuis_la_version_publiee"
+    },
+    {
+      "name": "bloc-nomme-sans-marqueur-accepte",
+      "why": "Un bloc réclamé à un fichier qui ne porte pas ses marqueurs doit être une erreur, pas un silence.",
+      "file": "scripts/readme_counters.py",
+      "find": "    if debut not in texte or fin not in texte:",
+      "replace": "    if (debut not in texte or fin not in texte) and False:",
+      "test": "tests/unit/outillage/test_liens_versionnes.py::test_un_bloc_nomme_reclame_a_un_fichier_qui_ne_le_porte_pas_est_une_erreur"
     }
   ]
 }

@@ -14,10 +14,10 @@ from __future__ import annotations
 
 DOCUMENTATION = r"""
 module: nic_info
-short_description: Gather information about Outscale nics
+short_description: Gather information about Outscale NICs
 version_added: 0.1.0
 description:
-- List Outscale nics, optionally filtered. This module never changes anything.
+- List Outscale NICs, optionally filtered. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
@@ -39,11 +39,18 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: List nics
+- name: List NICs
   stephrobert.outscale.nic_info:
     region: eu-west-2
   register: result
-- name: List nics matching a filter
+- name: Read NICs by ID
+  stephrobert.outscale.nic_info:
+    region: eu-west-2
+    filters:
+      NicIds:
+      - example-id
+  register: result
+- name: List NICs matching a tag
   stephrobert.outscale.nic_info:
     region: eu-west-2
     filters:
@@ -54,10 +61,89 @@ EXAMPLES = r"""
 
 RETURN = r"""
 nics:
-  description: The nics.
+  description: The NICs.
   returned: always
   type: list
   elements: dict
+  contains:
+    AccountId:
+      description:
+      - The OUTSCALE account ID of the owner of the NIC.
+      returned: when the API returns it
+      type: str
+    Description:
+      description:
+      - The description of the NIC.
+      returned: when the API returns it
+      type: str
+    IsSourceDestChecked:
+      description:
+      - (Net only) If true, the source/destination check is enabled. If false, it is disabled.
+      returned: when the API returns it
+      type: bool
+    LinkNic:
+      description:
+      - Information about the NIC attachment.
+      returned: when the API returns it
+      type: dict
+    LinkPublicIp:
+      description:
+      - Information about the public IP association.
+      returned: when the API returns it
+      type: dict
+    MacAddress:
+      description:
+      - The Media Access Control (MAC) address of the NIC.
+      returned: when the API returns it
+      type: str
+    NetId:
+      description:
+      - The ID of the Net for the NIC.
+      returned: when the API returns it
+      type: str
+    NicId:
+      description:
+      - The ID of the NIC.
+      returned: when the API returns it
+      type: str
+    PrivateDnsName:
+      description:
+      - The name of the private DNS.
+      returned: when the API returns it
+      type: str
+    PrivateIps:
+      description:
+      - The private IPs of the NIC.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    SecurityGroups:
+      description:
+      - One or more IDs of security groups for the NIC.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    State:
+      description:
+      - The state of the NIC (C(available) | C(attaching) | C(in-use) | C(detaching)).
+      returned: when the API returns it
+      type: str
+    SubnetId:
+      description:
+      - The ID of the Subnet.
+      returned: when the API returns it
+      type: str
+    SubregionName:
+      description:
+      - The Subregion in which the NIC is located.
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the NIC.
+      returned: when the API returns it
+      type: list
+      elements: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

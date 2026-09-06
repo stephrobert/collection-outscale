@@ -12,6 +12,152 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateNicResponse",
+      "fields": [
+        {
+          "name": "Nic",
+          "type": "object",
+          "ref": "Nic",
+          "description": "Information about the NIC."
+        }
+      ]
+    },
+    {
+      "name": "DeleteNicResponse"
+    },
+    {
+      "name": "LinkNicResponse",
+      "fields": [
+        {
+          "name": "LinkNicId",
+          "type": "string",
+          "description": "The ID of the NIC attachment."
+        }
+      ]
+    },
+    {
+      "name": "LinkPrivateIpsResponse"
+    },
+    {
+      "name": "Nic",
+      "fields": [
+        {
+          "name": "AccountId",
+          "type": "string",
+          "description": "The OUTSCALE account ID of the owner of the NIC."
+        },
+        {
+          "name": "Description",
+          "type": "string",
+          "description": "The description of the NIC."
+        },
+        {
+          "name": "IsSourceDestChecked",
+          "type": "boolean",
+          "description": "(Net only) If true, the source/destination check is enabled. If false, it is disabled."
+        },
+        {
+          "name": "LinkNic",
+          "type": "object",
+          "ref": "LinkNic",
+          "description": "Information about the NIC attachment."
+        },
+        {
+          "name": "LinkPublicIp",
+          "type": "object",
+          "ref": "LinkPublicIp",
+          "description": "Information about the public IP association."
+        },
+        {
+          "name": "MacAddress",
+          "type": "string",
+          "description": "The Media Access Control (MAC) address of the NIC."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "description": "The ID of the Net for the NIC."
+        },
+        {
+          "name": "NicId",
+          "type": "string",
+          "description": "The ID of the NIC."
+        },
+        {
+          "name": "PrivateDnsName",
+          "type": "string",
+          "description": "The name of the private DNS."
+        },
+        {
+          "name": "PrivateIps",
+          "type": "array",
+          "item_type": "object",
+          "ref": "PrivateIp",
+          "description": "The private IPs of the NIC."
+        },
+        {
+          "name": "SecurityGroups",
+          "type": "array",
+          "item_type": "object",
+          "ref": "SecurityGroupLight",
+          "description": "One or more IDs of security groups for the NIC."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the NIC (`available` \\| `attaching` \\| `in-use` \\| `detaching`)."
+        },
+        {
+          "name": "SubnetId",
+          "type": "string",
+          "description": "The ID of the Subnet."
+        },
+        {
+          "name": "SubregionName",
+          "type": "string",
+          "description": "The Subregion in which the NIC is located."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the NIC."
+        }
+      ]
+    },
+    {
+      "name": "ReadNicsResponse",
+      "fields": [
+        {
+          "name": "Nics",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Nic",
+          "description": "Information about one or more NICs."
+        }
+      ]
+    },
+    {
+      "name": "UnlinkNicResponse"
+    },
+    {
+      "name": "UnlinkPrivateIpsResponse"
+    },
+    {
+      "name": "UpdateNicResponse",
+      "fields": [
+        {
+          "name": "Nic",
+          "type": "object",
+          "ref": "Nic",
+          "description": "Information about the NIC."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "nic.v1.Nic.CreateNic",

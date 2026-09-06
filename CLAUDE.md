@@ -58,8 +58,8 @@ generator/overrides/    les décisions humaines, chacune avec sa raison
 generator/ansible/      noms de modules, types, modèle du module
 generator/renderer/     Jinja2, rendu seul
 generator/report/       texte, JSON, Markdown
-scripts/                sync, rapport, golden, dérive, sanity, archive, release, compteurs,
-                        falsification, matrice, exemple, résidu
+scripts/                sync, rapport, golden, dérive, sanity, archive, release, version,
+                        compteurs, porte documentaire, falsification, matrice, exemple, résidu
 specs/outscale/         le contrat, et products.txt qui indexe des tags
 tests/fixtures/widget/  un contrat de laboratoire qui reproduit les formes d'Outscale
 examples/stack/         la plateforme d'exemple, en HCL
@@ -221,8 +221,9 @@ Une garde dont la suppression laisse tous les tests verts est un commentaire.
 
 ```bash
 mise run check     # lint, types, tests, recensement et rapport strict, dérive des golden,
-                   # fragments de changelog, falsification, matrice, compteurs des README,
-                   # porte de couverture, archive
+                   # fragments de changelog, lint de la documentation, falsification,
+                   # matrice, compteurs des README, porte de couverture, archive,
+                   # porte documentaire
 ```
 
 `check` porte tout ce que le job Générateur et le job Archive de la CI
@@ -235,11 +236,43 @@ a voyagé jusqu'en CI chez scaleway faute d'y être.
 | une garde, une validation, un refus | `mise run falsify` | que le test mord sans le correctif |
 | le parser, l'IR | `mise run golden:update` puis lire le diff | ce que le changement fait vraiment aux opérations |
 | un module généré, un template, le runtime | `mise run sanity` | qu'Ansible accepte le fichier produit, sur la version du verrou ; la matrice de CI fait les autres |
+| ce qu'un lecteur voit : une phrase, un exemple, un retour | `mise run docs:quality --details` | que chaque page s'explique seule, depuis Galaxy, sans le contrat ni le code |
 | un module, un plugin, une option d'inventaire | `mise run example` | que ça marche contre l'émulateur : plateforme bâtie, inventaire découvert, module joué, tout détruit sans résidu |
 | le contrat | `python scripts/sync_specs.py --tag <dernier>`, `mise run drift`, `mise run check` | ce qui a bougé, tag par tag, indexé ou non ; puis relever le SDK avec |
 | un workflow, une action, `.github/` | `mise run security` | qu'actionlint, zizmor et poutine acceptent le pipeline |
 | `pyproject.toml` | `mise run lock` puis lire le diff | quelle dépendance apparaît vraiment, et sous quelle empreinte |
 | `meta/runtime.yml` | `mise run matrix:check`, puis la matrice de CI | que la borne est mesurée, pas estimée |
+
+## La page publiée s'explique seule
+
+**Chaque module publié doit pouvoir être compris et utilisé depuis sa seule
+page Galaxy, sans consulter le contrat OpenAPI ni le code source.** Une page
+publiée est immuable : republier la même version rend
+`conflict.collection_exists`, et ce qui part y reste.
+
+`scripts/docs_quality.py` le mesure sur les modules **et** le plugin
+d'inventaire (options, retours, champs des retours décrits ; exemples
+copiables) et nomme neuf défauts, tous bloquants parce que tous à zéro : un
+défaut ne devient bloquant que le jour où il passe à zéro. Elle est dans
+`mise run check` et dans `release:check`, les deux, parce que la mettre dans
+le second seulement l'a fait arriver, chez scaleway, au moment où refuser
+coûte un numéro.
+
+Trois faits mesurés sur le contrat 1.42.0 ont décidé ce qui est porté de
+scaleway et ce qui ne l'est pas :
+
+* **258 champs rendus sur 30 schémas, tous décrits ; 0 paramètre sans
+  description.** Le `RETURN` liste donc les champs avec la phrase du contrat,
+  et la section `returns` des overrides, avec sa `reason`, est l'étage humain
+  pour le jour où un champ arrive muet. Le glossaire par unicité et la
+  reformulation du nom, qui existent chez scaleway, n'ont aucun client ici :
+  ils ne sont pas portés, parce qu'un mécanisme sans client est un commentaire ;
+* **aucune phrase du contrat ne décrit la requête HTTP en contredisant le
+  module** (les deux « you must » mesurés valent aussi pour le module) : le
+  détecteur de fuite HTTP n'est pas porté ;
+* **cinq lectures publiaient un filtre `Tags` que leur schéma `Filters` ne
+  porte pas.** Un exemple de filtre ne montre qu'une clé du schéma, et la porte
+  refuse une clé que l'option ne déclare pas accepter.
 
 ## Ce qui est prouvé, et ce qui ne l'est pas
 

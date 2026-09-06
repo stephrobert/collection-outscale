@@ -12,6 +12,92 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateSubnetResponse",
+      "fields": [
+        {
+          "name": "Subnet",
+          "type": "object",
+          "ref": "Subnet",
+          "description": "Information about the Subnet."
+        }
+      ]
+    },
+    {
+      "name": "DeleteSubnetResponse"
+    },
+    {
+      "name": "ReadSubnetsResponse",
+      "fields": [
+        {
+          "name": "Subnets",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Subnet",
+          "description": "Information about one or more Subnets."
+        }
+      ]
+    },
+    {
+      "name": "Subnet",
+      "fields": [
+        {
+          "name": "AvailableIpsCount",
+          "type": "integer",
+          "description": "The number of available IPs in the Subnets."
+        },
+        {
+          "name": "IpRange",
+          "type": "string",
+          "description": "The IP range in the Subnet, in CIDR notation (for example, `10.0.0.0/16`)."
+        },
+        {
+          "name": "MapPublicIpOnLaunch",
+          "type": "boolean",
+          "description": "If true, a public IP is assigned to the network interface cards (NICs) created in the specified Subnet. By default, false."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "description": "The ID of the Net in which the Subnet is."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the Subnet (`pending` \\| `available` \\| `deleted`)."
+        },
+        {
+          "name": "SubnetId",
+          "type": "string",
+          "description": "The ID of the Subnet."
+        },
+        {
+          "name": "SubregionName",
+          "type": "string",
+          "description": "The name of the Subregion in which the Subnet is located."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the Subnet."
+        }
+      ]
+    },
+    {
+      "name": "UpdateSubnetResponse",
+      "fields": [
+        {
+          "name": "Subnet",
+          "type": "object",
+          "ref": "Subnet",
+          "description": "Information about the Subnet."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "subnet.v1.Subnet.CreateSubnet",

@@ -29,7 +29,15 @@ from __future__ import annotations
 from typing import Any
 
 from generator.ir.enums import ApiType, HTTPMethod, ParameterLocation
-from generator.ir.models import ApiEnum, ApiOperation, ApiParameter, ApiResponse, ApiService
+from generator.ir.models import (
+    ApiEnum,
+    ApiField,
+    ApiObject,
+    ApiOperation,
+    ApiParameter,
+    ApiResponse,
+    ApiService,
+)
 from generator.parser.naming import singularize_phrase, split_words
 from generator.source.base import SpecDocument
 
@@ -107,6 +115,12 @@ def parse_document(spec: SpecDocument) -> ApiService:
             + ", ".join(unpaginated)
         )
 
+    # Après les opérations, parce qu'elles décident quels schémas sont rendus :
+    # les enums rencontrés dans une réponse rejoignent ceux des paramètres, et
+    # une valeur renommée dans une réponse est une évolution de la surface que
+    # le golden doit voir passer.
+    objects = _parse_objects(operations, schemas, enums, warnings)
+
     info = document.get("info", {})
     return ApiService(
         name=spec.product,
@@ -118,8 +132,67 @@ def parse_document(spec: SpecDocument) -> ApiService:
         regions=_regions_of(document),
         operations=tuple(sorted(operations, key=lambda op: op.id)),
         enums=tuple(sorted(enums.values(), key=lambda enum: enum.name)),
+        objects=objects,
         warnings=tuple(sorted(set(warnings))),
     )
+
+
+def _parse_objects(
+    operations: list[ApiOperation],
+    schemas: dict[str, Any],
+    enums: dict[str, ApiEnum],
+    warnings: list[str],
+) -> tuple[ApiObject, ...]:
+    """Les champs des ressources que les réponses rendent réellement.
+
+    Deux sortes de schémas, et rien d'autre : l'**enveloppe** de chaque
+    réponse (`StopVmsResponse`), privée de `ResponseContext` et du jeton de
+    page comme `_parse_response` le fait déjà, et la **ressource** qu'elle
+    porte (`VmState`). L'enveloppe sert au `result` d'une action et aux
+    charges utiles indécidables ; la ressource, aux lectures et aux écritures.
+
+    **Un seul niveau par objet, et c'est une décision.** Un champ objet garde
+    le nom du schéma qu'il référence (`ref`) : c'est l'appelant qui décide de
+    descendre d'un niveau, et jusqu'où. Recopier l'arbre entier ferait un IR
+    que personne ne relit en diff.
+    """
+    voulus: set[str] = set()
+    for operation in operations:
+        if operation.response is None:
+            continue
+        for nom in (operation.response.schema, operation.response.payload_schema):
+            if nom:
+                voulus.add(nom)
+
+    objets: list[ApiObject] = []
+    for nom in sorted(voulus):
+        schema = schemas.get(nom)
+        if not isinstance(schema, dict):
+            warnings.append(f"{nom} : schéma de réponse absent des composants du contrat")
+            continue
+        champs: list[ApiField] = []
+        for champ, declaration in (schema.get("properties") or {}).items():
+            if champ in (RESPONSE_CONTEXT, PAGE_TOKEN) or not isinstance(declaration, dict):
+                continue
+            resolu = _resolve_type(
+                schema=declaration,
+                schemas=schemas,
+                enums=enums,
+                warnings=warnings,
+                context=f"{nom}.{champ}",
+            )
+            champs.append(
+                ApiField(
+                    name=str(champ),
+                    type=resolu.type,
+                    item_type=resolu.item_type,
+                    ref=resolu.ref,
+                    deprecated=bool(declaration.get("deprecated")),
+                    description=_first_paragraph(declaration.get("description")),
+                )
+            )
+        objets.append(ApiObject(name=nom, fields=tuple(champs)))
+    return tuple(objets)
 
 
 def _regions_of(document: dict[str, Any]) -> tuple[str, ...]:

@@ -39,7 +39,14 @@ EXAMPLES = r"""
   stephrobert.outscale.volume_info:
     region: eu-west-2
   register: result
-- name: List volumes matching a filter
+- name: Read volumes by ID
+  stephrobert.outscale.volume_info:
+    region: eu-west-2
+    filters:
+      VolumeIds:
+      - example-id
+  register: result
+- name: List volumes matching a tag
   stephrobert.outscale.volume_info:
     region: eu-west-2
     filters:
@@ -54,6 +61,70 @@ volumes:
   returned: always
   type: list
   elements: dict
+  contains:
+    ClientToken:
+      description:
+      - The idempotency token provided when creating the volume.
+      returned: when the API returns it
+      type: str
+    CreationDate:
+      description:
+      - The date and time (UTC) at which the volume was created.
+      returned: when the API returns it
+      type: str
+    Iops:
+      description:
+      - 'The number of I/O operations per second (IOPS): - For C(io1) volumes, the number
+        of provisioned IOPS - For C(gp2) volumes, the baseline performance of the volume'
+      returned: when the API returns it
+      type: int
+    LinkedVolumes:
+      description:
+      - Information about your volume attachment.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    Size:
+      description:
+      - The size of the volume, in gibibytes (GiB).
+      returned: when the API returns it
+      type: int
+    SnapshotId:
+      description:
+      - The snapshot from which the volume was created.
+      returned: when the API returns it
+      type: str
+    State:
+      description:
+      - The state of the volume (C(creating) | C(available) | C(in-use) | C(deleting) | C(error)).
+      returned: when the API returns it
+      type: str
+    SubregionName:
+      description:
+      - The Subregion in which the volume was created.
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the volume.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    TaskId:
+      description:
+      - The ID of the volume update task in progress. Otherwise, it is not returned.
+      returned: when the API returns it
+      type: str
+    VolumeId:
+      description:
+      - The ID of the volume.
+      returned: when the API returns it
+      type: str
+    VolumeType:
+      description:
+      - The type of the volume (C(standard) | C(gp2) | C(io1)).
+      returned: when the API returns it
+      type: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

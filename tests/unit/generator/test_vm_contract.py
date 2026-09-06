@@ -88,7 +88,11 @@ def test_le_selecteur_de_net_nomme_la_ressource_et_non_le_jeu_dhcp() -> None:
 
 def test_lexemple_dun_module_de_gestion_regle_une_option_scalaire() -> None:
     """La première option de `UpdateVm` est un dictionnaire : l'exemple publié
-    règle un booléen, parce que `actions_on_next_boot: {}` n'apprend rien."""
+    règle un scalaire, parce que `actions_on_next_boot: {}` n'apprend rien.
+
+    Et parmi les scalaires, une valeur d'enum d'abord : `performance` est
+    listée sur la même page, là où `bsu_optimized`, le premier booléen, est
+    décrit par le contrat comme « not available »."""
     from generator.ansible.models import build_module_specs
 
     from .conftest import LAB_COLLECTION
@@ -96,8 +100,12 @@ def test_lexemple_dun_module_de_gestion_regle_une_option_scalaire() -> None:
     plan = build_plan("vm", "v1", spec_root=OUTSCALE_SPECS)
     specs, _ = build_module_specs(plan, LAB_COLLECTION)
     vm = next(spec for spec in specs if spec.name == "vm")
-    (example,) = vm.examples_documentation()
+    example, apercu = vm.examples_documentation()
     task = example[LAB_COLLECTION.module_fqcn("vm")]
+    assert apercu[LAB_COLLECTION.module_fqcn("vm")] == task
+    assert apercu["check_mode"] is True and apercu["diff"] is True
     reglees = [name for name in task if name in vm.compare]
     assert len(reglees) == 1
     assert vm.options[reglees[0]]["type"] not in ("dict", "list")
+    assert vm.options[reglees[0]].get("choices"), "une valeur d'enum d'abord"
+    assert task[reglees[0]] in vm.options[reglees[0]]["choices"]

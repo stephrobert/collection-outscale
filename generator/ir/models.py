@@ -28,6 +28,13 @@ mesurés sur le contrat 1.42.0 :
   par exemple les 67 filtres de `FiltersVm`. C'est ce qui permet de relier
   mécaniquement le sélecteur d'une action au filtre de la lecture qui rend
   l'état de la ressource.
+
+Un quatrième porte ce qu'une réponse contient, et il sert à la page publiée :
+`ApiService.objects` range, une fois par schéma, les champs des ressources
+que les réponses rendent, avec la description que le contrat en donne. Sans
+lui, le `RETURN` d'un module nommait la clé rendue sans dire ce qu'on y
+trouve. Mesuré sur 1.42.0 : les 30 schémas rendus par les produits indexés
+déclarent 258 champs, tous décrits.
 """
 
 from __future__ import annotations
@@ -105,6 +112,69 @@ class ApiParameter:
                 "ref": self.ref,
                 "read_only": self.read_only or None,
                 "properties": list(self.properties) or None,
+            }
+        )
+
+
+@dataclass(frozen=True)
+class ApiField:
+    """Un champ d'une ressource rendue, tel que le contrat le déclare.
+
+    C'est ce que le `RETURN` d'un module publie sous `contains` : sans lui, la
+    page nommait la clé rendue sans dire ce qu'on y trouve, et il fallait
+    appeler le module ou lire le contrat pour l'apprendre.
+    """
+
+    name: str
+    type: ApiType
+    description: str | None = None
+    #: Type des éléments quand le champ est un tableau, quand le contrat le dit.
+    item_type: ApiType | None = None
+    #: Nom du schéma référencé quand le champ est un objet, ou un tableau
+    #: d'objets : c'est ce qui permet de descendre d'un niveau (`Vms` d'une
+    #: réponse d'action porte des `VmState`).
+    ref: str | None = None
+    #: Le contrat le déclare déprécié. Le drapeau existait pour les paramètres
+    #: et se perdait pour les champs rendus.
+    deprecated: bool = False
+
+    def to_dict(self) -> dict[str, Any]:
+        return _compact(
+            {
+                "name": self.name,
+                "type": self.type.value,
+                "item_type": self.item_type.value if self.item_type else None,
+                "ref": self.ref,
+                "deprecated": self.deprecated or None,
+                "description": self.description,
+            }
+        )
+
+
+@dataclass(frozen=True)
+class ApiObject:
+    """Une ressource rendue par l'API, avec ses champs.
+
+    Rangée une fois par schéma plutôt que recopiée sur chaque opération, et
+    seulement pour les schémas qu'une réponse désigne : les 236 opérations du
+    contrat 1.42.0 référencent 655 schémas, et un IR qui les recopierait tous
+    ne se relirait plus en diff.
+    """
+
+    name: str
+    fields: tuple[ApiField, ...] = ()
+
+    def field(self, name: str) -> ApiField | None:
+        for entry in self.fields:
+            if entry.name == name:
+                return entry
+        return None
+
+    def to_dict(self) -> dict[str, Any]:
+        return _compact(
+            {
+                "name": self.name,
+                "fields": [f.to_dict() for f in self.fields] or None,
             }
         )
 
@@ -228,6 +298,10 @@ class ApiService:
     regions: tuple[str, ...] = ()
     operations: tuple[ApiOperation, ...] = ()
     enums: tuple[ApiEnum, ...] = ()
+    #: Les ressources que les réponses rendent, avec leurs champs : les
+    #: enveloppes de réponse, hors `ResponseContext`, et les schémas qu'elles
+    #: portent. Rien d'autre.
+    objects: tuple[ApiObject, ...] = ()
     #: Anomalies rencontrées au parsing, remontées telles quelles dans le rapport.
     warnings: tuple[str, ...] = field(default=(), compare=False)
 
@@ -241,6 +315,19 @@ class ApiService:
                 return operation
         return None
 
+    def object(self, name: str | None) -> ApiObject | None:
+        """La ressource d'un nom de schéma, ou `None` si le contrat ne la porte pas.
+
+        `None` plutôt qu'un objet vide : un `contains` bâti sur un schéma que
+        le contrat ne porte pas décrirait une réponse que personne n'a lue.
+        """
+        if name is None:
+            return None
+        for entry in self.objects:
+            if entry.name == name:
+                return entry
+        return None
+
     def to_dict(self) -> dict[str, Any]:
         return _compact(
             {
@@ -252,6 +339,7 @@ class ApiService:
                 "document_version": self.document_version,
                 "regions": list(self.regions) or None,
                 "enums": [e.to_dict() for e in self.enums] or None,
+                "objects": [o.to_dict() for o in self.objects] or None,
                 "operations": [o.to_dict() for o in self.operations] or None,
                 "warnings": list(self.warnings) or None,
             }

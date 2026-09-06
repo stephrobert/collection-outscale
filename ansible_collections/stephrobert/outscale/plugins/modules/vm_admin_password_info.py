@@ -44,6 +44,17 @@ admin_password:
   description: The admin password, as the API answers it, without the response context.
   returned: always
   type: dict
+  contains:
+    AdminPassword:
+      description:
+      - The password of the VM. After the first boot, returns an empty string.
+      returned: when the API returns it
+      type: str
+    VmId:
+      description:
+      - The ID of the VM.
+      returned: when the API returns it
+      type: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

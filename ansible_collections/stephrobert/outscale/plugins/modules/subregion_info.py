@@ -36,13 +36,6 @@ EXAMPLES = r"""
   stephrobert.outscale.subregion_info:
     region: eu-west-2
   register: result
-- name: List subregions matching a filter
-  stephrobert.outscale.subregion_info:
-    region: eu-west-2
-    filters:
-      Tags:
-      - role=web
-  register: result
 """
 
 RETURN = r"""
@@ -51,6 +44,29 @@ subregions:
   returned: always
   type: list
   elements: dict
+  contains:
+    LocationCode:
+      description:
+      - The location code (physical zone) of the Subregion. For more
+        information, see L(About Regions > Mapping Between Subregions
+        and Physical Zones, https://docs.outscale.com/en/userguide/About-Regions-and-Subregions.html#_mapping_between_subregions_and_physical_zones).
+      returned: when the API returns it
+      type: str
+    RegionName:
+      description:
+      - The name of the Region containing the Subregion.
+      returned: when the API returns it
+      type: str
+    State:
+      description:
+      - The state of the Subregion.
+      returned: when the API returns it
+      type: str
+    SubregionName:
+      description:
+      - The name of the Subregion.
+      returned: when the API returns it
+      type: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

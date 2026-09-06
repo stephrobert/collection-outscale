@@ -41,6 +41,17 @@ regions:
   returned: always
   type: list
   elements: dict
+  contains:
+    Endpoint:
+      description:
+      - The hostname of the gateway to access the Region.
+      returned: when the API returns it
+      type: str
+    RegionName:
+      description:
+      - The administrative name of the Region.
+      returned: when the API returns it
+      type: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

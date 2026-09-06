@@ -39,7 +39,14 @@ EXAMPLES = r"""
   stephrobert.outscale.route_table_info:
     region: eu-west-2
   register: result
-- name: List route tables matching a filter
+- name: Read route tables by ID
+  stephrobert.outscale.route_table_info:
+    region: eu-west-2
+    filters:
+      RouteTableIds:
+      - example-id
+  register: result
+- name: List route tables matching a tag
   stephrobert.outscale.route_table_info:
     region: eu-west-2
     filters:
@@ -54,6 +61,41 @@ route_tables:
   returned: always
   type: list
   elements: dict
+  contains:
+    LinkRouteTables:
+      description:
+      - One or more associations between the route table and Subnets.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    NetId:
+      description:
+      - The ID of the Net for the route table.
+      returned: when the API returns it
+      type: str
+    RoutePropagatingVirtualGateways:
+      description:
+      - Information about virtual gateways propagating routes.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    RouteTableId:
+      description:
+      - The ID of the route table.
+      returned: when the API returns it
+      type: str
+    Routes:
+      description:
+      - One or more routes in the route table.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    Tags:
+      description:
+      - One or more tags associated with the route table.
+      returned: when the API returns it
+      type: list
+      elements: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

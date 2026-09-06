@@ -42,8 +42,8 @@ def test_les_cles_dun_filtre_viennent_du_contrat(widget_plan: ProductPlan) -> No
     """Rien n'est inventé : les clés sont les propriétés de `FiltersWidget`."""
     specs, _ = build_module_specs(widget_plan, LAB_COLLECTION)
     info = _spec(specs, "widget_info")
-    assert "C(WidgetIds)" in info.option_docs["filters"]
-    assert "C(CreationDates)" in info.option_docs["filters"]
+    assert "C(WidgetIds)" in info.option_docs["filters"][0]
+    assert "C(CreationDates)" in info.option_docs["filters"][0]
 
 
 def test_une_lecture_exige_ce_que_le_contrat_exige(widget_plan: ProductPlan) -> None:
@@ -248,7 +248,7 @@ def test_les_exemples_montrent_une_forme_et_pas_une_ressource(widget_plan: Produ
         "widget_ids": ["example-id"],
     }
     liste = _spec(specs, "widget_info").examples_documentation()
-    assert len(liste) == 2 and "filters" in liste[1]["lab.widget.widget_info"]
+    assert len(liste) == 3 and "filters" in liste[1]["lab.widget.widget_info"]
 
 
 # ---- la gestion d'état ------------------------------------------------------
@@ -345,7 +345,7 @@ def test_un_lien_markdown_du_contrat_devient_un_lien_ansible(widget_service: Api
         _widget_type(widget_service),
         description="See [VM Types](https://docs.outscale.com/en/userguide/VM-Types.html) first.",
     )
-    text = _describe(parameter)
+    (text,) = _describe(parameter)
     assert "L(VM Types, https://docs.outscale.com/en/userguide/VM-Types.html)" in text
     assert "](" not in text
 
@@ -354,7 +354,7 @@ def test_un_saut_de_ligne_html_du_contrat_devient_un_espace(widget_service: ApiS
     from generator.ansible.models import _describe
 
     parameter = replace(_widget_type(widget_service), description="First.<br />Second.<br/>")
-    assert _describe(parameter) == "First. Second."
+    assert _describe(parameter) == ("First. Second.",)
 
 
 def test_un_code_markdown_du_contrat_devient_une_constante_ansible(
@@ -364,4 +364,4 @@ def test_un_code_markdown_du_contrat_devient_une_constante_ansible(
     from generator.ansible.models import _describe
 
     parameter = replace(_widget_type(widget_service), description="Either `io1` or `gp2`.")
-    assert _describe(parameter) == "Either C(io1) or C(gp2)."
+    assert _describe(parameter) == ("Either C(io1) or C(gp2).",)

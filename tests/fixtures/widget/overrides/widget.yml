@@ -37,3 +37,33 @@ operations:
       reason: >-
         Reproduit RebootVms : l'état visé peut déjà être là, et l'action doit
         quand même agir.
+
+  # ---- Combler un trou du contrat de laboratoire ----------------------------
+  #
+  # `UpdateWidgetRequest.WidgetId` n'a pas de description :
+  # le module sortait avec le repli. Le contrat gagne toujours ; l'override ne
+  # comble que là où il ne dit rien, et devient orphelin le jour où il parle.
+  widget.v1.Widget.UpdateWidget:
+    parameters:
+      WidgetId:
+        description: The ID of the widget.
+        reason: >-
+          Reproduit un trou que le contrat réel ne porte pas (0 paramètre sans
+          description sur 1.42.0) : recopié de `ReadWidgetSecretRequest.WidgetId`,
+          qui décrit le même champ.
+
+# ---- Ce que le contrat de laboratoire ne décrit pas, et qui est publié ------
+#
+# `Widget` déclare cinq champs et n'en décrit qu'un. Deux sont comblés ici,
+# avec leur source ; les autres gardent le repli, pour que le golden montre ce
+# que la porte documentaire refuserait de publier.
+returns:
+  Widget:
+    WidgetId:
+      description: The ID of the widget.
+      reason: Recopié de `ReadWidgetSecretRequest.WidgetId`, qui décrit le même champ.
+    WidgetType:
+      description: The type of the widget.
+      reason: >-
+        Reformulation du nom, et rien d'autre : `UpdateWidgetRequest.WidgetType`
+        dit « The type of widget », le champ rendu porte la même valeur.

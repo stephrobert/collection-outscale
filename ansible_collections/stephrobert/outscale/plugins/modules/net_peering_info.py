@@ -39,7 +39,14 @@ EXAMPLES = r"""
   stephrobert.outscale.net_peering_info:
     region: eu-west-2
   register: result
-- name: List net peerings matching a filter
+- name: Read net peerings by ID
+  stephrobert.outscale.net_peering_info:
+    region: eu-west-2
+    filters:
+      NetPeeringIds:
+      - example-id
+  register: result
+- name: List net peerings matching a tag
   stephrobert.outscale.net_peering_info:
     region: eu-west-2
     filters:
@@ -54,6 +61,38 @@ net_peerings:
   returned: always
   type: list
   elements: dict
+  contains:
+    AccepterNet:
+      description:
+      - Information about the accepter Net.
+      returned: when the API returns it
+      type: dict
+    ExpirationDate:
+      description:
+      - The date and time (UTC) at which the Net peerings expire.
+      returned: when the API returns it
+      type: str
+    NetPeeringId:
+      description:
+      - The ID of the Net peering.
+      returned: when the API returns it
+      type: str
+    SourceNet:
+      description:
+      - Information about the source Net.
+      returned: when the API returns it
+      type: dict
+    State:
+      description:
+      - Information about the state of the Net peering.
+      returned: when the API returns it
+      type: dict
+    Tags:
+      description:
+      - One or more tags associated with the Net peering.
+      returned: when the API returns it
+      type: list
+      elements: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

@@ -44,10 +44,15 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: Run accept on a gadget
+- name: Accept a gadget
   lab.widget.gadget_action:
     region: eu-west-2
     action: accept
+    gadget_id: example-id
+- name: Reject a gadget
+  lab.widget.gadget_action:
+    region: eu-west-2
+    action: reject
     gadget_id: example-id
 """
 
@@ -56,6 +61,23 @@ result:
   description: The API response of the action, without the response context.
   returned: when the action was sent
   type: dict
+  contains:
+    Gadget:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: after C(accept), C(reject)
+      type: dict
+      contains:
+        GadgetId:
+          description:
+          - Not documented by the Outscale API contract.
+          returned: when the API returns it
+          type: str
+        State:
+          description:
+          - Not documented by the Outscale API contract.
+          returned: when the API returns it
+          type: dict
 states:
   description: The C(State.Name) of each gadget, by identifier, read after the action.
   returned: when an expected state is declared for the action

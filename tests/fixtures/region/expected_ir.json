@@ -12,6 +12,35 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "ReadRegionsResponse",
+      "fields": [
+        {
+          "name": "Regions",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Region",
+          "description": "Information about one or more Regions."
+        }
+      ]
+    },
+    {
+      "name": "Region",
+      "fields": [
+        {
+          "name": "Endpoint",
+          "type": "string",
+          "description": "The hostname of the gateway to access the Region."
+        },
+        {
+          "name": "RegionName",
+          "type": "string",
+          "description": "The administrative name of the Region."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "region.v1.Region.ReadRegions",

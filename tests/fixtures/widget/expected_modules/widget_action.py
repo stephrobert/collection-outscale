@@ -50,10 +50,22 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: Run reboot on a widget
+- name: Reboot widgets
   lab.widget.widget_action:
     region: eu-west-2
     action: reboot
+    widget_ids:
+    - example-id
+- name: Start widgets
+  lab.widget.widget_action:
+    region: eu-west-2
+    action: start
+    widget_ids:
+    - example-id
+- name: Stop widgets
+  lab.widget.widget_action:
+    region: eu-west-2
+    action: stop
     widget_ids:
     - example-id
 """
@@ -63,6 +75,29 @@ result:
   description: The API response of the action, without the response context.
   returned: when the action was sent
   type: dict
+  contains:
+    Widgets:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: after C(start), C(stop)
+      type: list
+      elements: dict
+      contains:
+        WidgetId:
+          description:
+          - Not documented by the Outscale API contract.
+          returned: when the API returns it
+          type: str
+        CurrentState:
+          description:
+          - Not documented by the Outscale API contract.
+          returned: when the API returns it
+          type: str
+        PreviousState:
+          description:
+          - Not documented by the Outscale API contract.
+          returned: when the API returns it
+          type: str
 states:
   description: The C(State) of each widget, by identifier, read after the action.
   returned: when an expected state is declared for the action

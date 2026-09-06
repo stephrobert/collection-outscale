@@ -14,10 +14,10 @@ from __future__ import annotations
 
 DOCUMENTATION = r"""
 module: vm_type_info
-short_description: Gather information about Outscale vm types
+short_description: Gather information about Outscale VM types
 version_added: 0.1.0
 description:
-- List Outscale vm types, optionally filtered. This module never changes anything.
+- List Outscale VM types, optionally filtered. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
@@ -33,25 +33,70 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: List vm types
+- name: List VM types
   stephrobert.outscale.vm_type_info:
     region: eu-west-2
-  register: result
-- name: List vm types matching a filter
-  stephrobert.outscale.vm_type_info:
-    region: eu-west-2
-    filters:
-      Tags:
-      - role=web
   register: result
 """
 
 RETURN = r"""
 vm_types:
-  description: The vm types.
+  description: The VM types.
   returned: always
   type: list
   elements: dict
+  contains:
+    BsuOptimized:
+      description:
+      - This parameter is not available. It is present in our API for the sake of historical
+        compatibility with AWS.
+      returned: when the API returns it
+      type: bool
+    EphemeralsType:
+      description:
+      - The type of ephemeral storage disk.
+      returned: when the API returns it
+      type: str
+    Eth:
+      description:
+      - The number of Ethernet interface available.
+      returned: when the API returns it
+      type: int
+    Gpu:
+      description:
+      - The number of GPU available.
+      returned: when the API returns it
+      type: int
+    MaxPrivateIps:
+      description:
+      - The maximum number of private IPs per network interface card (NIC).
+      returned: when the API returns it
+      type: int
+    MemorySize:
+      description:
+      - The amount of memory, in gibibytes.
+      returned: when the API returns it
+      type: float
+    VcoreCount:
+      description:
+      - The number of vCores.
+      returned: when the API returns it
+      type: int
+    VmTypeName:
+      description:
+      - The name of the VM type.
+      returned: when the API returns it
+      type: str
+    VolumeCount:
+      description:
+      - The maximum number of ephemeral storage disks.
+      returned: when the API returns it
+      type: int
+    VolumeSize:
+      description:
+      - The size of one ephemeral storage disk, in gibibytes (GiB).
+      returned: when the API returns it
+      type: int
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

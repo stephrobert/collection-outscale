@@ -1,0 +1,35 @@
+minor_changes:
+  - >-
+    Every returned key now lists the fields of the resource it carries, with
+    the description the contract gives each of them, and the response of an
+    action is described one level down (``result.Vms`` lists ``VmId``,
+    ``PreviousState`` and ``CurrentState``).
+  - >-
+    Examples show one task per thing a module does, reading by ID, filtering
+    by tag, previewing a change with ``check_mode`` and ``diff``, and every
+    action of an action module, instead of one task per operation.
+  - >-
+    Resource names come out as the contract writes them in its own sentences
+    (``VM``, ``NIC``, ``DHCP``, ``NAT``, ``IP``) rather than as identifiers
+    (``vm``, ``nic``, ``dhcp``).
+  - >-
+    An option or a returned field the contract declares deprecated says so
+    (``vm_initiated_shutdown_behavior``).
+  - >-
+    The inventory plugin publishes four complete configuration files as
+    examples, in English.
+bugfixes:
+  - >-
+    Information modules whose ``Filters`` schema carries no ``Tags`` key
+    (``vm_type_info``, ``vm_state_info``, ``load_balancer_info``,
+    ``tag_info``, ``subregion_info``) no longer publish a ``Tags`` filter
+    example the API refuses; filter examples use keys the schema declares.
+  - >-
+    ``public_ip_range_info`` documents its result as a list of strings, which
+    is what the API returns, instead of a list of dictionaries.
+  - >-
+    Escaped pipes copied from the contract's Markdown tables are rendered as
+    plain pipes.
+  - >-
+    ``volume`` and ``load_balancer`` examples no longer use ``example-id`` as
+    a volume type, a name or a public IP.

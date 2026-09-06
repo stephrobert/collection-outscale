@@ -36,10 +36,11 @@ from generator.ansible.mapping import (
     UnmappedType,
     argument_spec_entry,
     option_name,
+    return_type,
     sdk_method,
 )
 from generator.ir.enums import ApiType, OperationKind
-from generator.ir.models import ApiOperation, ApiParameter
+from generator.ir.models import ApiOperation, ApiParameter, ApiService
 from generator.overrides.loader import OperationOverride, OverrideSet, ParameterOverride
 from generator.parser.naming import pluralize_phrase, split_words
 from generator.plan import OperationPlan, ProductPlan
@@ -50,8 +51,16 @@ RENDERABLE_KINDS: frozenset[OperationKind] = frozenset(
     {OperationKind.INFO, OperationKind.ACTION, OperationKind.MANAGE}
 )
 
-#: Ce qu'on écrit quand le contrat ne décrit pas un paramètre.
+#: Ce qu'on écrit quand le contrat ne décrit pas un paramètre ni un champ.
+#: Utile dans un compte rendu, illisible sur une page Galaxy : la porte
+#: documentaire refuse de publier une page qui le porte.
 UNDOCUMENTED = "Not documented by the Outscale API contract."
+
+#: Ce qu'on ajoute quand le contrat déclare un paramètre ou un champ déprécié.
+#: Le drapeau était lu par le parser et ne sortait nulle part : un lecteur
+#: bâtissait sur `vm_initiated_shutdown_behavior` sans savoir que le contrat
+#: 1.42.0 le déclare déprécié.
+DEPRECATED_NOTICE = "Deprecated by the Outscale API contract."
 
 #: Identifiant d'exemple. Un exemple montre une forme, pas une ressource, et
 #: les identifiants d'Outscale portent un préfixe par ressource (`i-`, `vol-`)
@@ -60,6 +69,44 @@ EXAMPLE_ID = "example-id"
 
 #: Région d'exemple : celle que le contrat déclare par défaut.
 EXAMPLE_REGION = "eu-west-2"
+
+#: Adresse d'exemple : le bloc `192.0.2.0/24` que la RFC 5737 réserve à la
+#: documentation, comme `example.com` pour les noms. Le repli par type
+#: publiait `public_ip: example-id`, copiable et refusé par l'API.
+EXAMPLE_PUBLIC_IP = "192.0.2.10"
+
+#: Un tag d'exemple, dans la forme `clé=valeur` que le contrat décrit pour le
+#: filtre `Tags` (« in the following format: TAGKEY=TAGVALUE », sur les 21
+#: schémas `Filters*` qui le portent).
+EXAMPLE_TAG = "role=web"
+
+#: Ce que le nom d'une clé de filtre dit de ce qu'on y met. Mesuré sur le
+#: contrat 1.42.0 : les 118 clés `*Ids` et les 44 clés `*Names` des schémas
+#: `Filters*` sont toutes des tableaux de chaînes.
+FILTER_IDS = "Ids"
+FILTER_TAGS = "Tags"
+
+#: Mots qu'une ressource porte en abrégé, et leur forme publiée.
+#:
+#: Une ressource déduite d'un identifiant arrive en minuscules, `vm`, `nic`,
+#: `dhcp_option` : c'est un identifiant, pas de la prose. Collé tel quel dans
+#: une phrase, ça donnait « Manage the settings of an Outscale vm » sur une
+#: page qui se veut une référence. Le reste des mots n'est pas capitalisé pour
+#: autant : ce sont des noms communs, et « Outscale Volume » ne serait pas
+#: mieux. Ce que le contrat écrit en capitales dans ses propres phrases (VM,
+#: NIC, DHCP, NAT, IP) sort en capitales.
+ACRONYMES: dict[str, str] = {
+    "vm": "VM",
+    "vms": "VMs",
+    "nic": "NIC",
+    "nics": "NICs",
+    "dhcp": "DHCP",
+    "nat": "NAT",
+    "ip": "IP",
+    "ips": "IPs",
+    "id": "ID",
+    "ids": "IDs",
+}
 
 #: Mots d'un `operationId` dont la valeur rendue est un secret. Mesuré :
 #: `ReadAdminPassword` rend le mot de passe administrateur d'une machine
@@ -105,6 +152,40 @@ class OperationBinding:
     payload_field: str | None = None
     is_list: bool = False
     page_token: str | None = None
+    #: Nom du schéma de la ressource rendue, et de l'enveloppe qui la porte.
+    #: Ils servent au `contains` du `RETURN`, jamais au runtime : sans eux, la
+    #: page nommait la clé rendue sans dire ce qu'on y trouve.
+    payload_schema: str | None = None
+    response_schema: str | None = None
+
+
+@dataclass(frozen=True)
+class ReturnField:
+    """Un champ d'une clé rendue, tel que le contrat le déclare.
+
+    Ce que le `RETURN` publie sous `contains`. Un niveau par défaut ; un
+    second seulement pour l'enveloppe d'une action, dont la ressource est un
+    champ (`result.Vms` porte des `VmState`).
+    """
+
+    name: str
+    type: str
+    description: tuple[str, ...]
+    returned: str = "when the API returns it"
+    elements: str | None = None
+    contains: tuple[ReturnField, ...] = ()
+
+    def to_documentation(self) -> dict[str, Any]:
+        entry: dict[str, Any] = {
+            "description": list(self.description),
+            "returned": self.returned,
+            "type": self.type,
+        }
+        if self.elements:
+            entry["elements"] = self.elements
+        if self.contains:
+            entry["contains"] = {champ.name: champ.to_documentation() for champ in self.contains}
+        return entry
 
 
 @dataclass(frozen=True)
@@ -131,7 +212,21 @@ class AnsibleModuleSpec:
     resource: str
     collection: Collection
     options: dict[str, dict[str, Any]]
-    option_docs: dict[str, str]
+    #: Les lignes de description de chaque option : la phrase du contrat, ou
+    #: celle qu'un override pose à sa place, puis l'avis de dépréciation.
+    option_docs: dict[str, tuple[str, ...]]
+    #: Valeurs d'exemple posées par override, par option. Elles ne rejoignent
+    #: jamais l'`argument_spec` : c'est de la documentation.
+    option_examples: dict[str, Any] = field(default_factory=dict)
+    #: Les clés que le schéma `Filters` d'une lecture accepte, telles que le
+    #: contrat les nomme. Elles décident quels exemples de filtre sont vrais.
+    filter_keys: tuple[str, ...] = ()
+    #: Les champs de chaque clé rendue, par clé du `RETURN`.
+    contains: dict[str, tuple[ReturnField, ...]] = field(default_factory=dict)
+    #: Le type des éléments quand une lecture rend une liste. `dict` presque
+    #: toujours ; `ReadPublicIpRanges` rend une liste de chaînes, et la page
+    #: disait `elements: dict`.
+    list_elements: str = "dict"
     #: La lecture d'un module d'information.
     operation: OperationBinding | None = None
     #: L'option que toutes les actions partagent et exigent, s'il y en a une.
@@ -173,7 +268,13 @@ class AnsibleModuleSpec:
 
     @property
     def resource_words(self) -> str:
-        return self.resource.replace("_", " ")
+        """La ressource en mots publiables : `vm_type` -> `VM type`."""
+        return _lisible(self.resource.replace("_", " "))
+
+    @property
+    def resource_plural(self) -> str:
+        """La ressource au pluriel, en mots publiables : `vm` -> `VMs`."""
+        return _lisible(pluralize_phrase(self.resource))
 
     def argument_spec(self) -> dict[str, dict[str, Any]]:
         return dict(self.options)
@@ -189,7 +290,10 @@ class AnsibleModuleSpec:
         """Le bloc `DOCUMENTATION`, dans l'ordre d'une lecture humaine."""
         options: dict[str, Any] = {}
         for name, entry in self.options.items():
-            option: dict[str, Any] = {"description": self.option_docs.get(name, UNDOCUMENTED)}
+            lignes = self.option_docs.get(name, (UNDOCUMENTED,))
+            option: dict[str, Any] = {
+                "description": lignes[0] if len(lignes) == 1 else list(lignes)
+            }
             option["type"] = entry["type"]
             if entry.get("required"):
                 option["required"] = True
@@ -271,17 +375,17 @@ class AnsibleModuleSpec:
     def short_description(self) -> str:
         if self.kind is OperationKind.INFO:
             if self.operation is not None and self.operation.is_list:
-                return f"Gather information about Outscale {pluralize_phrase(self.resource)}"
+                return f"Gather information about Outscale {self.resource_plural}"
             return f"Read the Outscale {self.resource_words}"
         if self.kind is OperationKind.MANAGE:
             return f"Manage the settings of an Outscale {self.resource_words}"
-        return f"Perform an action on Outscale {pluralize_phrase(self.resource)}"
+        return f"Perform an action on Outscale {self.resource_plural}"
 
     def long_description(self) -> str:
         if self.kind is OperationKind.INFO:
             if self.operation is not None and self.operation.is_list:
                 return (
-                    f"List Outscale {pluralize_phrase(self.resource)}, optionally filtered. "
+                    f"List Outscale {self.resource_plural}, optionally filtered. "
                     "This module never changes anything."
                 )
             return f"Read the Outscale {self.resource_words}. This module never changes anything."
@@ -293,59 +397,156 @@ class AnsibleModuleSpec:
                 f"{self.resource_words}, this module operates it."
             )
         names = ", ".join(f"C({action.name})" for action in self.actions)
-        return (
-            f"Trigger one of the following actions on existing "
-            f"{pluralize_phrase(self.resource)}: {names}."
-        )
+        return f"Trigger one of the following actions on existing {self.resource_plural}: {names}."
 
     def examples_documentation(self) -> list[dict[str, Any]]:
-        fqcn = self.collection.module_fqcn(self.name)
-        if self.kind is OperationKind.INFO:
-            task: dict[str, Any] = {"region": EXAMPLE_REGION}
-            for name, entry in self.options.items():
-                if entry.get("required"):
-                    task[name] = self._example_value(entry)
-            is_list = self.operation is not None and self.operation.is_list
-            title = (
-                f"List {pluralize_phrase(self.resource)}"
-                if is_list
-                else f"Read the {self.resource_words}"
-            )
-            examples: list[dict[str, Any]] = [{"name": title, fqcn: task, "register": "result"}]
-            if is_list and "filters" in self.options:
-                examples.append(
-                    {
-                        "name": f"List {pluralize_phrase(self.resource)} matching a filter",
-                        fqcn: {
-                            "region": EXAMPLE_REGION,
-                            "filters": {"Tags": ["role=web"]},
-                        },
-                        "register": "result",
-                    }
-                )
-            return examples
-        if self.kind is OperationKind.MANAGE:
-            task = {"region": EXAMPLE_REGION}
-            for name, entry in self.options.items():
-                if entry.get("required"):
-                    task[name] = self._example_value(entry)
-            # `actions_on_next_boot: {}` n'apprend rien à qui lit l'exemple : une
-            # option scalaire d'abord, un dictionnaire ou une liste à défaut.
-            scalars = [n for n in self.compare if self.options[n]["type"] not in ("dict", "list")]
-            for name in scalars or list(self.compare):
-                if name not in task:
-                    task[name] = self._example_value(self.options[name])
-                    break
-            return [{"name": f"Set the settings of a {self.resource_words}", fqcn: task}]
-        first = self.actions[0]
-        task = {"region": EXAMPLE_REGION, "action": first.name}
-        for name, entry in self.options.items():
-            if name != "action" and (entry.get("required") or name in first.required):
-                task[name] = self._example_value(entry)
-        return [{"name": f"Run {first.name} on a {self.resource_words}", fqcn: task}]
+        """Un exemple par chose que le module sait faire, pas un par opération.
 
-    @staticmethod
-    def _example_value(entry: dict[str, Any]) -> Any:
+        Lire, lister, filtrer ; écrire, et simuler l'écriture ; déclencher
+        chaque action. Chaque tâche se copie telle quelle : aucune valeur
+        entre chevrons, aucune clé de filtre que le schéma `Filters` ne porte
+        pas, aucun nom de tâche repris de l'identifiant du SDK.
+        """
+        if self.kind is OperationKind.INFO:
+            return self._info_examples()
+        if self.kind is OperationKind.MANAGE:
+            return self._manage_examples()
+        return self._action_examples()
+
+    def _required_values(self) -> dict[str, Any]:
+        task: dict[str, Any] = {"region": EXAMPLE_REGION}
+        for name, entry in self.options.items():
+            if entry.get("required"):
+                task[name] = self._example_value(name, entry)
+        return task
+
+    def _info_examples(self) -> list[dict[str, Any]]:
+        fqcn = self.collection.module_fqcn(self.name)
+        task = self._required_values()
+        is_list = self.operation is not None and self.operation.is_list
+        title = f"List {self.resource_plural}" if is_list else f"Read the {self.resource_words}"
+        examples: list[dict[str, Any]] = [{"name": title, fqcn: task, "register": "result"}]
+        if not is_list or "filters" not in self.options:
+            return examples
+
+        # **Une clé de filtre vient du schéma `Filters`, jamais d'une
+        # habitude.** `Tags: [role=web]` était publié sur cinq lectures dont le
+        # schéma ne porte pas `Tags` (`FiltersVmType`, `FiltersLoadBalancer`,
+        # `FiltersTag`, `FiltersSubregion`, `FiltersVmsState`) : copiable, et
+        # refusé par l'API.
+        cle_ids = _id_filter_key(self.resource, self.filter_keys)
+        if cle_ids is not None:
+            propre = cle_ids == _camel(self.resource) + FILTER_IDS
+            examples.append(
+                {
+                    "name": (
+                        f"Read {self.resource_plural} by ID"
+                        if propre
+                        else f"List {self.resource_plural} filtered by {cle_ids}"
+                    ),
+                    fqcn: {**task, "filters": {cle_ids: [EXAMPLE_ID]}},
+                    "register": "result",
+                }
+            )
+        if FILTER_TAGS in self.filter_keys:
+            examples.append(
+                {
+                    "name": f"List {self.resource_plural} matching a tag",
+                    fqcn: {**task, "filters": {FILTER_TAGS: [EXAMPLE_TAG]}},
+                    "register": "result",
+                }
+            )
+        return examples
+
+    def _manage_examples(self) -> list[dict[str, Any]]:
+        fqcn = self.collection.module_fqcn(self.name)
+        task = self._required_values()
+        reglage = self._setting_for_example()
+        if reglage is not None and reglage not in task:
+            task[reglage] = self._example_value(reglage, self.options[reglage])
+        article = _article(self.resource_words)
+        # **Le mode simulation se montre.** Les notes en parlent depuis le
+        # premier module, aucune tâche ne le montrait ; c'est pourtant ce qu'on
+        # fait avant d'écrire sur un parc qu'on ne possède pas seul, et
+        # `diff: true` est ce qui rend la comparaison lisible plutôt que de
+        # rendre un `changed` sans contenu. Même paramètres que l'écriture :
+        # une simulation qui n'écrit pas la même chose ne simule rien.
+        return [
+            {"name": f"Set the settings of {article} {self.resource_words}", fqcn: task},
+            {
+                "name": f"Preview the change on {article} {self.resource_words} without writing",
+                fqcn: dict(task),
+                "check_mode": True,
+                "diff": True,
+            },
+        ]
+
+    def _action_examples(self) -> list[dict[str, Any]]:
+        """Une tâche par action exposée : c'est ce qu'un lecteur vient chercher.
+
+        « Run reboot on a vm » montrait une action sur trois, et nommait la
+        tâche par le verbe du SDK plutôt que par ce qu'elle fait.
+        """
+        fqcn = self.collection.module_fqcn(self.name)
+        examples: list[dict[str, Any]] = []
+        for action in self.actions:
+            task: dict[str, Any] = {"region": EXAMPLE_REGION, "action": action.name}
+            for name, entry in self.options.items():
+                if name != "action" and (entry.get("required") or name in action.required):
+                    task[name] = self._example_value(name, entry)
+            verbe = action.name.replace("_", " ").capitalize()
+            pluriel = self.selector is not None and self.options[self.selector]["type"] == "list"
+            cible = (
+                self.resource_plural
+                if pluriel
+                else f"{_article(self.resource_words)} {self.resource_words}"
+            )
+            examples.append({"name": f"{verbe} {cible}", fqcn: task})
+        return examples
+
+    def _setting_for_example(self) -> str | None:
+        """L'option gérée que l'exemple d'écriture règle, et pourquoi celle-là.
+
+        Par ordre de confiance dans la valeur publiée : une valeur posée par
+        override, une valeur d'enum que la même page liste, un booléen, une
+        chaîne dont une convention de nom donne la valeur, puis le repli
+        d'avant, une option scalaire quelconque avant un dictionnaire.
+        `actions_on_next_boot: {}` et `bsu_optimized: true`, dont le contrat
+        dit « This parameter is not available », n'apprenaient rien.
+        """
+        candidats = list(self.compare)
+        if not candidats:
+            return None
+        for nom in candidats:
+            if nom in self.option_examples:
+                return nom
+        for nom in candidats:
+            if self.options[nom].get("choices"):
+                return nom
+        for nom in candidats:
+            if self.options[nom]["type"] == "bool":
+                return nom
+        for nom in candidats:
+            if self.options[nom]["type"] == "str" and _valeur_par_convention(nom) is not None:
+                return nom
+        for nom in candidats:
+            if self.options[nom]["type"] not in ("dict", "list"):
+                return nom
+        return candidats[0]
+
+    def _example_value(self, name: str, entry: dict[str, Any]) -> Any:
+        """Valeur d'exemple d'une option, déterministe et jamais aléatoire.
+
+        L'ordre est celui de la confiance : ce qu'un override pose, ce que le
+        contrat porte (un enum), une convention de nom, un repli par type.
+        """
+        if name in self.option_examples:
+            return self.option_examples[name]
+        if entry.get("choices"):
+            return entry["choices"][0]
+        par_nom = _valeur_par_convention(name)
+        if par_nom is not None:
+            return par_nom
         if entry["type"] == "list":
             return [EXAMPLE_ID]
         if entry["type"] == "bool":
@@ -357,33 +558,35 @@ class AnsibleModuleSpec:
         return EXAMPLE_ID
 
     def return_documentation(self) -> dict[str, Any]:
+        rendu: dict[str, Any]
         if self.kind is OperationKind.INFO:
             if self.operation is not None and self.operation.is_list:
                 plural = pluralize_phrase(self.resource).replace(" ", "_")
-                return {
+                rendu = {
                     plural: {
-                        "description": f"The {pluralize_phrase(self.resource)}.",
+                        "description": f"The {self.resource_plural}.",
                         "returned": "always",
                         "type": "list",
-                        "elements": "dict",
+                        "elements": self.list_elements,
                     }
                 }
-            return {
-                self.resource: {
-                    "description": (
-                        f"The {self.resource_words}"
-                        + (
-                            "."
-                            if self.operation is not None and self.operation.payload_field
-                            else ", as the API answers it, without the response context."
-                        )
-                    ),
-                    "returned": "always",
-                    "type": "dict",
+            else:
+                rendu = {
+                    self.resource: {
+                        "description": (
+                            f"The {self.resource_words}"
+                            + (
+                                "."
+                                if self.operation is not None and self.operation.payload_field
+                                else ", as the API answers it, without the response context."
+                            )
+                        ),
+                        "returned": "always",
+                        "type": "dict",
+                    }
                 }
-            }
-        if self.kind is OperationKind.MANAGE:
-            return {
+        elif self.kind is OperationKind.MANAGE:
+            rendu = {
                 self.resource: {
                     "description": f"The {self.resource_words}, read after the update.",
                     "returned": "always",
@@ -398,23 +601,32 @@ class AnsibleModuleSpec:
                     "type": "dict",
                 },
             }
-        returned: dict[str, Any] = {
-            "result": {
-                "description": ("The API response of the action, without the response context."),
-                "returned": "when the action was sent",
-                "type": "dict",
+        else:
+            rendu = {
+                "result": {
+                    "description": (
+                        "The API response of the action, without the response context."
+                    ),
+                    "returned": "when the action was sent",
+                    "type": "dict",
+                }
             }
-        }
-        if self.waitable and self.state_field is not None:
-            returned["states"] = {
-                "description": (
-                    f"The C({self.state_field}) of each {self.resource_words}, by identifier, "
-                    "read after the action."
-                ),
-                "returned": "when an expected state is declared for the action",
-                "type": "dict",
-            }
-        return returned
+            if self.waitable and self.state_field is not None:
+                rendu["states"] = {
+                    "description": (
+                        f"The C({self.state_field}) of each {self.resource_words}, by "
+                        "identifier, read after the action."
+                    ),
+                    "returned": "when an expected state is declared for the action",
+                    "type": "dict",
+                }
+        # **Nommer la clé ne dit pas ce qu'on y trouve.** Les champs viennent
+        # du contrat, une fois par schéma ; une clé que le module compose
+        # lui-même (`changes`, `states`) n'a pas de schéma et n'en reçoit pas.
+        for cle, champs in self.contains.items():
+            if champs and cle in rendu:
+                rendu[cle]["contains"] = {champ.name: champ.to_documentation() for champ in champs}
+        return rendu
 
 
 def build_module_specs(
@@ -471,13 +683,23 @@ def _build_info_spec(
         )
     item = operations[0]
     options: dict[str, dict[str, Any]] = {}
-    docs: dict[str, str] = {}
+    docs: dict[str, tuple[str, ...]] = {}
+    examples: dict[str, Any] = {}
     limits: list[str] = []
-    required = _collect_options(item, plan.overrides, options, docs, limits, required_allowed=True)
+    required = _collect_options(
+        item, plan.overrides, options, docs, examples, limits, required_allowed=True
+    )
     for option in required:
         options[option]["required"] = True
 
     sensitive = bool(SENSITIVE_WORDS & set(split_words(item.operation.id)))
+    binding = _binding(item.operation, plan.overrides.get(item.operation.key))
+    filters = item.operation.parameter(FILTERS)
+    # La ressource rendue quand la réponse en désigne une ; l'enveloppe entière,
+    # hors contexte, quand la charge utile est indécidable et que le module
+    # rend la réponse telle quelle.
+    schema = binding.payload_schema if binding.payload_field else binding.response_schema
+    cle = pluralize_phrase(item.resource).replace(" ", "_") if binding.is_list else item.resource
     return AnsibleModuleSpec(
         name=name,
         kind=OperationKind.INFO,
@@ -486,7 +708,11 @@ def _build_info_spec(
         collection=collection,
         options=options,
         option_docs=docs,
-        operation=_binding(item.operation, plan.overrides.get(item.operation.key)),
+        option_examples=examples,
+        filter_keys=filters.properties if filters is not None else (),
+        contains={cle: _fields_of(plan.service, schema, plan.overrides)},
+        list_elements=_list_elements(plan.service, binding),
+        operation=binding,
         limits=tuple(sorted(set(limits))),
         sensitive_return=sensitive,
         summary=item.operation.summary,
@@ -502,7 +728,8 @@ def _build_action_spec(
     """Un module d'action regroupe les opérations ponctuelles d'une ressource."""
     resource = operations[0].resource
     options: dict[str, dict[str, Any]] = {}
-    docs: dict[str, str] = {}
+    docs: dict[str, tuple[str, ...]] = {}
+    examples: dict[str, Any] = {}
     limits: list[str] = []
     actions: list[ActionBinding] = []
     seen: dict[str, str] = {}
@@ -517,7 +744,7 @@ def _build_action_spec(
         seen[action] = item.operation.id
         override = plan.overrides.get(item.operation.key)
         required = _collect_options(
-            item, plan.overrides, options, docs, limits, required_allowed=False
+            item, plan.overrides, options, docs, examples, limits, required_allowed=False
         )
         required_by_action.append(set(required))
         expected = None
@@ -550,7 +777,7 @@ def _build_action_spec(
         "action": {"type": "str", "required": True, "choices": [a.name for a in actions]},
         **options,
     }
-    docs["action"] = "The action to trigger on the " + pluralize_phrase(resource) + "."
+    docs["action"] = (f"The action to trigger on the {_lisible(pluralize_phrase(resource))}.",)
 
     state_fields = {
         override.wait.field
@@ -581,6 +808,8 @@ def _build_action_spec(
         collection=collection,
         options=options,
         option_docs=docs,
+        option_examples=examples,
+        contains={"result": _action_result_fields(plan.service, actions, plan.overrides)},
         selector=selector,
         actions=tuple(actions),
         state_field=state_field,
@@ -622,9 +851,12 @@ def _build_manage_spec(
     resource = item.resource
     override = plan.overrides.get(item.operation.key)
     options: dict[str, dict[str, Any]] = {}
-    docs: dict[str, str] = {}
+    docs: dict[str, tuple[str, ...]] = {}
+    examples: dict[str, Any] = {}
     limits: list[str] = []
-    required = _collect_options(item, plan.overrides, options, docs, limits, required_allowed=False)
+    required = _collect_options(
+        item, plan.overrides, options, docs, examples, limits, required_allowed=False
+    )
     contract_of = {
         _resolved_option(p, override): p.name
         for p in item.operation.parameters
@@ -684,6 +916,7 @@ def _build_manage_spec(
         )
         del options[option]
         del docs[option]
+        examples.pop(option, None)
     if not compare:
         raise AmbiguousModule(
             f"{name} : aucune option de {item.operation.id} ne se relit dans "
@@ -698,6 +931,11 @@ def _build_manage_spec(
         collection=collection,
         options=options,
         option_docs=docs,
+        option_examples=examples,
+        # La ressource rendue est celle qu'on relit : mêmes champs, même schéma.
+        contains={
+            resource: _fields_of(plan.service, read_operation.payload_schema, plan.overrides)
+        },
         selector=selector,
         # L'écriture ne porte que le sélecteur et les options comparées : une
         # option retirée faute de pouvoir être relue ne doit pas figurer dans
@@ -815,7 +1053,8 @@ def _collect_options(
     item: OperationPlan,
     overrides: OverrideSet,
     options: dict[str, dict[str, Any]],
-    docs: dict[str, str],
+    docs: dict[str, tuple[str, ...]],
+    examples: dict[str, Any],
     limits: list[str],
     *,
     required_allowed: bool,
@@ -833,6 +1072,14 @@ def _collect_options(
         parameter_override = override.parameters.get(parameter.name) if override else None
         if parameter_override is not None and parameter_override.expose is False:
             continue
+        if not parameter.description:
+            # Le compte rendu continue de compter les trous du contrat, même
+            # comblés : les combler répare la page publiée, pas l'amont.
+            comblee = parameter_override is not None and parameter_override.description
+            limits.append(
+                f"{item.operation.id}.{parameter.name} : aucune description dans le contrat"
+                + (", comblée par override" if comblee else "")
+            )
         parameter = _apply_parameter_override(parameter, parameter_override)
         if parameter.type is ApiType.UNKNOWN:
             raise UntypedParameter(
@@ -859,7 +1106,9 @@ def _collect_options(
             )
         if previous is None:
             options[name] = entry
-            docs[name] = _describe(parameter)
+            docs[name] = _describe(parameter, parameter_override)
+            if parameter_override is not None and parameter_override.example is not None:
+                examples[name] = parameter_override.example
     return required
 
 
@@ -869,6 +1118,9 @@ _MARKDOWN_LINK = re.compile(r"\[([^\]]+)\]\((https?://[^)\s]+)\)")
 _HTML_BREAK = re.compile(r"\s*<br\s*/?>\s*")
 #: Un code Markdown du contrat : `` `io1` ``. 1054 dans le contrat 1.42.0.
 _MARKDOWN_CODE = re.compile(r"`([^`\n]+)`")
+#: Une barre échappée pour un tableau Markdown : `\|`. 78 dans le contrat
+#: 1.42.0, et 18 modules la recopiaient telle quelle (« C(standard) \| C(io1) »).
+_MARKDOWN_PIPE = re.compile(r"\\\|")
 
 
 def _ansible_markup(text: str) -> str:
@@ -877,26 +1129,192 @@ def _ansible_markup(text: str) -> str:
     Mesuré : antsibull-docs refuse un lien `[texte](url)` (« Link is formatted
     in Markdown style »), ce qui a rougi les cinq jobs `collection` d'une pull
     request ; et un `<br />` arrive tel quel dans la page. Le lien devient
-    `L(texte, url)`, le code `` `io1` `` devient `C(io1)`, le saut de ligne un
-    espace, et rien d'autre n'est touché.
+    `L(texte, url)`, le code `` `io1` `` devient `C(io1)`, la barre échappée
+    `\\|` redevient `|`, le saut de ligne un espace, et rien d'autre n'est
+    touché.
     """
     text = _MARKDOWN_LINK.sub(lambda match: f"L({match.group(1)}, {match.group(2)})", text)
     text = _MARKDOWN_CODE.sub(lambda match: f"C({match.group(1)})", text)
+    text = _MARKDOWN_PIPE.sub("|", text)
     return _HTML_BREAK.sub(" ", text).strip()
 
 
-def _describe(parameter: ApiParameter) -> str:
+def _describe(
+    parameter: ApiParameter, override: ParameterOverride | None = None
+) -> tuple[str, ...]:
     """La description du contrat, complétée des clés d'un objet référencé.
 
     Rien n'est inventé : les clés viennent des propriétés du schéma que le
     contrat référence (`FiltersVm` en porte 67), et elles sont ce qu'un
     utilisateur a besoin de connaître pour écrire un filtre sans lire l'API.
+
+    **Le contrat gagne, l'override comble.** L'ordre est celui-là et pas
+    l'inverse : un override qui recouvrirait la phrase d'Outscale ferait
+    diverger la page publiée de l'API sans que rien ne le signale. Devenu
+    inutile, l'override sort en orphelin plutôt qu'en silence.
     """
-    text = _ansible_markup(parameter.description or UNDOCUMENTED)
+    comble = override.description if override is not None else None
+    text = _ansible_markup(parameter.description or comble or UNDOCUMENTED)
     if parameter.properties and parameter.type is ApiType.OBJECT:
         keys = ", ".join(f"C({key})" for key in parameter.properties)
         text = f"{text} Accepted keys: {keys}."
-    return text
+    lignes = [text]
+    if parameter.deprecated:
+        lignes.append(DEPRECATED_NOTICE)
+    return tuple(lignes)
+
+
+def _lisible(mots: str) -> str:
+    """Rend une suite de mots publiable, les abréviations en capitales."""
+    return " ".join(ACRONYMES.get(mot, mot) for mot in mots.split(" "))
+
+
+def _list_elements(service: ApiService, binding: OperationBinding) -> str:
+    """Le type des éléments d'une liste rendue, lu dans l'enveloppe de la réponse.
+
+    `dict` quand le contrat ne dit rien : c'est la forme de 56 lectures sur
+    57. `ReadPublicIpRanges` rend des chaînes, et la page disait `dict`.
+    """
+    enveloppe = service.object(binding.response_schema)
+    champ = enveloppe.field(binding.payload_field) if enveloppe and binding.payload_field else None
+    if champ is None or champ.type is not ApiType.ARRAY:
+        return "dict"
+    return return_type(champ.item_type or ApiType.OBJECT)
+
+
+def _article(mots: str) -> str:
+    """« an image », « an IP », « a VM » : l'article indéfini qui précède."""
+    return "an" if mots[:1].lower() in "aeiou" else "a"
+
+
+def _camel(resource: str) -> str:
+    """`net_peering` -> `NetPeering`, la forme que le contrat emploie dans ses clés."""
+    return "".join(part.capitalize() for part in resource.split("_"))
+
+
+def _id_filter_key(resource: str, keys: tuple[str, ...]) -> str | None:
+    """La clé de `Filters` qui sélectionne par identifiant, lue dans le schéma.
+
+    Celle qui porte le nom de la ressource (`VmIds` pour `vm`), sinon la seule
+    clé `*Ids` du schéma (`VmIds` pour `vm_state`, `ResourceIds` pour `tag`),
+    sinon rien : un exemple ne montre pas une clé que le schéma ne porte pas.
+    """
+    propre = _camel(resource) + FILTER_IDS
+    if propre in keys:
+        return propre
+    candidats = [key for key in keys if key.endswith(FILTER_IDS)]
+    return candidats[0] if len(candidats) == 1 else None
+
+
+#: Ce qu'un exemple montre pour une chaîne libre, par convention de nom.
+#:
+#: **Ce n'est pas une affirmation sur l'API.** Ces champs n'ont pas de
+#: vocabulaire : le contrat les déclare `string` sans enum, donc toute chaîne
+#: y est valide, et ce qui se décide ici est seulement ce qu'un lecteur voit.
+#: Un champ dont le vocabulaire existe ailleurs que dans un enum du contrat
+#: n'a rien à faire ici : il se règle par un override `example`, avec sa raison.
+def _valeur_par_convention(name: str) -> Any:
+    if name == "description":
+        return "Managed by Ansible"
+    if name == "public_ip":
+        return EXAMPLE_PUBLIC_IP
+    if name.endswith("_names"):
+        return [f"my-{name[: -len('_names')].replace('_', '-')}"]
+    if name.endswith("_name"):
+        return f"my-{name[: -len('_name')].replace('_', '-')}"
+    return None
+
+
+def _fields_of(
+    service: ApiService,
+    schema: str | None,
+    overrides: OverrideSet,
+    *,
+    returned: str = "when the API returns it",
+    depth: int = 0,
+) -> tuple[ReturnField, ...]:
+    """Les champs que le contrat déclare sur la ressource rendue.
+
+    Rend un tuple vide quand le contrat ne porte pas le schéma : un `contains`
+    inventé décrirait une réponse que personne n'a lue. Un champ sans
+    description sort quand même, avec le repli : sa **présence** est une
+    information, et la porte documentaire refuse ensuite de publier le repli.
+
+    Deux étages pour la phrase, du plus sûr au moins sûr : ce que le contrat
+    dit du champ, puis ce qu'un override `returns` décide, avec sa raison.
+    Mesuré sur 1.42.0 : les 258 champs des 30 schémas rendus sont décrits,
+    et le second étage n'a aujourd'hui aucun client sur le contrat réel.
+    """
+    objet = service.object(schema)
+    if objet is None:
+        return ()
+    champs: list[ReturnField] = []
+    for champ in objet.fields:
+        phrase = champ.description or overrides.described(objet.name, champ.name) or UNDOCUMENTED
+        lignes = [_ansible_markup(phrase)]
+        if champ.deprecated:
+            lignes.append(DEPRECATED_NOTICE)
+        champs.append(
+            ReturnField(
+                name=champ.name,
+                type=return_type(champ.type),
+                description=tuple(lignes),
+                returned=returned,
+                # Un tableau sans `items` est un cas mesuré du contrat, pas une
+                # exception : le repli `str` est celui de l'`argument_spec`.
+                elements=(
+                    return_type(champ.item_type or ApiType.STRING)
+                    if champ.type is ApiType.ARRAY
+                    else None
+                ),
+                contains=(
+                    _fields_of(service, champ.ref, overrides, depth=depth - 1)
+                    if depth > 0 and champ.type in (ApiType.OBJECT, ApiType.ARRAY)
+                    else ()
+                ),
+            )
+        )
+    return tuple(champs)
+
+
+def _action_result_fields(
+    service: ApiService,
+    actions: list[ActionBinding],
+    overrides: OverrideSet,
+) -> tuple[ReturnField, ...]:
+    """Les champs de `result`, la réponse d'une action hors contexte.
+
+    Chaque action a son enveloppe, et elles diffèrent : `StopVms` rend `Vms`,
+    `RebootVms` ne rend rien. La clé est partagée, donc ses champs sont
+    l'union, et chacun dit après quelles actions il est rendu. Quand deux
+    enveloppes décrivent le même champ par deux phrases (« started VMs »,
+    « stopped VMs »), chacune sort avec son action : en garder une ferait
+    dire « started » d'un arrêt. La ressource que l'enveloppe porte est
+    décrite un niveau plus bas : c'est là que le lecteur trouve ce qu'un
+    `VmState` contient.
+    """
+    par_nom: dict[str, ReturnField] = {}
+    phrases: dict[str, list[tuple[str, tuple[str, ...]]]] = {}
+    for action in actions:
+        for champ in _fields_of(service, action.operation.response_schema, overrides, depth=1):
+            par_nom.setdefault(champ.name, champ)
+            phrases.setdefault(champ.name, []).append((action.name, champ.description))
+    resultat: list[ReturnField] = []
+    for nom, champ in par_nom.items():
+        distinctes = {description for _, description in phrases[nom]}
+        description = (
+            champ.description
+            if len(distinctes) == 1
+            else tuple(f"After C({action}): {' '.join(lignes)}" for action, lignes in phrases[nom])
+        )
+        resultat.append(
+            replace(
+                champ,
+                description=description,
+                returned="after " + ", ".join(f"C({action})" for action, _ in phrases[nom]),
+            )
+        )
+    return tuple(resultat)
 
 
 def _apply_parameter_override(
@@ -936,6 +1354,8 @@ def _binding(
         payload_field=response.payload_field if response else None,
         is_list=bool(response and response.is_list),
         page_token=response.page_token if response else None,
+        payload_schema=response.payload_schema if response else None,
+        response_schema=response.schema if response else None,
     )
 
 

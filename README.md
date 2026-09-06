@@ -3,6 +3,12 @@
 A generator of **Day-2** Ansible modules for the Outscale API, and the
 `stephrobert.outscale` collection it produces.
 
+[![ci](https://github.com/stephrobert/collection-outscale/actions/workflows/ci.yml/badge.svg)](https://github.com/stephrobert/collection-outscale/actions/workflows/ci.yml)
+[![dérive](https://github.com/stephrobert/collection-outscale/actions/workflows/drift.yml/badge.svg)](https://github.com/stephrobert/collection-outscale/actions/workflows/drift.yml)
+[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/stephrobert/collection-outscale?label=OpenSSF%20Scorecard)](docs/scorecard.md)
+[![Plumber compliance](https://score.getplumber.io/github.com/stephrobert/collection-outscale.svg)](https://score.getplumber.io/github.com/stephrobert/collection-outscale)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
+
 > Terraform provisions resources. Ansible operates existing ones.
 
 The generator therefore produces neither `create` nor `delete`: it produces
@@ -44,8 +50,9 @@ credentials are never used by this repository, and the emulator is free.
 
 The block below is **derived**, not written: `scripts/readme_counters.py`
 reads the strict report, the generation report, the produced modules, the
-example playbooks, the test collection, the falsification specs and the CI
-workflow, and `mise run readme:check` fails the CI when a number has aged.
+example playbooks, the documentation gate, the test collection, the
+falsification specs and the CI workflow, and `mise run readme:check` fails the
+CI when a number has aged.
 
 <!-- counters:start, produced by scripts/readme_counters.py -->
 ```text
@@ -119,22 +126,22 @@ outscale v1 (document 1.42.0): 236 operations in a single document, 50 tags coun
 
 collection stephrobert.outscale: 32 modules written, 34 planned, 2 set aside with their reason
   32 of 32 modules called by the example playbooks (100.0%)
-  dhcp_option_info                         Gather information about Outscale dhcp options
+  dhcp_option_info                         Gather information about Outscale DHCP options
   image                                    Manage the settings of an Outscale image
   image_info                               Gather information about Outscale images
   internet_service_info                    Gather information about Outscale internet services
   keypair_info                             Gather information about Outscale keypairs
   load_balancer                            Manage the settings of an Outscale load balancer
   load_balancer_info                       Gather information about Outscale load balancers
-  nat_service_info                         Gather information about Outscale nat services
+  nat_service_info                         Gather information about Outscale NAT services
   net                                      Manage the settings of an Outscale net
   net_info                                 Gather information about Outscale nets
   net_peering_action                       Perform an action on Outscale net peerings
   net_peering_info                         Gather information about Outscale net peerings
-  nic                                      Manage the settings of an Outscale nic
-  nic_info                                 Gather information about Outscale nics
-  public_ip_info                           Gather information about Outscale public ips
-  public_ip_range_info                     Gather information about Outscale public ip ranges
+  nic                                      Manage the settings of an Outscale NIC
+  nic_info                                 Gather information about Outscale NICs
+  public_ip_info                           Gather information about Outscale public IPs
+  public_ip_range_info                     Gather information about Outscale public IP ranges
   region_info                              Gather information about Outscale regions
   route_table_info                         Gather information about Outscale route tables
   security_group_info                      Gather information about Outscale security groups
@@ -143,16 +150,18 @@ collection stephrobert.outscale: 32 modules written, 34 planned, 2 set aside wit
   subnet_info                              Gather information about Outscale subnets
   subregion_info                           Gather information about Outscale subregions
   tag_info                                 Gather information about Outscale tags
-  vm                                       Manage the settings of an Outscale vm
-  vm_action                                Perform an action on Outscale vms
+  vm                                       Manage the settings of an Outscale VM
+  vm_action                                Perform an action on Outscale VMs
   vm_admin_password_info                   Read the Outscale admin password
-  vm_info                                  Gather information about Outscale vms
-  vm_state_info                            Gather information about Outscale vm states
-  vm_type_info                             Gather information about Outscale vm types
+  vm_info                                  Gather information about Outscale VMs
+  vm_state_info                            Gather information about Outscale VM states
+  vm_type_info                             Gather information about Outscale VM types
   volume                                   Manage the settings of an Outscale volume
   volume_info                              Gather information about Outscale volumes
   vm (inventory)                           dynamic inventory
-  486 unit tests · 65 guards proven by mise run falsify
+  33 published pages: 81/81 options and 41/41 returned keys documented, 340/340 returned fields documented
+  78/78 examples copyable as is · 31/40 returned keys list their fields
+  593 unit tests · 112 guards proven by mise run falsify
   CI: 4 jobs, Générateur · collection · Archive · Plateforme d'exemple
   ansible-test sanity: reported by `mise run sanity`, not counted here
 ```
@@ -182,10 +191,27 @@ mise install && mise run setup   # tools and the locked development environment
 mise run check                   # what a pull request must pass, offline, deterministic
 mise run example                 # the platform against feint, every module played, destroyed
 mise run sanity                  # ansible-test sanity, in place
+mise run docs:quality            # what every published page is worth, and what makes it unpublishable
 ```
 
 `mise tasks` lists everything. The collection's own README is
 [ansible_collections/stephrobert/outscale/README.md](ansible_collections/stephrobert/outscale/README.md).
+
+Every published page must be understandable and usable from its Galaxy page
+alone, without the OpenAPI contract nor the source code. `docs:quality`
+measures it (options, returned keys and their fields described, examples
+copyable as is) and refuses nine named defects; it runs in `mise run check` and
+again before a release, because a page published on Galaxy is immutable.
+
+## Contributing and releasing
+
+* [CONTRIBUTING.md](CONTRIBUTING.md): what to run before you push, why a
+  hand-edited generated file is refused, and why the real account is never
+  touched
+* [RELEASING.md](RELEASING.md): where the version number comes from, and the six
+  things the release gate refuses
+* [SECURITY.md](SECURITY.md): how to report a vulnerability
+* [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
 ## Following the upstream
 

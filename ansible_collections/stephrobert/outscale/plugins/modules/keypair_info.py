@@ -37,7 +37,14 @@ EXAMPLES = r"""
   stephrobert.outscale.keypair_info:
     region: eu-west-2
   register: result
-- name: List keypairs matching a filter
+- name: Read keypairs by ID
+  stephrobert.outscale.keypair_info:
+    region: eu-west-2
+    filters:
+      KeypairIds:
+      - example-id
+  register: result
+- name: List keypairs matching a tag
   stephrobert.outscale.keypair_info:
     region: eu-west-2
     filters:
@@ -52,6 +59,34 @@ keypairs:
   returned: always
   type: list
   elements: dict
+  contains:
+    KeypairFingerprint:
+      description:
+      - The MD5 public key fingerprint as specified in section 4 of RFC 4716.
+      returned: when the API returns it
+      type: str
+    KeypairId:
+      description:
+      - The ID of the keypair.
+      returned: when the API returns it
+      type: str
+    KeypairName:
+      description:
+      - The name of the keypair.
+      returned: when the API returns it
+      type: str
+    KeypairType:
+      description:
+      - The type of the keypair (C(ssh-rsa), C(ssh-ed25519), C(ecdsa-sha2-nistp256), C(ecdsa-sha2-nistp384),
+        or C(ecdsa-sha2-nistp521)).
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the keypair.
+      returned: when the API returns it
+      type: list
+      elements: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

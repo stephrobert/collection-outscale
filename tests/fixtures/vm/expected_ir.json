@@ -22,6 +22,478 @@
       "description": "Information about the boot mode of the VM."
     }
   ],
+  "objects": [
+    {
+      "name": "CreateVmsResponse",
+      "fields": [
+        {
+          "name": "Vms",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Vm",
+          "description": "Information about one or more created VMs."
+        }
+      ]
+    },
+    {
+      "name": "DeleteVmsResponse",
+      "fields": [
+        {
+          "name": "Vms",
+          "type": "array",
+          "item_type": "object",
+          "ref": "VmState",
+          "description": "Information about one or more terminated VMs."
+        }
+      ]
+    },
+    {
+      "name": "ReadAdminPasswordResponse",
+      "fields": [
+        {
+          "name": "AdminPassword",
+          "type": "string",
+          "description": "The password of the VM. After the first boot, returns an empty string."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "description": "The ID of the VM."
+        }
+      ]
+    },
+    {
+      "name": "ReadConsoleOutputResponse",
+      "fields": [
+        {
+          "name": "ConsoleOutput",
+          "type": "string",
+          "description": "The Base64-encoded output of the console. If a command line tool is used, the output is decoded by the tool."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "description": "The ID of the VM."
+        }
+      ]
+    },
+    {
+      "name": "ReadVmTypesResponse",
+      "fields": [
+        {
+          "name": "VmTypes",
+          "type": "array",
+          "item_type": "object",
+          "ref": "VmType",
+          "description": "Information about one or more VM types."
+        }
+      ]
+    },
+    {
+      "name": "ReadVmsResponse",
+      "fields": [
+        {
+          "name": "Vms",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Vm",
+          "description": "Information about one or more VMs."
+        }
+      ]
+    },
+    {
+      "name": "ReadVmsStateResponse",
+      "fields": [
+        {
+          "name": "VmStates",
+          "type": "array",
+          "item_type": "object",
+          "ref": "VmStates",
+          "description": "Information about one or more VM states."
+        }
+      ]
+    },
+    {
+      "name": "ReadVmsStopHistoryResponse",
+      "fields": [
+        {
+          "name": "VmsStopHistory",
+          "type": "array",
+          "item_type": "object",
+          "ref": "VmsStopHistory",
+          "description": "Information about the VM(s) stop history."
+        }
+      ]
+    },
+    {
+      "name": "RebootVmsResponse"
+    },
+    {
+      "name": "StartVmsResponse",
+      "fields": [
+        {
+          "name": "Vms",
+          "type": "array",
+          "item_type": "object",
+          "ref": "VmState",
+          "description": "Information about one or more started VMs."
+        }
+      ]
+    },
+    {
+      "name": "StopVmsResponse",
+      "fields": [
+        {
+          "name": "Vms",
+          "type": "array",
+          "item_type": "object",
+          "ref": "VmState",
+          "description": "Information about one or more stopped VMs."
+        }
+      ]
+    },
+    {
+      "name": "UpdateVmResponse",
+      "fields": [
+        {
+          "name": "Vm",
+          "type": "object",
+          "ref": "Vm",
+          "description": "Information about the VM."
+        }
+      ]
+    },
+    {
+      "name": "Vm",
+      "fields": [
+        {
+          "name": "ActionsOnNextBoot",
+          "type": "object",
+          "ref": "ActionsOnNextBoot",
+          "description": "The action to perform on the next boot of the VM."
+        },
+        {
+          "name": "Architecture",
+          "type": "string",
+          "description": "The architecture of the VM (`i386` \\| `x86_64`)."
+        },
+        {
+          "name": "BlockDeviceMappings",
+          "type": "array",
+          "item_type": "object",
+          "ref": "BlockDeviceMappingCreated",
+          "description": "The block device mapping of the VM."
+        },
+        {
+          "name": "BootMode",
+          "type": "enum",
+          "ref": "BootMode",
+          "description": "The boot mode of the VM."
+        },
+        {
+          "name": "BsuOptimized",
+          "type": "boolean",
+          "description": "This parameter is not available. It is present in our API for the sake of historical compatibility with AWS."
+        },
+        {
+          "name": "ClientToken",
+          "type": "string",
+          "description": "The idempotency token provided when launching the VM."
+        },
+        {
+          "name": "CreationDate",
+          "type": "string",
+          "description": "The date and time (UTC) at which the VM was created."
+        },
+        {
+          "name": "DeletionProtection",
+          "type": "boolean",
+          "description": "If true, you cannot delete the VM unless you change this parameter back to false."
+        },
+        {
+          "name": "Hypervisor",
+          "type": "string",
+          "description": "The hypervisor type of the VMs (`ovm` \\| `xen`)."
+        },
+        {
+          "name": "ImageId",
+          "type": "string",
+          "description": "The ID of the OMI used to create the VM."
+        },
+        {
+          "name": "IsSourceDestChecked",
+          "type": "boolean",
+          "description": "(Net only) If true, the source/destination check is enabled. If false, it is disabled."
+        },
+        {
+          "name": "KeypairName",
+          "type": "string",
+          "description": "The name of the keypair used when launching the VM."
+        },
+        {
+          "name": "LaunchNumber",
+          "type": "integer",
+          "description": "The number for the VM when launching a group of several VMs (for example, `0`, `1`, `2`, and so on)."
+        },
+        {
+          "name": "NestedVirtualization",
+          "type": "boolean",
+          "description": "If true, nested virtualization is enabled. If false, it is disabled."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "description": "The ID of the Net in which the VM is running."
+        },
+        {
+          "name": "Nics",
+          "type": "array",
+          "item_type": "object",
+          "ref": "NicLight",
+          "description": "(Net only) The network interface cards (NICs) the VMs are attached to."
+        },
+        {
+          "name": "OsFamily",
+          "type": "string",
+          "description": "Indicates the operating system (OS) of the VM."
+        },
+        {
+          "name": "Performance",
+          "type": "string",
+          "description": "The performance of the VM."
+        },
+        {
+          "name": "Placement",
+          "type": "object",
+          "ref": "Placement",
+          "description": "Information about the placement of the VM."
+        },
+        {
+          "name": "PrivateDnsName",
+          "type": "string",
+          "description": "The name of the private DNS."
+        },
+        {
+          "name": "PrivateIp",
+          "type": "string",
+          "description": "The primary private IP of the VM."
+        },
+        {
+          "name": "ProductCodes",
+          "type": "array",
+          "item_type": "string",
+          "description": "The product codes associated with the OMI used to create the VM."
+        },
+        {
+          "name": "PublicDnsName",
+          "type": "string",
+          "description": "The name of the public DNS."
+        },
+        {
+          "name": "PublicIp",
+          "type": "string",
+          "description": "The public IP of the VM."
+        },
+        {
+          "name": "ReservationId",
+          "type": "string",
+          "description": "The reservation ID of the VM."
+        },
+        {
+          "name": "RootDeviceName",
+          "type": "string",
+          "description": "The name of the root device for the VM (for example, `/dev/sda1`)."
+        },
+        {
+          "name": "RootDeviceType",
+          "type": "string",
+          "description": "The type of root device used by the VM (always `bsu`)."
+        },
+        {
+          "name": "SecurityGroups",
+          "type": "array",
+          "item_type": "object",
+          "ref": "SecurityGroupLight",
+          "description": "One or more security groups associated with the VM."
+        },
+        {
+          "name": "ShutdownBehaviorConfiguration",
+          "type": "object",
+          "ref": "ShutdownBehaviorConfiguration",
+          "description": "Information about the actions performed by the orchestrator when the VM shuts down."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the VM (`pending` \\| `running` \\| `stopping` \\| `stopped` \\| `shutting-down` \\| `terminated` \\| `quarantine`)."
+        },
+        {
+          "name": "StateReason",
+          "type": "string",
+          "description": "The reason explaining the current state of the VM. For more information, see [Creating VMs > VM State Reference](https://docs.outscale.com/en/userguide/Creating-VMs.html#_vm_state_reference_statereason_2)."
+        },
+        {
+          "name": "SubnetId",
+          "type": "string",
+          "description": "The ID of the Subnet for the VM."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the VM."
+        },
+        {
+          "name": "TpmEnabled",
+          "type": "boolean",
+          "description": "If true, a virtual Trusted Platform Module (vTPM) is enabled on the VM. If false, it is not.<br />The default behavior for this parameter varies depending on the source OMI of the VM.<br />If the `TpmMandatory` parameter of the source OMI is true, a vTPM has to be attached to the VM and it will be created by default. Setting `TpmEnabled` to false will cause the creation request to fail.<br />If the `TpmMandatory` parameter of the source OMI is false, only setting `TpmEnabled` to true will create and attach a vTPM to the VM."
+        },
+        {
+          "name": "UserData",
+          "type": "string",
+          "description": "The Base64-encoded MIME user data."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "description": "The ID of the VM."
+        },
+        {
+          "name": "VmInitiatedShutdownBehavior",
+          "type": "string",
+          "description": "The VM behavior when you stop it. If set to `stop`, the VM stops. If set to `restart`, the VM stops then automatically restarts. If set to `terminate`, the VM stops and is deleted. Important: This parameter is deprecated in favor of `ShutDownBeheviorConfiguration` and will be removed."
+        },
+        {
+          "name": "VmType",
+          "type": "string",
+          "description": "The type of VM. For more information, see [VM Types](https://docs.outscale.com/en/userguide/VM-Types.html)."
+        }
+      ]
+    },
+    {
+      "name": "VmState",
+      "fields": [
+        {
+          "name": "CurrentState",
+          "type": "string",
+          "description": "The current state of the VM (`InService` \\| `OutOfService` \\| `Unknown`)."
+        },
+        {
+          "name": "PreviousState",
+          "type": "string",
+          "description": "The previous state of the VM (`InService` \\| `OutOfService` \\| `Unknown`)."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "description": "The ID of the VM."
+        }
+      ]
+    },
+    {
+      "name": "VmStates",
+      "fields": [
+        {
+          "name": "MaintenanceEvents",
+          "type": "array",
+          "item_type": "object",
+          "ref": "MaintenanceEvent",
+          "description": "One or more scheduled events associated with the VM."
+        },
+        {
+          "name": "SubregionName",
+          "type": "string",
+          "description": "The name of the Subregion of the VM."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "description": "The ID of the VM."
+        },
+        {
+          "name": "VmState",
+          "type": "string",
+          "description": "The state of the VM (`pending` \\| `running` \\| `stopping` \\| `stopped` \\| `shutting-down` \\| `terminated` \\| `quarantine`)."
+        }
+      ]
+    },
+    {
+      "name": "VmType",
+      "fields": [
+        {
+          "name": "BsuOptimized",
+          "type": "boolean",
+          "description": "This parameter is not available. It is present in our API for the sake of historical compatibility with AWS."
+        },
+        {
+          "name": "EphemeralsType",
+          "type": "string",
+          "description": "The type of ephemeral storage disk."
+        },
+        {
+          "name": "Eth",
+          "type": "integer",
+          "description": "The number of Ethernet interface available."
+        },
+        {
+          "name": "Gpu",
+          "type": "integer",
+          "description": "The number of GPU available."
+        },
+        {
+          "name": "MaxPrivateIps",
+          "type": "integer",
+          "description": "The maximum number of private IPs per network interface card (NIC)."
+        },
+        {
+          "name": "MemorySize",
+          "type": "number",
+          "description": "The amount of memory, in gibibytes."
+        },
+        {
+          "name": "VcoreCount",
+          "type": "integer",
+          "description": "The number of vCores."
+        },
+        {
+          "name": "VmTypeName",
+          "type": "string",
+          "description": "The name of the VM type."
+        },
+        {
+          "name": "VolumeCount",
+          "type": "integer",
+          "description": "The maximum number of ephemeral storage disks."
+        },
+        {
+          "name": "VolumeSize",
+          "type": "integer",
+          "description": "The size of one ephemeral storage disk, in gibibytes (GiB)."
+        }
+      ]
+    },
+    {
+      "name": "VmsStopHistory",
+      "fields": [
+        {
+          "name": "StateReason",
+          "type": "string",
+          "description": "The reason explaining why the VM stopped. For more information, see [Creating VMs > VM State Reference](https://docs.outscale.com/en/userguide/Creating-VMs.html#_vm_state_reference_statereason_2)."
+        },
+        {
+          "name": "StopDate",
+          "type": "string",
+          "description": "The date and time (UTC) of the stop event."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "description": "The ID of the VM."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "vm.v1.Vm.CreateVms",
