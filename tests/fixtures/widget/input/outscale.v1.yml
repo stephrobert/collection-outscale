@@ -547,6 +547,8 @@ components:
           type: string
         WidgetType:
           type: string
+          description: The type of widget. For more information, see [Widget Types](https://docs.example.invalid/widget-types.html).<br />
+            Changing it restarts the widget.
         Performance:
           $ref: '#/components/schemas/WidgetPerformance'
         LegacyFlag:

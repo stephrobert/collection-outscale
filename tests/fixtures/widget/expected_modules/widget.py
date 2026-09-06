@@ -28,7 +28,8 @@ options:
     type: str
     required: true
   widget_type:
-    description: Not documented by the Outscale API contract.
+    description: The type of widget. For more information, see L(Widget Types, https://docs.example.invalid/widget-types.html).
+      Changing it restarts the widget.
     type: str
   performance:
     description: Not documented by the Outscale API contract.

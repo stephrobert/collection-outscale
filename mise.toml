@@ -260,7 +260,10 @@ description = "Ce qu'une pull request doit passer"
 # Tout ce que le job Générateur et le job Archive de la CI portent, et rien de
 # ce qui demande une autre version d'ansible-core ou le réseau. `package` en
 # fait partie parce que c'est là qu'un contrôle sur l'archive a voyagé jusqu'en
-# CI chez collection-scaleway, faute d'être dans `check`.
+# CI chez collection-scaleway, faute d'être dans `check`. `lint:docs` aussi,
+# pour la même raison : un lien Markdown recopié du contrat a rougi les cinq
+# jobs `collection` d'une pull request après un `check` vert, en six secondes
+# hors ligne qu'il aurait suffi de passer ici.
 depends = [
   "lint",
   "typecheck",
@@ -268,6 +271,7 @@ depends = [
   "report",
   "check:generated",
   "lint:changelog",
+  "lint:docs",
   "falsify",
   "matrix:check",
   "readme:check",

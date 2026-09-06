@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from pathlib import Path
+from typing import Any
 
 from generator.ansible.models import AnsibleModuleSpec, build_module_specs
 from generator.ir.enums import OperationKind
@@ -326,3 +327,31 @@ def test_deux_ecritures_sur_une_ressource_sont_refusees(widget_service: ApiServi
     _, skipped = build_module_specs(plan_service(service, OverrideSet(source=None)), LAB_COLLECTION)
     raison = dict(skipped)["widget"]
     assert "2 écritures" in raison and "PutWidget" in raison
+
+
+# ---- la mise en forme des descriptions -------------------------------------
+
+
+def _widget_type(widget_service: ApiService) -> Any:
+    update = next(op for op in widget_service.operations if op.id == "UpdateWidget")
+    return next(p for p in update.parameters if p.name == "WidgetType")
+
+
+def test_un_lien_markdown_du_contrat_devient_un_lien_ansible(widget_service: ApiService) -> None:
+    """antsibull-docs refuse `[texte](url)` ; mesuré sur `vm.rst`, cinq jobs rouges."""
+    from generator.ansible.models import _describe
+
+    parameter = replace(
+        _widget_type(widget_service),
+        description="See [VM Types](https://docs.outscale.com/en/userguide/VM-Types.html) first.",
+    )
+    text = _describe(parameter)
+    assert "L(VM Types, https://docs.outscale.com/en/userguide/VM-Types.html)" in text
+    assert "](" not in text
+
+
+def test_un_saut_de_ligne_html_du_contrat_devient_un_espace(widget_service: ApiService) -> None:
+    from generator.ansible.models import _describe
+
+    parameter = replace(_widget_type(widget_service), description="First.<br />Second.<br/>")
+    assert _describe(parameter) == "First. Second."

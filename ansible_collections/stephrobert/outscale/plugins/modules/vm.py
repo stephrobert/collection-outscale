@@ -45,13 +45,12 @@ options:
       is disabled.
     type: bool
   keypair_name:
-    description: 'The name of a keypair you want to associate with the VM.<br />
-
-      When you replace the keypair of a VM with another one, the metadata of the VM is modified
-      to reflect the new public key, but the replacement is still not effective in the operating
-      system of the VM. To complete the replacement and effectively apply the new keypair,
-      you need to perform other actions inside the VM. For more information, see [Modifying
-      the Keypair of a VM](https://docs.outscale.com/en/userguide/Modifying-the-Keypair-of-a-VM.html).'
+    description: The name of a keypair you want to associate with the VM. When you replace
+      the keypair of a VM with another one, the metadata of the VM is modified to reflect
+      the new public key, but the replacement is still not effective in the operating system
+      of the VM. To complete the replacement and effectively apply the new keypair, you need
+      to perform other actions inside the VM. For more information, see L(Modifying the Keypair
+      of a VM, https://docs.outscale.com/en/userguide/Modifying-the-Keypair-of-a-VM.html).
     type: str
   nested_virtualization:
     description: (dedicated tenancy only) If true, nested virtualization is enabled. If false,
@@ -81,7 +80,7 @@ options:
       stops and is terminated.
     type: str
   vm_type:
-    description: The type of VM. For more information, see [VM Types](https://docs.outscale.com/en/userguide/VM-Types.html).
+    description: The type of VM. For more information, see L(VM Types, https://docs.outscale.com/en/userguide/VM-Types.html).
     type: str
 extends_documentation_fragment:
 - stephrobert.outscale.outscale
