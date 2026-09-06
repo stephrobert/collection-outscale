@@ -10,7 +10,9 @@
 #   rend sa liste en une fois ;
 # * `ReadWidgetSecret` rend deux propriétés : charge utile indécidable, et
 #   valeur sensible ;
-# * `FiltersWidget.CreationDates` porte le `oneOf` date | date-time du réel ;
+# * `FiltersWidget.CreationDates` porte le `oneOf` date | date-time du réel, et
+#   `ReadWidgetConsoleRequest.Weird` un `oneOf` de types différents qu'il ne
+#   porte pas ;
 # * `UpdateWidget.Performance` référence un enum nommé, `BootMode` en porte un
 #   inline, et `LegacyFlag` est déprécié ;
 # * `AcceptGadget` et `RejectGadget` portent un identifiant seul, dont le
@@ -480,6 +482,13 @@ components:
           type: boolean
         WidgetId:
           type: string
+        # Un `oneOf` de types différents, que le contrat réel ne porte pas :
+        # le parser doit le laisser inconnu et le nommer, pas le lire comme
+        # une chaîne. Sur une lecture masquée, pour ne changer aucun module.
+        Weird:
+          oneOf:
+            - type: string
+            - type: integer
       required: [WidgetId]
     ReadWidgetConsoleResponse:
       type: object

@@ -162,7 +162,12 @@ def test_une_liste_se_deroule_jusqua_la_derniere_page(monkeypatch: pytest.Monkey
 
 def test_un_jeton_qui_boucle_arrete_la_lecture(monkeypatch: pytest.MonkeyPatch) -> None:
     class _Boucle(_Gateway):
+        # Lève au quatrième appel : sans cette borne, la garde neutralisée par la
+        # falsification faisait boucler `read_all` jusqu'à épuiser la mémoire,
+        # dix minutes mesurées sous `mise run check`.
         def _answer(self, action: str, kwargs: dict[str, Any]) -> dict[str, Any]:
+            if len(self.calls) > 3:
+                raise RuntimeError("la lecture boucle sur le même jeton")
             return {"Vms": [{"VmId": "i-1"}], "NextPageToken": "same"}
 
     gateway = _use(monkeypatch, _Boucle())

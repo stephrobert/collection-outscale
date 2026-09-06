@@ -132,8 +132,8 @@
       "name": "parser-oneof-de-types-differents",
       "why": "Un `oneOf` de types différents n'est pas une chaîne : il doit rester inconnu et se voir dans le rapport.",
       "file": "generator/parser/openapi.py",
-      "find": "        if len(variants) == 1 and (only := variants.pop()) in _SCALAR_TYPES and only not in (",
-      "replace": "        if len(variants) >= 1 and (only := variants.pop()) in _SCALAR_TYPES and only not in (",
+      "find": "            len(variants) == 1\n            and (only := variants.pop()) in _SCALAR_TYPES",
+      "replace": "            len(variants) >= 1\n            and (only := variants.pop()) in _SCALAR_TYPES",
       "test": "tests/unit/generator/test_parser.py::test_un_oneof_de_dates_est_une_chaine"
     },
     {

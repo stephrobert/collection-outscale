@@ -78,7 +78,15 @@ def test_un_champ_sensible_recoit_no_log() -> None:
 
 
 def test_un_identifiant_ou_un_nom_nest_jamais_le_secret_quil_designe() -> None:
-    """`KeypairName` désigne une clé, `AccessKeyId` désigne une clé d'accès."""
+    """`KeypairName` désigne une clé, `AccessKeyId` désigne une clé d'accès.
+
+    Le contrat 1.42.0 ne porte aucun identifiant dont le nom contienne un
+    fragment sensible ; `ClientTokenId` est synthétique, et c'est lui qui
+    mesure la garde : sans elle, `token` le masquerait. `KeypairName` seul
+    passait avec ou sans la règle, et la falsification l'a dit.
+    """
+    assert is_sensitive(_parameter("ClientTokenId", ApiType.STRING)) is False
+    assert is_sensitive(_parameter("PasswordPolicyName", ApiType.STRING)) is False
     assert is_sensitive(_parameter("KeypairName", ApiType.STRING)) is False
     assert is_sensitive(_parameter("AccessKeyId", ApiType.STRING)) is False
     assert is_sensitive(_parameter("AdminPassword", ApiType.STRING)) is True
