@@ -25,7 +25,7 @@ Trois décisions propres à Outscale valent d'être lues avant le code :
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from generator.ansible.collection import Collection
@@ -45,7 +45,9 @@ from generator.plan import OperationPlan, ProductPlan
 
 #: Classes que le renderer sait produire aujourd'hui. Une classe absente n'est
 #: pas ignorée : elle est rendue dans le rapport de génération avec sa raison.
-RENDERABLE_KINDS: frozenset[OperationKind] = frozenset({OperationKind.INFO, OperationKind.ACTION})
+RENDERABLE_KINDS: frozenset[OperationKind] = frozenset(
+    {OperationKind.INFO, OperationKind.ACTION, OperationKind.MANAGE}
+)
 
 #: Ce qu'on écrit quand le contrat ne décrit pas un paramètre.
 UNDOCUMENTED = "Not documented by the Outscale API contract."
@@ -143,6 +145,11 @@ class AnsibleModuleSpec:
     read_filter: str | None = None
     #: Le champ de chaque élément lu qui porte son identifiant.
     read_id_field: str | None = None
+    #: L'écriture d'un module de gestion d'état.
+    update_operation: OperationBinding | None = None
+    #: Pour un module de gestion d'état, l'option et le champ de la ressource lue
+    #: qu'elle se compare à : seules ces options sont exposées.
+    compare: dict[str, str] = field(default_factory=dict)
     #: Limites du contrat rencontrées en construisant le module.
     limits: tuple[str, ...] = ()
     sensitive_return: bool = False
@@ -152,6 +159,8 @@ class AnsibleModuleSpec:
     def operation_ids(self) -> tuple[str, ...]:
         ids = [self.operation.id] if self.operation is not None else []
         ids.extend(action.operation.id for action in self.actions)
+        if self.update_operation is not None:
+            ids.append(self.update_operation.id)
         return tuple(ids)
 
     @property
@@ -223,6 +232,18 @@ class AnsibleModuleSpec:
                 "already is in that state"
                 + (f", except for {always}, which always acts." if always else ".")
             )
+        if self.kind is OperationKind.MANAGE and self.update_operation is not None:
+            notes.append(
+                f"The module reads the {self.resource_words} by I({self.selector}), compares "
+                "every option you give with what the API returns, and sends "
+                f"C({self.update_operation.id}) only when something differs: a second run "
+                "reports C(changed=false). In check mode nothing is sent."
+            )
+            notes.append(
+                "Only the settings the API reads back are exposed: what it cannot read "
+                "back could not be compared, and the module would report a change on "
+                "every run."
+            )
         if self.sensitive_return:
             notes.append("The returned value is a secret: do not log the task output.")
 
@@ -251,6 +272,8 @@ class AnsibleModuleSpec:
             if self.operation is not None and self.operation.is_list:
                 return f"Gather information about Outscale {pluralize_phrase(self.resource)}"
             return f"Read the Outscale {self.resource_words}"
+        if self.kind is OperationKind.MANAGE:
+            return f"Manage the settings of an Outscale {self.resource_words}"
         return f"Perform an action on Outscale {pluralize_phrase(self.resource)}"
 
     def long_description(self) -> str:
@@ -261,6 +284,13 @@ class AnsibleModuleSpec:
                     "This module never changes anything."
                 )
             return f"Read the Outscale {self.resource_words}. This module never changes anything."
+        if self.kind is OperationKind.MANAGE:
+            settings = ", ".join(f"I({option})" for option in self.compare)
+            return (
+                f"Set the settings of an existing Outscale {self.resource_words} ({settings}), "
+                "and only what differs from what the API returns. Terraform provisions the "
+                f"{self.resource_words}, this module operates it."
+            )
         names = ", ".join(f"C({action.name})" for action in self.actions)
         return (
             f"Trigger one of the following actions on existing "
@@ -293,6 +323,19 @@ class AnsibleModuleSpec:
                     }
                 )
             return examples
+        if self.kind is OperationKind.MANAGE:
+            task = {"region": EXAMPLE_REGION}
+            for name, entry in self.options.items():
+                if entry.get("required"):
+                    task[name] = self._example_value(entry)
+            # `actions_on_next_boot: {}` n'apprend rien à qui lit l'exemple : une
+            # option scalaire d'abord, un dictionnaire ou une liste à défaut.
+            scalars = [n for n in self.compare if self.options[n]["type"] not in ("dict", "list")]
+            for name in scalars or list(self.compare):
+                if name not in task:
+                    task[name] = self._example_value(self.options[name])
+                    break
+            return [{"name": f"Set the settings of a {self.resource_words}", fqcn: task}]
         first = self.actions[0]
         task = {"region": EXAMPLE_REGION, "action": first.name}
         for name, entry in self.options.items():
@@ -337,6 +380,22 @@ class AnsibleModuleSpec:
                     "returned": "always",
                     "type": "dict",
                 }
+            }
+        if self.kind is OperationKind.MANAGE:
+            return {
+                self.resource: {
+                    "description": f"The {self.resource_words}, read after the update.",
+                    "returned": "always",
+                    "type": "dict",
+                },
+                "changes": {
+                    "description": (
+                        "What differed, by option: the value the API returned before, and "
+                        "the value you asked for."
+                    ),
+                    "returned": "when something differed",
+                    "type": "dict",
+                },
             }
         returned: dict[str, Any] = {
             "result": {
@@ -391,6 +450,8 @@ def _build_spec(
         raise UnsupportedKind(f"{name} : la classe {kind.value.upper()} n'a pas encore de renderer")
     if kind is OperationKind.INFO:
         return _build_info_spec(name, operations, plan, collection)
+    if kind is OperationKind.MANAGE:
+        return _build_manage_spec(name, operations, plan, collection)
     return _build_action_spec(name, operations, plan, collection)
 
 
@@ -499,7 +560,16 @@ def _build_action_spec(
     state_field = next(iter(sorted(state_fields)), None)
     read_operation = read_filter = read_id_field = None
     if state_field is not None:
-        read = _read_binding(plan, resource, selector, actions, limits)
+        contract_name = next(
+            (
+                name
+                for action in actions
+                for opt, name in action.operation.body_params.items()
+                if opt == selector
+            ),
+            None,
+        )
+        read = _read_binding(plan, resource, selector, contract_name, limits)
         if read is not None:
             read_operation, read_filter, read_id_field = read
     return AnsibleModuleSpec(
@@ -520,11 +590,139 @@ def _build_action_spec(
     )
 
 
+def _build_manage_spec(
+    name: str,
+    operations: tuple[OperationPlan, ...],
+    plan: ProductPlan,
+    collection: Collection,
+) -> AnsibleModuleSpec:
+    """Un module de gestion d'état porte une écriture, et la lecture qui la juge.
+
+    Trois décisions, et chacune est mesurée sur le contrat :
+
+    * **une seule écriture par ressource.** `UpdateVm` est la seule sur `vm` ;
+      deux écritures diraient une ressource mal déduite ;
+    * **le sélecteur est l'option exigée que la lecture sait filtrer.**
+      `UpdateVm` exige `VmId`, et `FiltersVm` porte `VmIds` ; `UpdateNet`
+      exige `NetId` et `DhcpOptionsSetId`, et seul `NetId` se retrouve dans
+      `FiltersNet` ;
+    * **une option n'est exposée que si la lecture la rend.** `UpdateVm` porte
+      13 champs que `Vm` rend sous le même nom, et `SecurityGroupIds` que `Vm`
+      rend sous une autre forme (`SecurityGroups[]`). Une option qu'on ne peut
+      pas relire ne se compare pas, et un module qui l'enverrait rendrait
+      `changed` à chaque passage : elle n'est pas exposée, et la limite le dit.
+    """
+    if len(operations) != 1:
+        raise AmbiguousModule(
+            f"{name} : {len(operations)} écritures {[o.operation.id for o in operations]}, "
+            "un module de gestion d'état n'en porte qu'une ; corriger la ressource déduite"
+        )
+    item = operations[0]
+    resource = item.resource
+    override = plan.overrides.get(item.operation.key)
+    options: dict[str, dict[str, Any]] = {}
+    docs: dict[str, str] = {}
+    limits: list[str] = []
+    required = _collect_options(item, plan.overrides, options, docs, limits, required_allowed=False)
+    contract_of = {
+        _resolved_option(p, override): p.name
+        for p in item.operation.parameters
+        if _resolved_option(p, override) in options
+    }
+
+    if not any(op.resource == resource and op.kind is OperationKind.INFO for op in plan.operations):
+        # `UpdateRoute` et `UpdateRouteTableLink` : rien ne rend la ressource,
+        # donc rien ne peut juger l'écriture. Le dire ainsi, plutôt que
+        # « 0 option filtrable », pour que le compte rendu nomme la cause.
+        raise AmbiguousModule(
+            f"{name} : aucune lecture ne rend {resource}, rien ne peut juger l'écriture"
+        )
+    candidates = [
+        opt
+        for opt in required
+        if _read_binding(plan, resource, opt, contract_of[opt], []) is not None
+    ]
+    if len(candidates) > 1:
+        # `UpdateNet` exige `NetId` et `DhcpOptionsSetId`, et `FiltersNet` sait
+        # filtrer les deux : l'option qui nomme la ressource est le sélecteur.
+        camel = "".join(part.capitalize() for part in resource.split("_"))
+        named = [opt for opt in candidates if contract_of[opt].startswith(camel)]
+        if len(named) == 1:
+            candidates = named
+    if len(candidates) != 1:
+        raise AmbiguousModule(
+            f"{name} : {len(candidates)} option(s) exigée(s) que la lecture sait filtrer "
+            f"{candidates}, il en faut exactement une"
+        )
+    selector = candidates[0]
+    read = _read_binding(plan, resource, selector, contract_of[selector], limits)
+    assert read is not None
+    read_operation, read_filter, read_id_field = read
+    readable = set(
+        next(
+            op.operation.response.payload_fields
+            for op in plan.operations
+            if op.operation.id == read_operation.id and op.operation.response is not None
+        )
+    )
+
+    compare: dict[str, str] = {}
+    for option in list(options):
+        if option == selector:
+            options[option]["required"] = True
+            continue
+        contract_name = contract_of[option]
+        if contract_name in readable:
+            compare[option] = contract_name
+            if option in required:
+                options[option]["required"] = True
+            continue
+        limits.append(
+            f"{item.operation.id}.{contract_name} : la lecture ne le rend pas sous ce nom, "
+            "l'option n'est pas exposée faute de pouvoir la comparer"
+        )
+        del options[option]
+        del docs[option]
+    if not compare:
+        raise AmbiguousModule(
+            f"{name} : aucune option de {item.operation.id} ne se relit dans "
+            f"{read_operation.id}, rien à gérer"
+        )
+
+    return AnsibleModuleSpec(
+        name=name,
+        kind=OperationKind.MANAGE,
+        product=plan.service.name,
+        resource=resource,
+        collection=collection,
+        options=options,
+        option_docs=docs,
+        selector=selector,
+        # L'écriture ne porte que le sélecteur et les options comparées : une
+        # option retirée faute de pouvoir être relue ne doit pas figurer dans
+        # ce que le runtime sait envoyer.
+        update_operation=replace(
+            _binding(item.operation, override),
+            body_params={
+                opt: name
+                for opt, name in _binding(item.operation, override).body_params.items()
+                if opt == selector or opt in compare
+            },
+        ),
+        read_operation=read_operation,
+        read_filter=read_filter,
+        read_id_field=read_id_field,
+        compare=compare,
+        limits=tuple(sorted(set(limits))),
+        summary=item.operation.summary,
+    )
+
+
 def _read_binding(
     plan: ProductPlan,
     resource: str,
     selector: str | None,
-    actions: list[ActionBinding],
+    contract_name: str | None,
     limits: list[str],
 ) -> tuple[OperationBinding, str, str | None] | None:
     """La lecture de la ressource, et le filtre qui la restreint au sélecteur.
@@ -536,11 +734,8 @@ def _read_binding(
     `NetPeeringIds`. La clé est le nom du sélecteur tel quel, ou au pluriel.
     Ce qui manque est dit dans les limites, jamais deviné.
     """
-    if selector is None:
-        limits.append(
-            f"{resource} : les actions ne partagent aucune option exigée, "
-            "l'état attendu ne sera pas vérifié après une action"
-        )
+    if selector is None or contract_name is None:
+        limits.append(f"{resource} : aucune option exigée commune, la ressource ne sera pas relue")
         return None
     candidates = [
         item
@@ -553,19 +748,12 @@ def _read_binding(
     ]
     if len(candidates) != 1:
         limits.append(
-            f"{resource} : {len(candidates)} lecture(s) filtrée(s), l'état attendu ne "
-            "sera pas vérifié après une action"
+            f"{resource} : {len(candidates)} lecture(s) filtrée(s), la ressource ne sera pas relue"
         )
         return None
     item = candidates[0]
     filters = item.operation.parameter(FILTERS)
     assert filters is not None
-    contract_name = next(
-        name
-        for action in actions
-        for opt, name in action.operation.body_params.items()
-        if opt == selector
-    )
     filter_key = next(
         (key for key in (contract_name, contract_name + "s") if key in filters.properties), None
     )

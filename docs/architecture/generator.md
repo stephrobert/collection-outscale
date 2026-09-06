@@ -124,8 +124,9 @@ Day-2 coverage = (AUTO + OVERRIDE) / (INFO + ACTION + MANAGE + WORKFLOW)
 
 Measured on vm: 10 Day-2 candidates out of 12 operations, 100% classified
 for automatic generation. The generation report publishes next to it the
-share carried by a written module, which is lower as long as MANAGE has no
-renderer and two reads are hidden by decision.
+share carried by a written module, which is lower when a write cannot be
+judged by a read (`UpdateRoute`, `UpdateRouteTableLink`: no read returns the
+resource) or a read is hidden by decision.
 
 ## Two goldens, two different measurements
 

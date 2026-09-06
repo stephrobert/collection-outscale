@@ -310,13 +310,166 @@
           - (peerings.net_peerings | selectattr('NetPeeringId', 'equalto', net_peering_ids.to_services) | first).State.Name == 'active'
         quiet: true
 
+    # ---- La gestion d'état : lire, comparer, n'écrire que la différence ------
+    #
+    # Un module MANAGE qui enverrait son écriture à chaque passage ne serait
+    # pas idempotent, quoi qu'affiche `changed`. Chaque réglage est donc écrit,
+    # puis réécrit à l'identique : la seconde tâche doit rendre `changed=false`,
+    # et c'est `changed` qui est lu, pas une assertion écrite à côté.
+
+    - name: Protéger la machine applicative contre la suppression, en check mode
+      stephrobert.outscale.vm:
+        vm_id: "{{ app_id }}"
+        deletion_protection: true
+      check_mode: true
+      register: protection_simulee
+
+    - name: Protéger la machine applicative contre la suppression
+      stephrobert.outscale.vm:
+        vm_id: "{{ app_id }}"
+        deletion_protection: true
+      register: protection
+
+    - name: La protéger une seconde fois
+      stephrobert.outscale.vm:
+        vm_id: "{{ app_id }}"
+        deletion_protection: true
+      register: protection_bis
+
+    - name: Lever la protection, pour que Terraform puisse détruire la machine
+      stephrobert.outscale.vm:
+        vm_id: "{{ app_id }}"
+        deletion_protection: false
+      register: protection_levee
+
+    - name: Le check mode annonce le changement sans l'envoyer, et la réécriture ne change rien
+      ansible.builtin.assert:
+        that:
+          - protection_simulee is changed
+          - protection is changed
+          - protection.changes.deletion_protection.after == true
+          - protection.vm.DeletionProtection == true
+          - protection_bis is not changed
+          - protection_levee is changed
+        quiet: true
+
+    - name: Agrandir le volume de données de la machine applicative
+      stephrobert.outscale.volume:
+        volume_id: "{{ volume_ids.app_data }}"
+        size: 30
+      register: agrandi
+
+    - name: L'agrandir une seconde fois, à la même taille
+      stephrobert.outscale.volume:
+        volume_id: "{{ volume_ids.app_data }}"
+        size: 30
+      register: agrandi_bis
+
+    - name: Le Net workload garde le jeu d'options DHCP que la plateforme lui a donné
+      stephrobert.outscale.net:
+        net_id: "{{ net_ids.workload }}"
+        dhcp_options_set_id: "{{ dhcp_options_set_id }}"
+      register: dhcp_inchange
+
+    - name: Ouvrir l'adressage public du sous-réseau privé
+      stephrobert.outscale.subnet:
+        subnet_id: "{{ subnet_ids.private }}"
+        map_public_ip_on_launch: true
+      register: adressage
+
+    - name: L'ouvrir une seconde fois
+      stephrobert.outscale.subnet:
+        subnet_id: "{{ subnet_ids.private }}"
+        map_public_ip_on_launch: true
+      register: adressage_bis
+
+    - name: Le refermer
+      stephrobert.outscale.subnet:
+        subnet_id: "{{ subnet_ids.private }}"
+        map_public_ip_on_launch: false
+      register: adressage_ferme
+
+    - name: Décrire l'image dorée
+      stephrobert.outscale.image:
+        image_id: "{{ image_id }}"
+        description: "Golden image of run {{ prefix }}"
+      register: image_decrite
+
+    - name: La décrire une seconde fois
+      stephrobert.outscale.image:
+        image_id: "{{ image_id }}"
+        description: "Golden image of run {{ prefix }}"
+      register: image_decrite_bis
+
+    - name: Décrire l'interface de la machine applicative
+      stephrobert.outscale.nic:
+        nic_id: "{{ nic_id }}"
+        description: "Data plane of run {{ prefix }}"
+      register: nic_decrite
+
+    - name: La décrire une seconde fois
+      stephrobert.outscale.nic:
+        nic_id: "{{ nic_id }}"
+        description: "Data plane of run {{ prefix }}"
+      register: nic_decrite_bis
+
+    - name: Régler la sonde de santé du load balancer
+      stephrobert.outscale.load_balancer:
+        load_balancer_name: "{{ load_balancer_name }}"
+        health_check:
+          CheckInterval: 10
+          HealthyThreshold: 2
+          Path: /healthz
+          Port: 80
+          Protocol: HTTP
+          Timeout: 5
+          UnhealthyThreshold: 5
+      register: sonde
+
+    - name: La régler une seconde fois
+      stephrobert.outscale.load_balancer:
+        load_balancer_name: "{{ load_balancer_name }}"
+        health_check:
+          CheckInterval: 10
+          HealthyThreshold: 2
+          Path: /healthz
+          Port: 80
+          Protocol: HTTP
+          Timeout: 5
+          UnhealthyThreshold: 5
+      register: sonde_bis
+
+    - name: Chaque réglage a été écrit une fois, relu tel quel, et sa réécriture n'a rien changé
+      ansible.builtin.assert:
+        that:
+          - agrandi is changed and agrandi.volume.Size == 30
+          - agrandi_bis is not changed
+          - dhcp_inchange is not changed
+          - adressage is changed and adressage.subnet.MapPublicIpOnLaunch == true
+          - adressage_bis is not changed
+          - adressage_ferme is changed
+          - image_decrite is changed
+          - image_decrite_bis is not changed
+          - nic_decrite is changed
+          - nic_decrite_bis is not changed
+          - sonde is changed and sonde.load_balancer.HealthCheck.CheckInterval == 10
+          - sonde_bis is not changed
+        quiet: true
+
     # ---- Ce que ce run a prouvé, lu sur `changed`, pas sur des intentions --
 
     - name: Le compte des idempotences prouvées
       ansible.builtin.set_fact:
         idempotences_prouvees: >-
           {{ (['vm_action.stop'] if arret_bis is not changed else [])
-             + (['net_peering_action.accept'] if acceptation_bis is not changed else []) }}
+             + (['net_peering_action.accept'] if acceptation_bis is not changed else [])
+             + (['vm.deletion_protection'] if protection_bis is not changed else [])
+             + (['volume.size'] if agrandi_bis is not changed else [])
+             + (['net.dhcp_options_set_id'] if dhcp_inchange is not changed else [])
+             + (['subnet.map_public_ip_on_launch'] if adressage_bis is not changed else [])
+             + (['image.description'] if image_decrite_bis is not changed else [])
+             + (['nic.description'] if nic_decrite_bis is not changed else [])
+             + (['load_balancer.health_check'] if sonde_bis is not changed else []) }}
         non_emules: []
 
     - name: Les deux réécritures ont rendu changed=false

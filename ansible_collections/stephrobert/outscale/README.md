@@ -65,6 +65,28 @@ until it gets there when `wait` is true (the default), reports
 already is in that state, and fails saying `changed=true` if the state is
 not reached within `wait_timeout`. `reboot` always acts.
 
+## Settings, read before they are written
+
+A state module (the ones with no suffix) carries one update and the read that
+judges it. It reads the resource, compares every option given with what the
+API returns under the same name, sends the update only when something
+differs, reads again, and returns `changes` with the value before and after.
+In check mode it reports the difference without sending anything. An option
+the read does not return is not exposed at all, and the limits of the module
+say which and why: an option that cannot be compared would report
+`changed=true` on every run.
+
+```yaml
+- name: Protect a machine against deletion
+  stephrobert.outscale.vm:
+    vm_id: i-12345678
+    deletion_protection: true
+  register: protection
+```
+
+`changed=false` is measured, not promised: the example playbook writes every
+setting twice and checks that the second pass changes nothing.
+
 ## Dynamic inventory
 
 ```yaml
@@ -105,10 +127,11 @@ The table below is derived from the modules on disk by
 |---|---|
 | `dhcp_option_info` | Gather information about Outscale dhcp options |
 
-### image (1 module, tag `Image`)
+### image (2 modules, tag `Image`)
 
 | module | what it does |
 |---|---|
+| `image` | Manage the settings of an Outscale image |
 | `image_info` | Gather information about Outscale images |
 
 ### internet_service (1 module, tag `InternetService`)
@@ -123,10 +146,11 @@ The table below is derived from the modules on disk by
 |---|---|
 | `keypair_info` | Gather information about Outscale keypairs |
 
-### load_balancer (1 module, tag `LoadBalancer`)
+### load_balancer (2 modules, tag `LoadBalancer`)
 
 | module | what it does |
 |---|---|
+| `load_balancer` | Manage the settings of an Outscale load balancer |
 | `load_balancer_info` | Gather information about Outscale load balancers |
 
 ### nat_service (1 module, tag `NatService`)
@@ -135,10 +159,11 @@ The table below is derived from the modules on disk by
 |---|---|
 | `nat_service_info` | Gather information about Outscale nat services |
 
-### net (1 module, tag `Net`)
+### net (2 modules, tag `Net`)
 
 | module | what it does |
 |---|---|
+| `net` | Manage the settings of an Outscale net |
 | `net_info` | Gather information about Outscale nets |
 
 ### net_peering (2 modules, tag `NetPeering`)
@@ -148,10 +173,11 @@ The table below is derived from the modules on disk by
 | `net_peering_action` | Perform an action on Outscale net peerings |
 | `net_peering_info` | Gather information about Outscale net peerings |
 
-### nic (1 module, tag `Nic`)
+### nic (2 modules, tag `Nic`)
 
 | module | what it does |
 |---|---|
+| `nic` | Manage the settings of an Outscale nic |
 | `nic_info` | Gather information about Outscale nics |
 
 ### public_ip (2 modules, tag `PublicIp`)
@@ -185,10 +211,11 @@ The table below is derived from the modules on disk by
 |---|---|
 | `snapshot_info` | Gather information about Outscale snapshots |
 
-### subnet (1 module, tag `Subnet`)
+### subnet (2 modules, tag `Subnet`)
 
 | module | what it does |
 |---|---|
+| `subnet` | Manage the settings of an Outscale subnet |
 | `subnet_info` | Gather information about Outscale subnets |
 
 ### subregion (1 module, tag `Subregion`)
@@ -203,20 +230,22 @@ The table below is derived from the modules on disk by
 |---|---|
 | `tag_info` | Gather information about Outscale tags |
 
-### vm (5 modules, tag `Vm`)
+### vm (6 modules, tag `Vm`)
 
 | module | what it does |
 |---|---|
+| `vm` | Manage the settings of an Outscale vm |
 | `vm_action` | Perform an action on Outscale vms |
 | `vm_admin_password_info` | Read the Outscale admin password |
 | `vm_info` | Gather information about Outscale vms |
 | `vm_state_info` | Gather information about Outscale vm states |
 | `vm_type_info` | Gather information about Outscale vm types |
 
-### volume (1 module, tag `Volume`)
+### volume (2 modules, tag `Volume`)
 
 | module | what it does |
 |---|---|
+| `volume` | Manage the settings of an Outscale volume |
 | `volume_info` | Gather information about Outscale volumes |
 
 ### Inventory plugins

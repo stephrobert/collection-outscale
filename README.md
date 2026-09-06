@@ -33,7 +33,9 @@ module the collection ships is called by the example playbook, against the
 feint emulator, on every pull request, and the coverage gate has an **empty**
 exception list. What the emulator cannot serve is not generated: an override
 removes it from the modules with its reason, and the report lists it. The
-repository grows when the example grows, never before.
+repository grows when the example grows, never before. A state module earns
+its place the same way: the playbook writes each setting twice, and the second
+pass must report `changed=false`.
 
 Nothing here has been run against a real Outscale account: the maintainer's
 credentials are never used by this repository, and the emulator is free.
@@ -54,7 +56,7 @@ outscale v1 (document 1.42.0): 236 operations in a single document, 50 tags coun
   volume v1: 7 operations, 2 paginated, 1 classified without a module
     INFO 2 · ACTION 0 · MANAGE 1 · WORKFLOW 0 · LIFECYCLE 4 · IGNORE 0 · UNKNOWN 0
     Day-2 3 · AUTO 3 · OVERRIDE 0 · classified for automatic generation 100.0% (3/3)
-  snapshot v1: 6 operations, 2 paginated, 1 classified without a module
+  snapshot v1: 6 operations, 2 paginated, 2 classified without a module
     INFO 2 · ACTION 0 · MANAGE 1 · WORKFLOW 0 · LIFECYCLE 3 · IGNORE 0 · UNKNOWN 0
     Day-2 3 · AUTO 3 · OVERRIDE 0 · classified for automatic generation 100.0% (3/3)
   image v1: 6 operations, 2 paginated, 1 classified without a module
@@ -102,7 +104,7 @@ outscale v1 (document 1.42.0): 236 operations in a single document, 50 tags coun
   load_balancer v1: 12 operations, 0 paginated, 2 classified without a module
     INFO 3 · ACTION 0 · MANAGE 1 · WORKFLOW 0 · LIFECYCLE 8 · IGNORE 0 · UNKNOWN 0
     Day-2 4 · AUTO 4 · OVERRIDE 0 · classified for automatic generation 100.0% (4/4)
-  listener v1: 6 operations, 0 paginated, 1 classified without a module
+  listener v1: 6 operations, 0 paginated, 2 classified without a module
     INFO 1 · ACTION 0 · MANAGE 1 · WORKFLOW 0 · LIFECYCLE 4 · IGNORE 0 · UNKNOWN 0
     Day-2 2 · AUTO 2 · OVERRIDE 0 · classified for automatic generation 100.0% (2/2)
   tag v1: 3 operations, 1 paginated, 0 classified without a module
@@ -115,17 +117,21 @@ outscale v1 (document 1.42.0): 236 operations in a single document, 50 tags coun
     INFO 1 · ACTION 0 · MANAGE 0 · WORKFLOW 0 · LIFECYCLE 0 · IGNORE 0 · UNKNOWN 0
     Day-2 1 · AUTO 1 · OVERRIDE 0 · classified for automatic generation 100.0% (1/1)
 
-collection stephrobert.outscale: 25 modules written, 36 planned, 11 set aside with their reason
-  25 of 25 modules called by the example playbooks (100.0%)
+collection stephrobert.outscale: 32 modules written, 34 planned, 2 set aside with their reason
+  32 of 32 modules called by the example playbooks (100.0%)
   dhcp_option_info                         Gather information about Outscale dhcp options
+  image                                    Manage the settings of an Outscale image
   image_info                               Gather information about Outscale images
   internet_service_info                    Gather information about Outscale internet services
   keypair_info                             Gather information about Outscale keypairs
+  load_balancer                            Manage the settings of an Outscale load balancer
   load_balancer_info                       Gather information about Outscale load balancers
   nat_service_info                         Gather information about Outscale nat services
+  net                                      Manage the settings of an Outscale net
   net_info                                 Gather information about Outscale nets
   net_peering_action                       Perform an action on Outscale net peerings
   net_peering_info                         Gather information about Outscale net peerings
+  nic                                      Manage the settings of an Outscale nic
   nic_info                                 Gather information about Outscale nics
   public_ip_info                           Gather information about Outscale public ips
   public_ip_range_info                     Gather information about Outscale public ip ranges
@@ -133,17 +139,20 @@ collection stephrobert.outscale: 25 modules written, 36 planned, 11 set aside wi
   route_table_info                         Gather information about Outscale route tables
   security_group_info                      Gather information about Outscale security groups
   snapshot_info                            Gather information about Outscale snapshots
+  subnet                                   Manage the settings of an Outscale subnet
   subnet_info                              Gather information about Outscale subnets
   subregion_info                           Gather information about Outscale subregions
   tag_info                                 Gather information about Outscale tags
+  vm                                       Manage the settings of an Outscale vm
   vm_action                                Perform an action on Outscale vms
   vm_admin_password_info                   Read the Outscale admin password
   vm_info                                  Gather information about Outscale vms
   vm_state_info                            Gather information about Outscale vm states
   vm_type_info                             Gather information about Outscale vm types
+  volume                                   Manage the settings of an Outscale volume
   volume_info                              Gather information about Outscale volumes
   vm (inventory)                           dynamic inventory
-  432 unit tests · 52 guards proven by mise run falsify
+  480 unit tests · 61 guards proven by mise run falsify
   CI: 4 jobs, Générateur · collection · Archive · Plateforme d'exemple
   ansible-test sanity: reported by `mise run sanity`, not counted here
 ```

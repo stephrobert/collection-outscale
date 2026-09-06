@@ -382,3 +382,110 @@ def test_une_action_inconnue_est_refusee(monkeypatch: pytest.MonkeyPatch) -> Non
     with pytest.raises(SystemExit):
         runtime.run_action_module(module, _action_spec())
     assert module.failed is not None and "explode" in module.failed["msg"]
+
+
+# ---- la gestion d'état ------------------------------------------------------
+
+
+class _Gere(_Gateway):
+    """Une machine dont la protection change quand on la règle."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.protection = False
+
+    def _answer(self, action: str, kwargs: dict[str, Any]) -> dict[str, Any]:
+        if action == "ReadVms":
+            self.reads += 1
+            return {
+                "Vms": [
+                    {
+                        "VmId": "i-1",
+                        "DeletionProtection": self.protection,
+                        "VmType": "tinav5.c1r1p2",
+                        "Placement": {"SubregionName": "eu-west-2a", "Tenancy": "default"},
+                    }
+                ]
+            }
+        if action == "UpdateVm":
+            self.protection = kwargs.get("DeletionProtection", self.protection)
+            return {"Vm": {"VmId": "i-1", "DeletionProtection": self.protection}}
+        return {}
+
+
+MANAGE = runtime.ManageModule(
+    resource="vm",
+    selector="vm_id",
+    operation=runtime.Operation(
+        id="UpdateVm",
+        method="UpdateVm",
+        body_params={"vm_id": "VmId", "deletion_protection": "DeletionProtection"},
+        payload_field="Vm",
+    ),
+    read_operation=READ,
+    read_filter="VmIds",
+    read_id_field="VmId",
+    compare={"deletion_protection": "DeletionProtection", "placement": "Placement"},
+)
+
+
+def test_une_ecriture_identique_a_ce_que_lapi_rend_ne_change_rien(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    gateway = _use(monkeypatch, _Gere())
+    module = _Module({"vm_id": "i-1", "deletion_protection": False})
+    with pytest.raises(SystemExit):
+        runtime.run_manage_module(module, MANAGE)
+    assert [nom for nom, _ in gateway.calls] == ["ReadVms"]
+    assert module.exited is not None
+    assert module.exited["changed"] is False and module.exited["vm"]["VmId"] == "i-1"
+
+
+def test_une_difference_est_ecrite_puis_relue_et_dite(monkeypatch: pytest.MonkeyPatch) -> None:
+    gateway = _use(monkeypatch, _Gere())
+    module = _Module({"vm_id": "i-1", "deletion_protection": True})
+    with pytest.raises(SystemExit):
+        runtime.run_manage_module(module, MANAGE)
+    assert [nom for nom, _ in gateway.calls] == ["ReadVms", "UpdateVm", "ReadVms"]
+    assert ("UpdateVm", {"VmId": "i-1", "DeletionProtection": True}) in gateway.calls
+    assert module.exited is not None
+    assert module.exited["changed"] is True
+    assert module.exited["changes"] == {"deletion_protection": {"before": False, "after": True}}
+    assert module.exited["vm"]["DeletionProtection"] is True
+
+
+def test_le_check_mode_dit_la_difference_sans_lecrire(monkeypatch: pytest.MonkeyPatch) -> None:
+    gateway = _use(monkeypatch, _Gere())
+    module = _Module({"vm_id": "i-1", "deletion_protection": True}, check_mode=True)
+    with pytest.raises(SystemExit):
+        runtime.run_manage_module(module, MANAGE)
+    assert [nom for nom, _ in gateway.calls] == ["ReadVms"]
+    assert module.exited is not None and module.exited["changed"] is True
+    assert "deletion_protection" in module.exited["changes"]
+
+
+def test_un_dictionnaire_demande_est_satisfait_par_ses_seules_cles(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`HealthCheck` rendu porte plus de champs que ceux qu'on règle."""
+    gateway = _use(monkeypatch, _Gere())
+    module = _Module({"vm_id": "i-1", "placement": {"Tenancy": "default"}})
+    with pytest.raises(SystemExit):
+        runtime.run_manage_module(module, MANAGE)
+    assert [nom for nom, _ in gateway.calls] == ["ReadVms"]
+    assert module.exited is not None and module.exited["changed"] is False
+    assert runtime._matches({"a": 1, "b": 2}, {"a": 1}) is True
+    assert runtime._matches({"a": 1}, {"a": 2}) is False
+    assert runtime._matches([1, 2], [2, 1]) is False
+
+
+def test_une_ressource_introuvable_est_une_erreur(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _Vide(_Gere):
+        def _answer(self, action: str, kwargs: dict[str, Any]) -> dict[str, Any]:
+            return {"Vms": []} if action == "ReadVms" else {}
+
+    _use(monkeypatch, _Vide())
+    module = _Module({"vm_id": "i-9", "deletion_protection": True})
+    with pytest.raises(SystemExit):
+        runtime.run_manage_module(module, MANAGE)
+    assert module.failed is not None and "i-9" in module.failed["msg"]

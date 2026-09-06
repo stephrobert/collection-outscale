@@ -168,8 +168,8 @@ couverture Day-2 = (AUTO + OVERRIDE) / (INFO + ACTION + MANAGE + WORKFLOW)
 Mesuré sur vm : 12 opérations, 10 candidates Day-2, 100 % classées pour la
 génération automatique, 2 LIFECYCLE écartées avec leur raison. Ce chiffre dit
 que 10 opérations sur 10 sont classées, pas qu'un module les porte : le compte
-rendu de génération publie les deux ratios, la MANAGE (`UpdateVm`) n'a pas
-encore de renderer, et deux lectures sont classées sans module par décision.
+rendu de génération publie les deux ratios : `UpdateVm` porte le module `vm`,
+et deux lectures sont classées sans module par décision.
 Toute phrase publiée sur la couverture nomme son dénominateur.
 
 ## Un commentaire n'est pas un contrôle
@@ -192,8 +192,16 @@ Une garde dont la suppression laisse tous les tests verts est un commentaire.
   l'affiche. Corriger par override, jamais par une règle qui regarderait le
   milieu de l'identifiant.
 * **`UpdateRouteTableLink` est MANAGE sur `route_table_link`**, pas sur
-  `route_table` : la règle du verbe ne sait pas que c'est une liaison. Sans
-  renderer MANAGE, c'est sans conséquence aujourd'hui, et c'est écrit.
+  `route_table` : la règle du verbe ne sait pas que c'est une liaison. Le
+  modèle Ansible l'écarte parce qu'aucune lecture ne rend cette ressource,
+  donc rien ne peut juger l'écriture ; même sort pour `UpdateRoute`. Le compte
+  rendu de génération le dit, module par module, avec la raison.
+* **Un module MANAGE n'expose que ce qu'il sait relire.** `UpdateVm` accepte
+  `SecurityGroupIds`, et `Vm` rend `SecurityGroups[]` : l'option n'existe pas,
+  et le compte rendu de génération le dit dans ses limites. Exposer une option
+  qu'on ne peut pas comparer
+  rendrait `changed` à chaque passage, ce que l'exemple mesure en jouant
+  chaque réglage deux fois.
 * **L'état d'un peering est un objet.** `NetPeering.State` porte `Name` et
   `Message` : le champ d'attente s'écrit `State.Name`, et le runtime lit un
   chemin pointé.

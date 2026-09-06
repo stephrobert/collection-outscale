@@ -180,8 +180,8 @@
       "name": "modele-deux-lectures-refusees",
       "why": "Deux lectures sur une ressource disent une ressource mal déduite ; en garder une au hasard cacherait l'autre.",
       "file": "generator/ansible/models.py",
-      "find": "    if len(operations) != 1:\n        raise AmbiguousModule(",
-      "replace": "    if len(operations) != 1 and False:\n        raise AmbiguousModule(",
+      "find": "    if len(operations) != 1:\n        raise AmbiguousModule(\n            f\"{name} : {len(operations)} lectures ",
+      "replace": "    if len(operations) != 1 and False:\n        raise AmbiguousModule(\n            f\"{name} : {len(operations)} lectures ",
       "test": "tests/unit/generator/test_models.py::test_deux_lectures_sur_une_ressource_sont_refusees"
     },
     {
@@ -415,6 +415,78 @@
       "find": "        endpoints=Endpoint(api=env[\"OSC_ENDPOINT_API\"]),",
       "replace": "        endpoints=Endpoint(),",
       "test": "tests/unit/outillage/test_artefact_exemple.py::test_le_client_de_lexercice_vise_lendpoint_de_lenvironnement"
+    },
+    {
+      "name": "modele-manage-option-non-relue",
+      "why": "Une option que la lecture ne rend pas ne se compare pas : exposée, elle rendrait changed à chaque passage.",
+      "file": "generator/ansible/models.py",
+      "find": "        if contract_name in readable:",
+      "replace": "        if contract_name in readable or True:",
+      "test": "tests/unit/generator/test_models.py::test_une_option_que_la_lecture_ne_rend_pas_nest_pas_exposee"
+    },
+    {
+      "name": "modele-manage-selecteur-nomme-la-ressource",
+      "why": "UpdateNet exige NetId et DhcpOptionsSetId, tous deux filtrables : sans préférence pour le nom de la ressource, net n'a pas de module.",
+      "file": "generator/ansible/models.py",
+      "find": "        if len(named) == 1:",
+      "replace": "        if len(named) == 1 and False:",
+      "test": "tests/unit/generator/test_vm_contract.py::test_le_selecteur_de_net_nomme_la_ressource_et_non_le_jeu_dhcp"
+    },
+    {
+      "name": "runtime-manage-necrit-que-la-difference",
+      "why": "Un module MANAGE qui envoie son écriture quoi qu'il en soit n'est pas idempotent, quoi qu'affiche changed.",
+      "file": "ansible_collections/stephrobert/outscale/plugins/module_utils/outscale.py",
+      "find": "    if not changes:\n        module.exit_json(changed=False",
+      "replace": "    if not changes and False:\n        module.exit_json(changed=False",
+      "test": "tests/unit/collection/test_runtime.py::test_une_ecriture_identique_a_ce_que_lapi_rend_ne_change_rien"
+    },
+    {
+      "name": "runtime-manage-check-mode-necrit-pas",
+      "why": "Le check mode annonce la différence ; s'il l'écrivait, --check modifierait le compte.",
+      "file": "ansible_collections/stephrobert/outscale/plugins/module_utils/outscale.py",
+      "find": "    if module.check_mode:\n        module.exit_json(changed=True, changes=changes",
+      "replace": "    if module.check_mode and False:\n        module.exit_json(changed=True, changes=changes",
+      "test": "tests/unit/collection/test_runtime.py::test_le_check_mode_dit_la_difference_sans_lecrire"
+    },
+    {
+      "name": "runtime-manage-compare-par-sous-ensemble",
+      "why": "HealthCheck rendu porte plus de champs que ceux qu'on règle : l'égalité stricte rendrait changed sur ce que personne n'a demandé.",
+      "file": "ansible_collections/stephrobert/outscale/plugins/module_utils/outscale.py",
+      "find": "        if not _matches(before, desired):",
+      "replace": "        if before != desired:",
+      "test": "tests/unit/collection/test_runtime.py::test_un_dictionnaire_demande_est_satisfait_par_ses_seules_cles"
+    },
+    {
+      "name": "compteurs-module-nomme-comme-son-produit",
+      "why": "Un module MANAGE porte le nom du produit sans suffixe : sans ce cas, le bloc refuse `net` et le README ne s'écrit plus.",
+      "file": "scripts/readme_counters.py",
+      "find": "(p for p in produits if fichier.stem == p or fichier.stem.startswith(p + \"_\"))",
+      "replace": "(p for p in produits if fichier.stem.startswith(p + \"_\"))",
+      "test": "tests/unit/outillage/test_compteurs.py::test_un_module_de_gestion_detat_porte_le_nom_de_son_produit"
+    },
+    {
+      "name": "modele-manage-sans-lecture-nomme-la-cause",
+      "why": "Sans lecture, « 0 option filtrable » est vrai et trompeur : la cause est qu'aucune lecture ne rend la ressource, et le compte rendu doit la nommer.",
+      "file": "generator/ansible/models.py",
+      "find": "    if not any(op.resource == resource and op.kind is OperationKind.INFO for op in plan.operations):",
+      "replace": "    if False:",
+      "test": "tests/unit/generator/test_models.py::test_une_ecriture_sans_lecture_est_ecartee_en_nommant_la_cause"
+    },
+    {
+      "name": "modele-manage-exemple-scalaire",
+      "why": "L'exemple publié de vm réglerait `actions_on_next_boot: {}`, qui n'apprend rien : une option scalaire d'abord.",
+      "file": "generator/ansible/models.py",
+      "find": "            for name in scalars or list(self.compare):",
+      "replace": "            for name in list(self.compare):",
+      "test": "tests/unit/generator/test_vm_contract.py::test_lexemple_dun_module_de_gestion_regle_une_option_scalaire"
+    },
+    {
+      "name": "modele-deux-ecritures-refusees",
+      "why": "Deux écritures sur une ressource disent une ressource mal déduite ; en garder une au hasard écrirait l'autre nulle part.",
+      "file": "generator/ansible/models.py",
+      "find": "    if len(operations) != 1:\n        raise AmbiguousModule(\n            f\"{name} : {len(operations)} écritures ",
+      "replace": "    if len(operations) != 1 and False:\n        raise AmbiguousModule(\n            f\"{name} : {len(operations)} écritures ",
+      "test": "tests/unit/generator/test_models.py::test_deux_ecritures_sur_une_ressource_sont_refusees"
     }
   ]
 }

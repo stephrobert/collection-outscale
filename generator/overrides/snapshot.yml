@@ -10,3 +10,12 @@ operations:
       5 septembre 2026) : sans tâche d'export, la lecture n'a rien à rendre,
       et aucune cible ne peut exercer le module tant que l'exemple ne tourne
       que contre l'émulateur.
+
+  snapshot.v1.Snapshot.UpdateSnapshot:
+    expose: false
+    reason: >-
+      feint 0.12.1 ne sert pas UpdateSnapshot (mesuré sur son artefact de
+      couverture, le 5 septembre 2026) : aucune cible ne peut exercer le
+      module tant que l'exemple ne tourne que contre l'émulateur. Sa seule
+      option, PermissionsToCreateVolume, est d'ailleurs un delta
+      (Additions/Removals) que la lecture ne rend pas sous cette forme.

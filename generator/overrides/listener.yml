@@ -11,3 +11,10 @@ operations:
       5 septembre 2026) : sans règle, la lecture n'a rien à rendre, et aucune
       cible ne peut exercer le module tant que l'exemple ne tourne que contre
       l'émulateur.
+
+  listener.v1.ListenerRule.UpdateListenerRule:
+    expose: false
+    reason: >-
+      feint 0.12.1 ne sert aucune des quatre opérations de règle d'écoute :
+      aucune cible ne peut exercer le module tant que l'exemple ne tourne que
+      contre l'émulateur.

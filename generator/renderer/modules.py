@@ -104,11 +104,13 @@ def write_modules(
 _RUN_FUNCTIONS: dict[OperationKind, str] = {
     OperationKind.INFO: "run_info_module",
     OperationKind.ACTION: "run_action_module",
+    OperationKind.MANAGE: "run_manage_module",
 }
 
 _SPEC_CLASSES: dict[OperationKind, str] = {
     OperationKind.INFO: "InfoModule",
     OperationKind.ACTION: "ActionModule",
+    OperationKind.MANAGE: "ManageModule",
 }
 
 
@@ -140,6 +142,8 @@ def _run_call(spec: AnsibleModuleSpec) -> str:
 def _module_literal(spec: AnsibleModuleSpec) -> str:
     if spec.kind is OperationKind.ACTION:
         return _action_module_literal(spec)
+    if spec.kind is OperationKind.MANAGE:
+        return _manage_module_literal(spec)
     return _info_module_literal(spec)
 
 
@@ -173,6 +177,24 @@ def _action_module_literal(spec: AnsibleModuleSpec) -> str:
         lines.append(f"    read_filter={quote(spec.read_filter)},")
     if spec.read_id_field is not None:
         lines.append(f"    read_id_field={quote(spec.read_id_field)},")
+    lines.append(")")
+    return "\n".join(lines)
+
+
+def _manage_module_literal(spec: AnsibleModuleSpec) -> str:
+    if spec.update_operation is None or spec.read_operation is None:
+        raise RenderError(f"{spec.name} : module de gestion d'état sans écriture ou sans lecture")
+    lines = [
+        "ManageModule(",
+        f"    resource={quote(spec.resource)},",
+        f"    selector={quote(spec.selector or '')},",
+        f"    operation={_operation_literal(spec.update_operation, indent=4)},",
+        f"    read_operation={_operation_literal(spec.read_operation, indent=4)},",
+        f"    read_filter={quote(spec.read_filter or '')},",
+    ]
+    if spec.read_id_field is not None:
+        lines.append(f"    read_id_field={quote(spec.read_id_field)},")
+    lines.append(f"    compare={python_literal(spec.compare, indent=4)},")
     lines.append(")")
     return "\n".join(lines)
 
