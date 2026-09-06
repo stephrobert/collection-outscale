@@ -123,8 +123,15 @@ def test_une_reponse_a_plusieurs_proprietes_est_signalee(widget_service: ApiServ
 
 
 def test_un_oneof_de_dates_est_une_chaine(widget_service: ApiService) -> None:
-    """Les 15 `oneOf` du contrat réel sont tous `string(date) | string(date-time)`."""
-    assert not any("oneOf" in w for w in widget_service.warnings)
+    """Les 15 `oneOf` du contrat réel sont tous `string(date) | string(date-time)` :
+    des variantes d'un même type scalaire se lisent comme ce type, sans un mot.
+    Un `oneOf` de types différents, lui, reste inconnu et se nomme."""
+    assert not any("CreationDates" in w for w in widget_service.warnings)
+    console = widget_service.operation("ReadWidgetConsole")
+    assert console is not None
+    weird = console.parameter("Weird")
+    assert weird is not None and weird.type is ApiType.UNKNOWN
+    assert any("ReadWidgetConsole.Weird" in w and "oneOf" in w for w in widget_service.warnings)
 
 
 def test_un_enum_reference_est_enregistre_une_fois(widget_service: ApiService) -> None:
