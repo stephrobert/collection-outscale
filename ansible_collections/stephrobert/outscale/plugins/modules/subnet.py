@@ -48,6 +48,13 @@ EXAMPLES = r"""
     region: eu-west-2
     map_public_ip_on_launch: true
     subnet_id: example-id
+- name: Preview the change on a subnet without writing
+  stephrobert.outscale.subnet:
+    region: eu-west-2
+    map_public_ip_on_launch: true
+    subnet_id: example-id
+  check_mode: true
+  diff: true
 """
 
 RETURN = r"""
@@ -55,6 +62,49 @@ subnet:
   description: The subnet, read after the update.
   returned: always
   type: dict
+  contains:
+    AvailableIpsCount:
+      description:
+      - The number of available IPs in the Subnets.
+      returned: when the API returns it
+      type: int
+    IpRange:
+      description:
+      - The IP range in the Subnet, in CIDR notation (for example, C(10.0.0.0/16)).
+      returned: when the API returns it
+      type: str
+    MapPublicIpOnLaunch:
+      description:
+      - If true, a public IP is assigned to the network interface cards (NICs) created in
+        the specified Subnet. By default, false.
+      returned: when the API returns it
+      type: bool
+    NetId:
+      description:
+      - The ID of the Net in which the Subnet is.
+      returned: when the API returns it
+      type: str
+    State:
+      description:
+      - The state of the Subnet (C(pending) | C(available) | C(deleted)).
+      returned: when the API returns it
+      type: str
+    SubnetId:
+      description:
+      - The ID of the Subnet.
+      returned: when the API returns it
+      type: str
+    SubregionName:
+      description:
+      - The name of the Subregion in which the Subnet is located.
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the Subnet.
+      returned: when the API returns it
+      type: list
+      elements: dict
 changes:
   description: 'What differed, by option: the value the API returned before, and the value
     you asked for.'

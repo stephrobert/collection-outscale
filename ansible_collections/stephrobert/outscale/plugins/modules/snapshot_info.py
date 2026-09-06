@@ -39,7 +39,14 @@ EXAMPLES = r"""
   stephrobert.outscale.snapshot_info:
     region: eu-west-2
   register: result
-- name: List snapshots matching a filter
+- name: Read snapshots by ID
+  stephrobert.outscale.snapshot_info:
+    region: eu-west-2
+    filters:
+      SnapshotIds:
+      - example-id
+  register: result
+- name: List snapshots matching a tag
   stephrobert.outscale.snapshot_info:
     region: eu-west-2
     filters:
@@ -54,6 +61,68 @@ snapshots:
   returned: always
   type: list
   elements: dict
+  contains:
+    AccountAlias:
+      description:
+      - The account alias of the owner of the snapshot.
+      returned: when the API returns it
+      type: str
+    AccountId:
+      description:
+      - The OUTSCALE account ID of the owner of the snapshot.
+      returned: when the API returns it
+      type: str
+    ClientToken:
+      description:
+      - The idempotency token provided when creating the snapshot.
+      returned: when the API returns it
+      type: str
+    CreationDate:
+      description:
+      - The date and time (UTC) at which the snapshot was created.
+      returned: when the API returns it
+      type: str
+    Description:
+      description:
+      - The description of the snapshot.
+      returned: when the API returns it
+      type: str
+    PermissionsToCreateVolume:
+      description:
+      - Permissions for the resource.
+      returned: when the API returns it
+      type: dict
+    Progress:
+      description:
+      - The progress of the snapshot, as a percentage.
+      returned: when the API returns it
+      type: int
+    SnapshotId:
+      description:
+      - The ID of the snapshot.
+      returned: when the API returns it
+      type: str
+    State:
+      description:
+      - The state of the snapshot (C(in-queue) | C(pending) | C(completed) | C(error) | C(deleting)).
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the snapshot.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    VolumeId:
+      description:
+      - The ID of the volume used to create the snapshot.
+      returned: when the API returns it
+      type: str
+    VolumeSize:
+      description:
+      - The size of the volume used to create the snapshot, in gibibytes (GiB).
+      returned: when the API returns it
+      type: int
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

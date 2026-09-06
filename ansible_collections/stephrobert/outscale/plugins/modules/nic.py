@@ -14,11 +14,11 @@ from __future__ import annotations
 
 DOCUMENTATION = r"""
 module: nic
-short_description: Manage the settings of an Outscale nic
+short_description: Manage the settings of an Outscale NIC
 version_added: 0.1.0
 description:
-- Set the settings of an existing Outscale nic (I(description), I(link_nic)), and only what
-  differs from what the API returns. Terraform provisions the nic, this module operates it.
+- Set the settings of an existing Outscale NIC (I(description), I(link_nic)), and only what
+  differs from what the API returns. Terraform provisions the NIC, this module operates it.
 author:
 - Stéphane Robert (@stephrobert)
 options:
@@ -37,7 +37,7 @@ options:
 extends_documentation_fragment:
 - stephrobert.outscale.outscale
 notes:
-- 'The module reads the nic by I(nic_id), compares every option you give with what the API
+- 'The module reads the NIC by I(nic_id), compares every option you give with what the API
   returns, and sends C(UpdateNic) only when something differs: a second run reports C(changed=false).
   In check mode nothing is sent.'
 - 'Only the settings the API reads back are exposed: what it cannot read back could not be
@@ -45,18 +45,104 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: Set the settings of a nic
+- name: Set the settings of a NIC
   stephrobert.outscale.nic:
     region: eu-west-2
     nic_id: example-id
-    description: example-id
+    description: Managed by Ansible
+- name: Preview the change on a NIC without writing
+  stephrobert.outscale.nic:
+    region: eu-west-2
+    nic_id: example-id
+    description: Managed by Ansible
+  check_mode: true
+  diff: true
 """
 
 RETURN = r"""
 nic:
-  description: The nic, read after the update.
+  description: The NIC, read after the update.
   returned: always
   type: dict
+  contains:
+    AccountId:
+      description:
+      - The OUTSCALE account ID of the owner of the NIC.
+      returned: when the API returns it
+      type: str
+    Description:
+      description:
+      - The description of the NIC.
+      returned: when the API returns it
+      type: str
+    IsSourceDestChecked:
+      description:
+      - (Net only) If true, the source/destination check is enabled. If false, it is disabled.
+      returned: when the API returns it
+      type: bool
+    LinkNic:
+      description:
+      - Information about the NIC attachment.
+      returned: when the API returns it
+      type: dict
+    LinkPublicIp:
+      description:
+      - Information about the public IP association.
+      returned: when the API returns it
+      type: dict
+    MacAddress:
+      description:
+      - The Media Access Control (MAC) address of the NIC.
+      returned: when the API returns it
+      type: str
+    NetId:
+      description:
+      - The ID of the Net for the NIC.
+      returned: when the API returns it
+      type: str
+    NicId:
+      description:
+      - The ID of the NIC.
+      returned: when the API returns it
+      type: str
+    PrivateDnsName:
+      description:
+      - The name of the private DNS.
+      returned: when the API returns it
+      type: str
+    PrivateIps:
+      description:
+      - The private IPs of the NIC.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    SecurityGroups:
+      description:
+      - One or more IDs of security groups for the NIC.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    State:
+      description:
+      - The state of the NIC (C(available) | C(attaching) | C(in-use) | C(detaching)).
+      returned: when the API returns it
+      type: str
+    SubnetId:
+      description:
+      - The ID of the Subnet.
+      returned: when the API returns it
+      type: str
+    SubregionName:
+      description:
+      - The Subregion in which the NIC is located.
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the NIC.
+      returned: when the API returns it
+      type: list
+      elements: dict
 changes:
   description: 'What differed, by option: the value the API returned before, and the value
     you asked for.'

@@ -14,10 +14,10 @@ from __future__ import annotations
 
 DOCUMENTATION = r"""
 module: vm_state_info
-short_description: Gather information about Outscale vm states
+short_description: Gather information about Outscale VM states
 version_added: 0.1.0
 description:
-- List Outscale vm states, optionally filtered. This module never changes anything.
+- List Outscale VM states, optionally filtered. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
@@ -39,25 +39,48 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: List vm states
+- name: List VM states
   stephrobert.outscale.vm_state_info:
     region: eu-west-2
   register: result
-- name: List vm states matching a filter
+- name: List VM states filtered by VmIds
   stephrobert.outscale.vm_state_info:
     region: eu-west-2
     filters:
-      Tags:
-      - role=web
+      VmIds:
+      - example-id
   register: result
 """
 
 RETURN = r"""
 vm_states:
-  description: The vm states.
+  description: The VM states.
   returned: always
   type: list
   elements: dict
+  contains:
+    MaintenanceEvents:
+      description:
+      - One or more scheduled events associated with the VM.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    SubregionName:
+      description:
+      - The name of the Subregion of the VM.
+      returned: when the API returns it
+      type: str
+    VmId:
+      description:
+      - The ID of the VM.
+      returned: when the API returns it
+      type: str
+    VmState:
+      description:
+      - The state of the VM (C(pending) | C(running) | C(stopping) | C(stopped) | C(shutting-down)
+        | C(terminated) | C(quarantine)).
+      returned: when the API returns it
+      type: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

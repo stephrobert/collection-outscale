@@ -1,19 +1,33 @@
 """Les nombres publiés dans les README, dérivés plutôt que recopiés.
 
 **Un nombre recopié à la main vieillit en silence, et se lit exactement comme
-une mesure.** `collection-scaleway` l'a mesuré quatre fois le même jour. Ce
-dépôt part avec le mécanisme plutôt que d'attendre la même journée.
+une mesure.** `collection-scaleway` l'a mesuré quatre fois le même jour, puis
+trois fois de plus dans une version publiée. Ce dépôt part avec le mécanisme
+plutôt que d'attendre la même journée.
 
-Ce script produit le bloc entre les deux marqueurs de chaque README depuis les
-sources qui font foi. Deux modes, et la CI se sert du second :
+Ce script produit les blocs entre marqueurs de chaque fichier publié, depuis
+les sources qui font foi. Deux modes, et la CI se sert du second :
 
     python scripts/readme_counters.py --write    réécrit les blocs
     python scripts/readme_counters.py --check    échoue si un bloc a vieilli
 
+Trois choses se dérivent, et rien d'autre n'est écrit à la main :
+
+* **le bloc de compteurs** de chaque README, entre `counters:start` et
+  `counters:end` : le rapport strict, les modules écrits, ce que l'exemple
+  appelle, ce que la documentation publiée vaut, les tests, les gardes ;
+* **les blocs nommés**, `counters:<nom>:start`, pour un fichier qui en porte
+  plusieurs : la table de compatibilité et les exemples de versionnement du
+  README de la collection, que la version de `galaxy.yml` et la matrice de
+  CI décident ;
+* **les liens vers ce dépôt**, qui suivent le tag de la version publiée et non
+  `main` : sur Galaxy, la page annonce une version, et un lien vers `main`
+  mène à un fichier qui a bougé depuis.
+
 **Aucun nom de produit, de module ni de plugin n'est écrit ici.** Les produits
 viennent de `products.txt`, les modules et les plugins du disque, les tags du
-contrat. Un produit ajouté à l'index apparaît dans les deux README sans qu'une
-ligne de ce fichier change.
+contrat, le dépôt de `galaxy.yml`. Un produit ajouté à l'index apparaît dans
+les deux README sans qu'une ligne de ce fichier change.
 
 Ce qui n'est pas mesurable hors ligne n'entre pas dans le bloc. Le compte de
 `ansible-test sanity` demande de lancer autre chose ; il est dit sans nombre.
@@ -27,11 +41,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+import ansible_matrix
+import docs_quality
 import yaml
 
 from generator.ansible.collection import Collection, load_collection
@@ -52,6 +70,20 @@ PLAYBOOKS = ROOT / "examples" / "playbooks"
 
 DEBUT = "<!-- counters:start, produced by scripts/readme_counters.py -->"
 FIN = "<!-- counters:end -->"
+
+
+def _marqueurs(nom: str) -> tuple[str, str]:
+    """Un bloc nommé, pour les fichiers qui en portent plusieurs.
+
+    Le mécanisme n'en acceptait qu'un par fichier, et c'est cette limite qui
+    a fait écrire à la main, chez collection-scaleway, la table de
+    compatibilité, les exemples de versionnement et un compte de modules :
+    trois nombres qu'un audit de la version publiée a trouvés faux.
+    """
+    return (
+        f"<!-- counters:{nom}:start, produced by scripts/readme_counters.py -->",
+        f"<!-- counters:{nom}:end -->",
+    )
 
 
 class CompteursError(RuntimeError):
@@ -228,6 +260,25 @@ def _pourcent(valeur: float | None) -> str:
     return f"{valeur * 100:.1f}%"
 
 
+def lignes_qualite(qualite: docs_quality.Mesure) -> list[str]:
+    """Ce qu'une page publiée vaut, et pas seulement combien il y en a.
+
+    Le bloc comptait les modules écrits ; il ne disait rien de ce qu'un
+    lecteur y trouve. Cinq filtres publiés que l'API refuse et cinquante-sept
+    identifiants en minuscules étaient invisibles d'ici, et une page Galaxy est
+    publiée pour toujours.
+    """
+    return [
+        f"  {qualite.modules} published pages: "
+        f"{qualite.options_decrites}/{qualite.options} options and "
+        f"{qualite.retours_decrits}/{qualite.retours} returned keys documented, "
+        f"{qualite.champs_decrits}/{qualite.champs} returned fields documented",
+        f"  {qualite.exemples_copiables}/{qualite.exemples} examples copyable as is · "
+        f"{qualite.retours_detailles}/{qualite.retours_composites} returned keys "
+        "list their fields",
+    ]
+
+
 def bloc() -> str:
     """Le bloc du README racine, tel qu'il doit être aujourd'hui."""
     collection = load_collection()
@@ -266,6 +317,7 @@ def bloc() -> str:
 
     nb_jobs, noms_jobs = _jobs()
     appeles = _modules_appeles(collection)
+    qualite, _ = docs_quality.mesurer(collection.path)
     lignes += [
         "",
         f"collection {collection.fqcn}: {ecrits_total} modules written, "
@@ -279,6 +331,7 @@ def bloc() -> str:
         f"  {nom + ' (inventory)':<40s} dynamic inventory"
         for nom in _plugins_dinventaire(collection)
     ]
+    lignes += lignes_qualite(qualite)
     lignes += [
         f"  {_tests()} unit tests · {_mutations()} guards proven by mise run falsify",
         f"  CI: {nb_jobs} jobs, {' · '.join(noms_jobs)}",
@@ -327,24 +380,177 @@ def _short_description_of_plugin(collection: Collection, nom: str) -> str:
     return _short_description(fichier)
 
 
-def _remplace(fichier: Path, texte: str, nouveau: str) -> str:
-    if DEBUT not in texte or FIN not in texte:
+# ---- Les blocs nommés ------------------------------------------------------
+
+
+def _serie(version: str) -> str:
+    """`0.1.0` -> `0.1.x` : la série que la compatibilité décrit."""
+    majeure, mineure, _ = version.split(".", 2)
+    return f"{majeure}.{mineure}.x"
+
+
+def _mineures_dansible() -> list[str]:
+    """Les versions d'`ansible-core` que la CI éprouve vraiment.
+
+    Dérivées comme la matrice l'est, de `meta/runtime.yml` et du verrou : une
+    version déclarée et jamais jouée est une promesse sans preuve, et une
+    version jouée et jamais déclarée ne se voit nulle part.
+    """
+    return [plage.split(",", 1)[0].lstrip(">=") for plage in ansible_matrix.expected()]
+
+
+def _sdk_exige(collection: Collection) -> str:
+    """Ce que les modules exigent du SDK, lu dans le fragment qu'ils partagent."""
+    fragment = collection.path / "plugins" / "doc_fragments" / "outscale.py"
+    for ligne in fragment.read_text(encoding="utf-8").splitlines():
+        trouve = re.search(r"-\s*(osc-sdk-python\s*>=\s*[0-9.]+)", ligne)
+        if trouve:
+            return trouve.group(1).replace(" ", "")
+    raise CompteursError(
+        f"{_affichable(fragment)} ne déclare pas d'exigence sur osc-sdk-python : "
+        "la table de compatibilité l'annoncerait sans source."
+    )
+
+
+def bloc_compatibilite() -> str:
+    """La table de compatibilité, dont la série suit `galaxy.yml`."""
+    collection = load_collection()
+    versions = ", ".join(_mineures_dansible())
+    return "\n".join(
+        [
+            "| collection | `ansible-core` | Outscale SDK |",
+            "|---|---|---|",
+            f"| {_serie(collection.version)} | {versions} | `{_sdk_exige(collection)}` |",
+        ]
+    )
+
+
+def bloc_versionnement() -> str:
+    """Les exemples de versionnement, comptés depuis la version publiée.
+
+    Illustrer un correctif par `0.1.1` sur une page qui affiche 0.2.0 se lit
+    comme un texte hérité, et c'est ce que c'était chez collection-scaleway.
+    """
+    majeure, mineure, correctif = (int(x) for x in load_collection().version.split(".", 2))
+    return "\n".join(
+        [
+            f"* **patch** (`{majeure}.{mineure}.{correctif + 1}`): bug fixes only;",
+            f"* **minor** (`{majeure}.{mineure + 1}.0`): backward-compatible features "
+            "and new modules;",
+            f"* **major** (`{majeure + 1}.0.0`): may contain breaking changes.",
+        ]
+    )
+
+
+#: Ce que chaque bloc nommé produit.
+NOMMES = {
+    "compatibility": bloc_compatibilite,
+    "versioning": bloc_versionnement,
+}
+
+
+# ---- Les liens versionnés ---------------------------------------------------
+
+
+def _depot(collection: Collection) -> str:
+    """L'URL du dépôt, lue dans `galaxy.yml` et nulle part ailleurs."""
+    document = yaml.safe_load((collection.path / "galaxy.yml").read_text(encoding="utf-8"))
+    depot = str(document.get("repository") or "").rstrip("/")
+    if not depot:
+        raise CompteursError("galaxy.yml ne déclare pas de `repository` : aucun lien à versionner")
+    return depot
+
+
+def lien_du_depot(depot: str) -> re.Pattern[str]:
+    """Un lien vers ce dépôt, avec la référence git qu'il traverse.
+
+    Seul ce dépôt est concerné : un lien vers un autre projet désigne une
+    référence qui lui appartient, et `main` y est souvent la bonne.
+    """
+    return re.compile(rf"({re.escape(depot)}/(?:blob|tree)/)([^/\s)]+)(/)")
+
+
+def versionner_les_liens(texte: str, depot: str, version: str) -> str:
+    """Fait pointer les liens du dépôt sur le tag de la version publiée.
+
+    Sur Galaxy, la page annonce une version et ses liens menaient à `main`,
+    donc à des fichiers qui ont bougé depuis. Le tag existe forcément quand
+    quelqu'un lit la page : `release.py` refuse de publier si le tag et
+    `galaxy.yml` divergent.
+    """
+    return lien_du_depot(depot).sub(rf"\g<1>{version}\g<3>", texte)
+
+
+# ---- Ce que chaque fichier publié reçoit -------------------------------------
+
+
+@dataclass(frozen=True)
+class Cible:
+    """Ce qu'un fichier publié reçoit : un bloc, des blocs nommés, des liens."""
+
+    bloc: str | None = None
+    nommes: tuple[tuple[str, str], ...] = ()
+    #: Le dépôt et la version qui réécrivent les liens ; `None` laisse le texte.
+    liens: tuple[str, str] | None = None
+
+
+def fichiers_publies(collection: Collection) -> dict[Path, tuple[str, ...]]:
+    """Les fichiers publiés, et les blocs nommés que chacun porte. Un fichier, pas une catégorie.
+
+    Le premier rangement de collection-scaleway classait par « collection ou
+    pas », et `galaxy.yml`, qui n'est ni l'un ni l'autre, se voyait réclamer
+    les marqueurs du README racine. Ici chaque fichier dit ce qu'il porte.
+
+    Sans rien calculer : un test qui veut savoir quels fichiers portent un
+    lien versionné n'a pas besoin des comptes rendus de `build/`, que la copie
+    hors dépôt de la falsification n'emporte pas.
+    """
+    return {
+        README: (),
+        collection.path / "README.md": tuple(NOMMES),
+        collection.path / "galaxy.yml": (),
+    }
+
+
+def cibles() -> dict[Path, Cible]:
+    """Ce que chaque fichier publié reçoit aujourd'hui, tout dérivé compris."""
+    collection = load_collection()
+    liens = (_depot(collection), collection.version)
+    blocs = {README: bloc, collection.path / "README.md": table_des_modules}
+    return {
+        fichier: Cible(
+            bloc=blocs[fichier]() if fichier in blocs else None,
+            nommes=tuple((nom, NOMMES[nom]()) for nom in nommes),
+            liens=liens,
+        )
+        for fichier, nommes in fichiers_publies(collection).items()
+    }
+
+
+def _remplace(
+    fichier: Path, texte: str, nouveau: str, bornes: tuple[str, str] = (DEBUT, FIN)
+) -> str:
+    debut, fin = bornes
+    if debut not in texte or fin not in texte:
         raise CompteursError(
             f"les marqueurs manquent dans {_affichable(fichier)}. Encadrer le bloc par :\n"
-            f"{DEBUT}\n...\n{FIN}"
+            f"{debut}\n...\n{fin}"
         )
-    avant = texte[: texte.index(DEBUT) + len(DEBUT)]
-    apres = texte[texte.index(FIN) :]
+    avant = texte[: texte.index(debut) + len(debut)]
+    apres = texte[texte.index(fin) :]
     return f"{avant}\n{nouveau}\n{apres}"
 
 
-def blocs() -> dict[Path, str]:
-    """Les blocs dérivés, et le fichier de chacun."""
-    collection = load_collection()
-    return {
-        README: bloc(),
-        collection.path / "README.md": table_des_modules(),
-    }
+def attendu(fichier: Path, texte: str, cible: Cible) -> str:
+    """Le fichier tel qu'il doit être, tout dérivé compris."""
+    resultat = texte
+    if cible.bloc is not None:
+        resultat = _remplace(fichier, resultat, cible.bloc)
+    for nom, contenu in cible.nommes:
+        resultat = _remplace(fichier, resultat, contenu, _marqueurs(nom))
+    if cible.liens is not None:
+        resultat = versionner_les_liens(resultat, *cible.liens)
+    return resultat
 
 
 def main(argv: list[str]) -> int:
@@ -355,25 +561,25 @@ def main(argv: list[str]) -> int:
     arguments = parseur.parse_args(argv[1:])
 
     perimes: list[str] = []
-    for fichier, contenu in blocs().items():
+    for fichier, cible in cibles().items():
         texte = fichier.read_text(encoding="utf-8")
-        attendu = _remplace(fichier, texte, contenu)
+        voulu = attendu(fichier, texte, cible)
         nom = _affichable(fichier)
         if arguments.write:
-            if attendu == texte:
+            if voulu == texte:
                 print(f"{nom} : déjà à jour")
                 continue
-            fichier.write_text(attendu, encoding="utf-8")
+            fichier.write_text(voulu, encoding="utf-8")
             print(f"{nom} : réécrit")
             continue
-        if attendu != texte:
+        if voulu != texte:
             perimes.append(nom)
         else:
             print(f"{nom} : conforme à la mesure")
 
     if perimes:
         print(
-            f"ces blocs ne correspondent plus à ce qui est mesuré : {', '.join(perimes)}.\n"
+            f"ces fichiers ne correspondent plus à ce qui est mesuré : {', '.join(perimes)}.\n"
             "Lancer `mise run readme` puis relire le diff : un nombre recopié à la\n"
             "main vieillit en silence, et se lit exactement comme une mesure.",
             file=sys.stderr,

@@ -37,7 +37,14 @@ EXAMPLES = r"""
   stephrobert.outscale.internet_service_info:
     region: eu-west-2
   register: result
-- name: List internet services matching a filter
+- name: Read internet services by ID
+  stephrobert.outscale.internet_service_info:
+    region: eu-west-2
+    filters:
+      InternetServiceIds:
+      - example-id
+  register: result
+- name: List internet services matching a tag
   stephrobert.outscale.internet_service_info:
     region: eu-west-2
     filters:
@@ -52,6 +59,28 @@ internet_services:
   returned: always
   type: list
   elements: dict
+  contains:
+    InternetServiceId:
+      description:
+      - The ID of the internet service.
+      returned: when the API returns it
+      type: str
+    NetId:
+      description:
+      - The ID of the Net attached to the internet service.
+      returned: when the API returns it
+      type: str
+    State:
+      description:
+      - The state of the attachment of the internet service to the Net (always C(available)).
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the internet service.
+      returned: when the API returns it
+      type: list
+      elements: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

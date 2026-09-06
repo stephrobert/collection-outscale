@@ -36,13 +36,6 @@ EXAMPLES = r"""
   lab.widget.widget_type_info:
     region: eu-west-2
   register: result
-- name: List widget types matching a filter
-  lab.widget.widget_type_info:
-    region: eu-west-2
-    filters:
-      Tags:
-      - role=web
-  register: result
 """
 
 RETURN = r"""
@@ -51,6 +44,17 @@ widget_types:
   returned: always
   type: list
   elements: dict
+  contains:
+    WidgetTypeName:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: when the API returns it
+      type: str
+    VcoreCount:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: when the API returns it
+      type: int
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

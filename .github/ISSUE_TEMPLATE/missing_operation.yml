@@ -1,0 +1,64 @@
+name: An operation has no module
+description: The Outscale API exposes something this collection does not
+labels: [surface]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Run `mise run report` and `mise run products` first, and say what
+        they printed.** Every operation of the contract is in one of four
+        states, never in silence: generated, excluded with its reason in
+        `generator/overrides/`, `UNKNOWN` and the CI is red, or outside the
+        indexed tags and counted by `mise run products`. Which of the four it
+        is changes the whole conversation.
+
+        The most common answers, and their reasons: **Terraform provisions
+        resources, Ansible operates existing ones**, so a `Create*`, `Delete*`
+        or `Link*` operation is out of scope even though the generator could
+        produce it; and **fewer modules, all exercised**: a tag enters the
+        index when the example platform can touch it and the feint emulator
+        serves it, never before.
+
+  - type: input
+    id: operation
+    attributes:
+      label: The operation
+      description: Its identifier in the Outscale API, as the contract names it.
+      placeholder: ReadVmsStopHistory
+    validations:
+      required: true
+
+  - type: input
+    id: tag
+    attributes:
+      label: The tag
+      description: The tag the contract puts on the operation, which is the product here. `Vm`, `LoadBalancer`, `FlexibleGpu`.
+      placeholder: Vm
+    validations:
+      required: true
+
+  - type: dropdown
+    id: state
+    attributes:
+      label: What the report says about it
+      options:
+        - It is excluded, and I disagree with the reason
+        - It is UNKNOWN
+        - Its tag is not indexed
+        - The report does not mention it
+    validations:
+      required: true
+
+  - type: textarea
+    id: usage
+    attributes:
+      label: What you would do with it
+      description: A real day-2 task, not a capability. "Read the stop history of a VM before deciding whether to move it" says more than "support stop history".
+    validations:
+      required: true
+
+  - type: textarea
+    id: emulator
+    attributes:
+      label: Does the emulator serve it
+      description: The example platform only talks to feint. If you know whether feint serves the route, say so; a module nothing can exercise is not generated.

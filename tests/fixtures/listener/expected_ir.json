@@ -12,6 +12,234 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateListenerRuleResponse",
+      "fields": [
+        {
+          "name": "ListenerRule",
+          "type": "object",
+          "ref": "ListenerRule",
+          "description": "Information about the listener rule."
+        }
+      ]
+    },
+    {
+      "name": "CreateLoadBalancerListenersResponse",
+      "fields": [
+        {
+          "name": "LoadBalancer",
+          "type": "object",
+          "ref": "LoadBalancer",
+          "description": "Information about the load balancer."
+        }
+      ]
+    },
+    {
+      "name": "DeleteListenerRuleResponse"
+    },
+    {
+      "name": "DeleteLoadBalancerListenersResponse",
+      "fields": [
+        {
+          "name": "LoadBalancer",
+          "type": "object",
+          "ref": "LoadBalancer",
+          "description": "Information about the load balancer."
+        }
+      ]
+    },
+    {
+      "name": "ListenerRule",
+      "fields": [
+        {
+          "name": "Action",
+          "type": "string",
+          "description": "The type of action for the rule (always `forward`)."
+        },
+        {
+          "name": "HostNamePattern",
+          "type": "string",
+          "description": "A host-name pattern for the rule, with a maximum length of 128 characters. This host-name pattern supports maximum three wildcards, and must not contain any special characters except `-.?`."
+        },
+        {
+          "name": "ListenerId",
+          "type": "integer",
+          "description": "The ID of the listener."
+        },
+        {
+          "name": "ListenerRuleId",
+          "type": "integer",
+          "description": "The ID of the listener rule."
+        },
+        {
+          "name": "ListenerRuleName",
+          "type": "string",
+          "description": "A human-readable name for the listener rule."
+        },
+        {
+          "name": "PathPattern",
+          "type": "string",
+          "description": "A path pattern for the rule, with a maximum length of 128 characters. This path pattern supports maximum three wildcards, and must not contain any special characters except `_-.$/~&quot;'@:+?`."
+        },
+        {
+          "name": "Priority",
+          "type": "integer",
+          "description": "The priority level of the listener rule, between `1` and `19999` both included. Each rule must have a unique priority level. Otherwise, an error is returned."
+        },
+        {
+          "name": "VmIds",
+          "type": "array",
+          "item_type": "string",
+          "description": "The IDs of the backend VMs."
+        }
+      ]
+    },
+    {
+      "name": "LoadBalancer",
+      "fields": [
+        {
+          "name": "AccessLog",
+          "type": "object",
+          "ref": "AccessLog",
+          "description": "Information about access logs."
+        },
+        {
+          "name": "ApplicationStickyCookiePolicies",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ApplicationStickyCookiePolicy",
+          "description": "The stickiness policies defined for the load balancer."
+        },
+        {
+          "name": "BackendIps",
+          "type": "array",
+          "item_type": "string",
+          "description": "One or more public IPs of backend VMs."
+        },
+        {
+          "name": "BackendVmIds",
+          "type": "array",
+          "item_type": "string",
+          "description": "One or more IDs of backend VMs for the load balancer."
+        },
+        {
+          "name": "DnsName",
+          "type": "string",
+          "description": "The DNS name of the load balancer."
+        },
+        {
+          "name": "HealthCheck",
+          "type": "object",
+          "ref": "HealthCheck",
+          "description": "Information about the health check configuration."
+        },
+        {
+          "name": "Listeners",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Listener",
+          "description": "The listeners for the load balancer."
+        },
+        {
+          "name": "LoadBalancerName",
+          "type": "string",
+          "description": "The name of the load balancer."
+        },
+        {
+          "name": "LoadBalancerStickyCookiePolicies",
+          "type": "array",
+          "item_type": "object",
+          "ref": "LoadBalancerStickyCookiePolicy",
+          "description": "The policies defined for the load balancer."
+        },
+        {
+          "name": "LoadBalancerType",
+          "type": "string",
+          "description": "The type of load balancer. Valid only for load balancers in a Net.<br />\nIf `LoadBalancerType` is `internet-facing`, the load balancer has a public DNS name that resolves to a public IP.<br />\nIf `LoadBalancerType` is `internal`, the load balancer has a public DNS name that resolves to a private IP."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "description": "The ID of the Net for the load balancer."
+        },
+        {
+          "name": "PrivateIp",
+          "type": "string",
+          "description": "The primary private IP of the load balancer."
+        },
+        {
+          "name": "PublicIp",
+          "type": "string",
+          "description": "(internet-facing only) The public IP associated with the load balancer."
+        },
+        {
+          "name": "SecuredCookies",
+          "type": "boolean",
+          "description": "Whether secure cookies are enabled for the load balancer."
+        },
+        {
+          "name": "SecurityGroups",
+          "type": "array",
+          "item_type": "string",
+          "description": "One or more IDs of security groups for the load balancers. Valid only for load balancers in a Net."
+        },
+        {
+          "name": "SourceSecurityGroup",
+          "type": "object",
+          "ref": "SourceSecurityGroup",
+          "description": "Information about the source security group of the load balancer, which you can use as part of your inbound rules for your registered VMs.<br />\nTo only allow traffic from load balancers, add a security group rule that specifies this source security group as the inbound source."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the load balancer (`provisioning` \\| `starting` \\| `reloading` \\| `active` \\| `reconfiguring` \\| `deleting` \\| `deleted`)."
+        },
+        {
+          "name": "Subnets",
+          "type": "array",
+          "item_type": "string",
+          "description": "The ID of the Subnet in which the load balancer was created."
+        },
+        {
+          "name": "SubregionNames",
+          "type": "array",
+          "item_type": "string",
+          "description": "The ID of the Subregion in which the load balancer was created."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the load balancer."
+        }
+      ]
+    },
+    {
+      "name": "ReadListenerRulesResponse",
+      "fields": [
+        {
+          "name": "ListenerRules",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ListenerRule",
+          "description": "The list of the rules to describe."
+        }
+      ]
+    },
+    {
+      "name": "UpdateListenerRuleResponse",
+      "fields": [
+        {
+          "name": "ListenerRule",
+          "type": "object",
+          "ref": "ListenerRule",
+          "description": "Information about the listener rule."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "listener.v1.ListenerRule.CreateListenerRule",

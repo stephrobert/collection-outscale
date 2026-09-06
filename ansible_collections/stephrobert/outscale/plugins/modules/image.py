@@ -50,11 +50,18 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: Set the settings of a image
+- name: Set the settings of an image
   stephrobert.outscale.image:
     region: eu-west-2
     image_id: example-id
-    description: example-id
+    description: Managed by Ansible
+- name: Preview the change on an image without writing
+  stephrobert.outscale.image:
+    region: eu-west-2
+    image_id: example-id
+    description: Managed by Ansible
+  check_mode: true
+  diff: true
 """
 
 RETURN = r"""
@@ -62,6 +69,112 @@ image:
   description: The image, read after the update.
   returned: always
   type: dict
+  contains:
+    AccountAlias:
+      description:
+      - The account alias of the owner of the OMI.
+      returned: when the API returns it
+      type: str
+    AccountId:
+      description:
+      - The account ID of the owner of the OMI.
+      returned: when the API returns it
+      type: str
+    Architecture:
+      description:
+      - The architecture of the OMI.
+      returned: when the API returns it
+      type: str
+    BlockDeviceMappings:
+      description:
+      - One or more block device mappings.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    BootModes:
+      description:
+      - The boot modes compatible with the OMI.
+      returned: when the API returns it
+      type: list
+      elements: str
+    CreationDate:
+      description:
+      - The date and time (UTC) at which the OMI was created.
+      returned: when the API returns it
+      type: str
+    Description:
+      description:
+      - The description of the OMI.
+      returned: when the API returns it
+      type: str
+    FileLocation:
+      description:
+      - The location from which the OMI files were created.
+      returned: when the API returns it
+      type: str
+    ImageId:
+      description:
+      - The ID of the OMI.
+      returned: when the API returns it
+      type: str
+    ImageName:
+      description:
+      - The name of the OMI.
+      returned: when the API returns it
+      type: str
+    ImageType:
+      description:
+      - The type of the OMI.
+      returned: when the API returns it
+      type: str
+    PermissionsToLaunch:
+      description:
+      - Permissions for the resource.
+      returned: when the API returns it
+      type: dict
+    ProductCodes:
+      description:
+      - The product codes associated with the OMI.
+      returned: when the API returns it
+      type: list
+      elements: str
+    RootDeviceName:
+      description:
+      - The name of the root device.
+      returned: when the API returns it
+      type: str
+    RootDeviceType:
+      description:
+      - The type of root device used by the OMI (always C(bsu)).
+      returned: when the API returns it
+      type: str
+    SecureBoot:
+      description:
+      - Whether secure boot is activated or not.
+      returned: when the API returns it
+      type: bool
+    State:
+      description:
+      - The state of the OMI (C(pending) | C(available) | C(failed)).
+      returned: when the API returns it
+      type: str
+    StateComment:
+      description:
+      - Information about the change of state.
+      returned: when the API returns it
+      type: dict
+    Tags:
+      description:
+      - One or more tags associated with the OMI.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    TpmMandatory:
+      description:
+      - If true, a virtual Trusted Platform Module (vTPM) is mandatory for VMs created from
+        this OMI. If false, a vTPM is not mandatory.
+      returned: when the API returns it
+      type: bool
 changes:
   description: 'What differed, by option: the value the API returned before, and the value
     you asked for.'

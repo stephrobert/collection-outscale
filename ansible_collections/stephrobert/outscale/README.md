@@ -4,6 +4,10 @@
 the repository that hosts this collection:
 <https://github.com/stephrobert/collection-outscale>.
 
+[![ci](https://github.com/stephrobert/collection-outscale/actions/workflows/ci.yml/badge.svg)](https://github.com/stephrobert/collection-outscale/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/stephrobert/collection-outscale?label=OpenSSF%20Scorecard)](https://github.com/stephrobert/collection-outscale/blob/0.1.0/docs/scorecard.md)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/stephrobert/collection-outscale/blob/0.1.0/LICENSE)
+
 > Terraform provisions resources. Ansible operates existing ones.
 
 Information modules read; action modules change the state of an existing
@@ -22,8 +26,39 @@ signs the requests (AWS Signature v4) and embeds the same OpenAPI contract
 these modules were generated from, and it refuses any action or parameter its
 copy does not know.
 
-Requires ansible-core 2.17 or later; the CI matrix runs `ansible-test sanity`
-on every minor version from 2.17 to the one the development lock carries.
+## Compatibility
+
+The table below is derived from `meta/runtime.yml`, the development lock and
+the module documentation by `scripts/readme_counters.py`; a stale table fails
+the CI.
+
+<!-- counters:compatibility:start, produced by scripts/readme_counters.py -->
+| collection | `ansible-core` | Outscale SDK |
+|---|---|---|
+| 0.1.x | 2.17, 2.18, 2.19, 2.20, 2.21 | `osc-sdk-python>=0.42` |
+<!-- counters:compatibility:end -->
+
+Every `ansible-core` version listed is tested by CI on every change, with
+`ansible-test sanity` and the documentation linter. A version declared and
+never tested is a promise with no proof.
+
+## Versioning
+
+This collection follows **semantic versioning**, which Ansible requires of
+collections:
+
+<!-- counters:versioning:start, produced by scripts/readme_counters.py -->
+* **patch** (`0.1.1`): bug fixes only;
+* **minor** (`0.2.0`): backward-compatible features and new modules;
+* **major** (`1.0.0`): may contain breaking changes.
+<!-- counters:versioning:end -->
+
+**Before `1.0.0`, treat the interfaces as evolving.** A module name will not
+change silently: a rename goes through a `breaking_changes` fragment, and the
+old name keeps working for one minor version with a deprecation notice. The
+exact wording of a description, the choice of an example value and the set of
+fields a returned key lists are not promises: all three come from the
+versioned contract, and they follow it.
 
 ## Authentication
 
@@ -101,7 +136,9 @@ group_by: [region, subregion, state, tags]
 `ReadVms`, page after page, names them by their `Name` tag, gives each an
 `ansible_host` by `address_priority`, exposes `outscale_*` hostvars and
 `osc_*` groups, and supports `compose`, `keyed_groups`, `groups` and the
-inventory cache.
+inventory cache. The full guide, covering how `ansible_host` is chosen, name
+collisions and the cache:
+[docs/guides/dynamic-inventory.md](https://github.com/stephrobert/collection-outscale/blob/0.1.0/docs/guides/dynamic-inventory.md).
 
 ## What is proven, and what is not
 
@@ -111,6 +148,11 @@ module sends; `ansible-test sanity` passes; the archive installs and answers
 `ansible-doc`. Every module is played by the example playbook of the
 repository against the feint emulator on every pull request, with the
 platform built by Terraform, then destroyed, then checked for residue.
+
+Every page of this collection is meant to be understood from Galaxy alone,
+without the OpenAPI contract: each option, each returned key and each of its
+fields carries a description, and each example can be copied as is. A gate
+measures it on every pull request and refuses the release otherwise.
 
 **No module has been run against a real Outscale account yet.** The
 repository says so rather than claiming otherwise.
@@ -125,7 +167,7 @@ The table below is derived from the modules on disk by
 
 | module | what it does |
 |---|---|
-| `dhcp_option_info` | Gather information about Outscale dhcp options |
+| `dhcp_option_info` | Gather information about Outscale DHCP options |
 
 ### image (2 modules, tag `Image`)
 
@@ -157,7 +199,7 @@ The table below is derived from the modules on disk by
 
 | module | what it does |
 |---|---|
-| `nat_service_info` | Gather information about Outscale nat services |
+| `nat_service_info` | Gather information about Outscale NAT services |
 
 ### net (2 modules, tag `Net`)
 
@@ -177,15 +219,15 @@ The table below is derived from the modules on disk by
 
 | module | what it does |
 |---|---|
-| `nic` | Manage the settings of an Outscale nic |
-| `nic_info` | Gather information about Outscale nics |
+| `nic` | Manage the settings of an Outscale NIC |
+| `nic_info` | Gather information about Outscale NICs |
 
 ### public_ip (2 modules, tag `PublicIp`)
 
 | module | what it does |
 |---|---|
-| `public_ip_info` | Gather information about Outscale public ips |
-| `public_ip_range_info` | Gather information about Outscale public ip ranges |
+| `public_ip_info` | Gather information about Outscale public IPs |
+| `public_ip_range_info` | Gather information about Outscale public IP ranges |
 
 ### region (1 module, tag `Region`)
 
@@ -234,12 +276,12 @@ The table below is derived from the modules on disk by
 
 | module | what it does |
 |---|---|
-| `vm` | Manage the settings of an Outscale vm |
-| `vm_action` | Perform an action on Outscale vms |
+| `vm` | Manage the settings of an Outscale VM |
+| `vm_action` | Perform an action on Outscale VMs |
 | `vm_admin_password_info` | Read the Outscale admin password |
-| `vm_info` | Gather information about Outscale vms |
-| `vm_state_info` | Gather information about Outscale vm states |
-| `vm_type_info` | Gather information about Outscale vm types |
+| `vm_info` | Gather information about Outscale VMs |
+| `vm_state_info` | Gather information about Outscale VM states |
+| `vm_type_info` | Gather information about Outscale VM types |
 
 ### volume (2 modules, tag `Volume`)
 
@@ -252,7 +294,7 @@ The table below is derived from the modules on disk by
 
 | plugin | what it discovers |
 |---|---|
-| `vm` | Outscale Vm dynamic inventory |
+| `vm` | Outscale VM dynamic inventory |
 <!-- counters:end -->
 
 ## Where to report

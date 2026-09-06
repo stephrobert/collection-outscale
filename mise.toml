@@ -194,12 +194,37 @@ description = "Construire l'archive installable, et la vérifier"
 depends = ["generate"]
 run = "python scripts/package.py"
 
+[tasks."docs:quality"]
+description = "Ce que la documentation publiée vaut, et ce qui la rend impubliable"
+# `ansible-test sanity` dit qu'un bloc est bien formé, pas qu'il apprend quelque
+# chose à quelqu'un. Cette porte cherche des défauts nommés, chacun trouvé sur
+# une page réelle, et chacun réparable dans le générateur plutôt que dans le
+# fichier produit. Dans `check` **et** dans `release:check` : chez
+# collection-scaleway, la mettre dans le second seulement l'a fait arriver au
+# moment où refuser coûte un numéro, et cent phrases de repli sont parties.
+depends = ["generate"]
+run = "python scripts/docs_quality.py --check"
+
+[tasks.version]
+description = "Ce que les fragments de changelog impliquent comme prochain numéro"
+# **Le numéro se déduit, il ne se saisit pas.** Ce qu'une version promet est
+# déjà écrit dans les fragments : une rupture, un ajout, ou une correction.
+# Pourquoi les fragments et non les sujets de commit, comme `cz bump` ailleurs :
+# Ansible lit `version:` dans `galaxy.yml` et nomme l'archive d'après lui, le
+# changelog appartient à antsibull, et les commits sont en français quand un
+# fragment est publié, donc en anglais.
+run = "python scripts/version.py --show"
+
+[tasks."version:bump"]
+description = "Écrire le prochain numéro dans galaxy.yml et composer le changelog"
+run = "python scripts/version.py --bump"
+
 [tasks."release:check"]
 description = "Ce qui doit être vrai avant de publier sur Galaxy"
 # **Hors de `check`**, et c'est délibéré : cette garde exige un tag qui désigne
-# HEAD et un arbre propre, donc elle refuserait toute pull request. C'est le
-# workflow de release qui l'appelle, et le jeton comme le tag appartiennent au
-# mainteneur.
+# HEAD, sur `main`, et un arbre propre, donc elle refuserait toute pull request.
+# C'est le workflow de release qui l'appelle, et le jeton comme le tag
+# appartiennent au mainteneur.
 run = "python scripts/release.py --check"
 
 [tasks.readme]
@@ -277,6 +302,10 @@ depends = [
   "readme:check",
   "coverage:check",
   "package",
+  # La porte documentaire, ici et pas seulement dans `release:check` : une
+  # pull request doit la passer comme le reste, au moment où refuser coûte un
+  # aller-retour et non un numéro de version.
+  "docs:quality",
 ]
 
 [tasks.clean]

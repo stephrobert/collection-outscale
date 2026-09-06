@@ -37,7 +37,14 @@ EXAMPLES = r"""
   lab.widget.widget_info:
     region: eu-west-2
   register: result
-- name: List widgets matching a filter
+- name: Read widgets by ID
+  lab.widget.widget_info:
+    region: eu-west-2
+    filters:
+      WidgetIds:
+      - example-id
+  register: result
+- name: List widgets matching a tag
   lab.widget.widget_info:
     region: eu-west-2
     filters:
@@ -52,6 +59,33 @@ widgets:
   returned: always
   type: list
   elements: dict
+  contains:
+    WidgetId:
+      description:
+      - The ID of the widget.
+      returned: when the API returns it
+      type: str
+    State:
+      description:
+      - The state of the widget (C(pending) | C(running) | C(stopped)).
+      returned: when the API returns it
+      type: str
+    WidgetType:
+      description:
+      - The type of the widget.
+      returned: when the API returns it
+      type: str
+    Performance:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: when the API returns it
+      type: list
+      elements: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

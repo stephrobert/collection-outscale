@@ -30,13 +30,17 @@ def test_un_bloc_perime_fait_echouer_le_controle(
 ) -> None:
     """Un nombre recopié à la main vieillit en silence : le contrôle doit rougir."""
     fichier = _readme(tmp_path, "ancien")
-    monkeypatch.setattr(readme_counters, "blocs", lambda: {fichier: "nouveau"})
+    monkeypatch.setattr(
+        readme_counters, "cibles", lambda: {fichier: readme_counters.Cible(bloc="nouveau")}
+    )
     assert readme_counters.main(["readme_counters.py", "--check"]) == 1
 
 
 def test_un_bloc_a_jour_passe_le_controle(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     fichier = _readme(tmp_path, "nouveau")
-    monkeypatch.setattr(readme_counters, "blocs", lambda: {fichier: "nouveau"})
+    monkeypatch.setattr(
+        readme_counters, "cibles", lambda: {fichier: readme_counters.Cible(bloc="nouveau")}
+    )
     assert readme_counters.main(["readme_counters.py", "--check"]) == 0
 
 
@@ -44,7 +48,9 @@ def test_write_reecrit_le_bloc_entre_les_marqueurs_et_rien_dautre(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     fichier = _readme(tmp_path, "ancien")
-    monkeypatch.setattr(readme_counters, "blocs", lambda: {fichier: "nouveau"})
+    monkeypatch.setattr(
+        readme_counters, "cibles", lambda: {fichier: readme_counters.Cible(bloc="nouveau")}
+    )
     assert readme_counters.main(["readme_counters.py", "--write"]) == 0
     texte = fichier.read_text(encoding="utf-8")
     assert "nouveau" in texte and "ancien" not in texte

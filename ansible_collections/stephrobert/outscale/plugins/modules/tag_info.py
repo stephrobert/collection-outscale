@@ -37,12 +37,12 @@ EXAMPLES = r"""
   stephrobert.outscale.tag_info:
     region: eu-west-2
   register: result
-- name: List tags matching a filter
+- name: List tags filtered by ResourceIds
   stephrobert.outscale.tag_info:
     region: eu-west-2
     filters:
-      Tags:
-      - role=web
+      ResourceIds:
+      - example-id
   register: result
 """
 
@@ -52,6 +52,27 @@ tags:
   returned: always
   type: list
   elements: dict
+  contains:
+    Key:
+      description:
+      - The key of the tag, between 1 and 255 characters.
+      returned: when the API returns it
+      type: str
+    ResourceId:
+      description:
+      - The ID of the resource.
+      returned: when the API returns it
+      type: str
+    ResourceType:
+      description:
+      - The type of the resource.
+      returned: when the API returns it
+      type: str
+    Value:
+      description:
+      - The value of the tag, between 0 and 255 characters.
+      returned: when the API returns it
+      type: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

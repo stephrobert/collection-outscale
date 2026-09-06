@@ -41,7 +41,14 @@ EXAMPLES = r"""
   stephrobert.outscale.security_group_info:
     region: eu-west-2
   register: result
-- name: List security groups matching a filter
+- name: Read security groups by ID
+  stephrobert.outscale.security_group_info:
+    region: eu-west-2
+    filters:
+      SecurityGroupIds:
+      - example-id
+  register: result
+- name: List security groups matching a tag
   stephrobert.outscale.security_group_info:
     region: eu-west-2
     filters:
@@ -56,6 +63,50 @@ security_groups:
   returned: always
   type: list
   elements: dict
+  contains:
+    AccountId:
+      description:
+      - The OUTSCALE account ID that has been granted permission.
+      returned: when the API returns it
+      type: str
+    Description:
+      description:
+      - The description of the security group.
+      returned: when the API returns it
+      type: str
+    InboundRules:
+      description:
+      - The inbound rules associated with the security group.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    NetId:
+      description:
+      - The ID of the Net for the security group.
+      returned: when the API returns it
+      type: str
+    OutboundRules:
+      description:
+      - The outbound rules associated with the security group.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    SecurityGroupId:
+      description:
+      - The ID of the security group.
+      returned: when the API returns it
+      type: str
+    SecurityGroupName:
+      description:
+      - The name of the security group.
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the security group.
+      returned: when the API returns it
+      type: list
+      elements: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

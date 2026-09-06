@@ -44,6 +44,17 @@ widget_secret:
   description: The widget secret, as the API answers it, without the response context.
   returned: always
   type: dict
+  contains:
+    Secret:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: when the API returns it
+      type: str
+    WidgetId:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: when the API returns it
+      type: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

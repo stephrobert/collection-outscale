@@ -12,6 +12,103 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateKeypairResponse",
+      "fields": [
+        {
+          "name": "Keypair",
+          "type": "object",
+          "ref": "KeypairCreated",
+          "description": "Information about the created keypair."
+        }
+      ]
+    },
+    {
+      "name": "DeleteKeypairResponse"
+    },
+    {
+      "name": "Keypair",
+      "fields": [
+        {
+          "name": "KeypairFingerprint",
+          "type": "string",
+          "description": "The MD5 public key fingerprint as specified in section 4 of RFC 4716."
+        },
+        {
+          "name": "KeypairId",
+          "type": "string",
+          "description": "The ID of the keypair."
+        },
+        {
+          "name": "KeypairName",
+          "type": "string",
+          "description": "The name of the keypair."
+        },
+        {
+          "name": "KeypairType",
+          "type": "string",
+          "description": "The type of the keypair (`ssh-rsa`, `ssh-ed25519`, `ecdsa-sha2-nistp256`, `ecdsa-sha2-nistp384`, or `ecdsa-sha2-nistp521`)."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the keypair."
+        }
+      ]
+    },
+    {
+      "name": "KeypairCreated",
+      "fields": [
+        {
+          "name": "KeypairFingerprint",
+          "type": "string",
+          "description": "The MD5 public key fingerprint, as specified in section 4 of RFC 4716."
+        },
+        {
+          "name": "KeypairId",
+          "type": "string",
+          "description": "The ID of the keypair."
+        },
+        {
+          "name": "KeypairName",
+          "type": "string",
+          "description": "The name of the keypair."
+        },
+        {
+          "name": "KeypairType",
+          "type": "string",
+          "description": "The type of the keypair (`ssh-rsa`, `ssh-ed25519`, `ecdsa-sha2-nistp256`, `ecdsa-sha2-nistp384`, or `ecdsa-sha2-nistp521`)."
+        },
+        {
+          "name": "PrivateKey",
+          "type": "string",
+          "description": "The private key, returned only if you are creating a keypair (not if you are importing). When you save this private key in a .rsa file, make sure you replace the `\\n` escape sequences with real line breaks."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the keypair."
+        }
+      ]
+    },
+    {
+      "name": "ReadKeypairsResponse",
+      "fields": [
+        {
+          "name": "Keypairs",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Keypair",
+          "description": "Information about one or more keypairs."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "keypair.v1.Keypair.CreateKeypair",

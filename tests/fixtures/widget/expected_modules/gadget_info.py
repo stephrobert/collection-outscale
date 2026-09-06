@@ -36,12 +36,12 @@ EXAMPLES = r"""
   lab.widget.gadget_info:
     region: eu-west-2
   register: result
-- name: List gadgets matching a filter
+- name: Read gadgets by ID
   lab.widget.gadget_info:
     region: eu-west-2
     filters:
-      Tags:
-      - role=web
+      GadgetIds:
+      - example-id
   register: result
 """
 
@@ -51,6 +51,17 @@ gadgets:
   returned: always
   type: list
   elements: dict
+  contains:
+    GadgetId:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: when the API returns it
+      type: str
+    State:
+      description:
+      - Not documented by the Outscale API contract.
+      returned: when the API returns it
+      type: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

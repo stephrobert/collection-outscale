@@ -14,10 +14,10 @@ from __future__ import annotations
 
 DOCUMENTATION = r"""
 module: nat_service_info
-short_description: Gather information about Outscale nat services
+short_description: Gather information about Outscale NAT services
 version_added: 0.1.0
 description:
-- List Outscale nat services, optionally filtered. This module never changes anything.
+- List Outscale NAT services, optionally filtered. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
@@ -33,11 +33,18 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: List nat services
+- name: List NAT services
   stephrobert.outscale.nat_service_info:
     region: eu-west-2
   register: result
-- name: List nat services matching a filter
+- name: Read NAT services by ID
+  stephrobert.outscale.nat_service_info:
+    region: eu-west-2
+    filters:
+      NatServiceIds:
+      - example-id
+  register: result
+- name: List NAT services matching a tag
   stephrobert.outscale.nat_service_info:
     region: eu-west-2
     filters:
@@ -48,10 +55,48 @@ EXAMPLES = r"""
 
 RETURN = r"""
 nat_services:
-  description: The nat services.
+  description: The NAT services.
   returned: always
   type: list
   elements: dict
+  contains:
+    ClientToken:
+      description:
+      - The idempotency token provided when creating the NAT service.
+      returned: when the API returns it
+      type: str
+    NatServiceId:
+      description:
+      - The ID of the NAT service.
+      returned: when the API returns it
+      type: str
+    NetId:
+      description:
+      - The ID of the Net in which the NAT service is.
+      returned: when the API returns it
+      type: str
+    PublicIps:
+      description:
+      - Information about the public IP or IPs associated with the NAT service.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    State:
+      description:
+      - The state of the NAT service (C(pending) | C(available) | C(deleting) | C(deleted)).
+      returned: when the API returns it
+      type: str
+    SubnetId:
+      description:
+      - The ID of the Subnet in which the NAT service is.
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the NAT service.
+      returned: when the API returns it
+      type: list
+      elements: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

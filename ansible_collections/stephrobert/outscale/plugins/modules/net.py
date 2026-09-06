@@ -47,6 +47,13 @@ EXAMPLES = r"""
     region: eu-west-2
     dhcp_options_set_id: example-id
     net_id: example-id
+- name: Preview the change on a net without writing
+  stephrobert.outscale.net:
+    region: eu-west-2
+    dhcp_options_set_id: example-id
+    net_id: example-id
+  check_mode: true
+  diff: true
 """
 
 RETURN = r"""
@@ -54,6 +61,39 @@ net:
   description: The net, read after the update.
   returned: always
   type: dict
+  contains:
+    DhcpOptionsSetId:
+      description:
+      - The ID of the DHCP options set (or C(default) if you want to associate the default
+        one).
+      returned: when the API returns it
+      type: str
+    IpRange:
+      description:
+      - The IP range for the Net, in CIDR notation (for example, C(10.0.0.0/16)).
+      returned: when the API returns it
+      type: str
+    NetId:
+      description:
+      - The ID of the Net.
+      returned: when the API returns it
+      type: str
+    State:
+      description:
+      - The state of the Net (C(pending) | C(available) | C(deleting)).
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the Net.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    Tenancy:
+      description:
+      - The VM tenancy in a Net.
+      returned: when the API returns it
+      type: str
 changes:
   description: 'What differed, by option: the value the API returned before, and the value
     you asked for.'

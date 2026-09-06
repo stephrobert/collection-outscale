@@ -14,10 +14,10 @@ from __future__ import annotations
 
 DOCUMENTATION = r"""
 module: public_ip_range_info
-short_description: Gather information about Outscale public ip ranges
+short_description: Gather information about Outscale public IP ranges
 version_added: 0.1.0
 description:
-- List Outscale public ip ranges, optionally filtered. This module never changes anything.
+- List Outscale public IP ranges, optionally filtered. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options: {}
@@ -29,7 +29,7 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: List public ip ranges
+- name: List public IP ranges
   stephrobert.outscale.public_ip_range_info:
     region: eu-west-2
   register: result
@@ -37,10 +37,10 @@ EXAMPLES = r"""
 
 RETURN = r"""
 public_ip_ranges:
-  description: The public ip ranges.
+  description: The public IP ranges.
   returned: always
   type: list
-  elements: dict
+  elements: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

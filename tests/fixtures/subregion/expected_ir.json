@@ -12,6 +12,45 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "ReadSubregionsResponse",
+      "fields": [
+        {
+          "name": "Subregions",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Subregion",
+          "description": "Information about one or more Subregions."
+        }
+      ]
+    },
+    {
+      "name": "Subregion",
+      "fields": [
+        {
+          "name": "LocationCode",
+          "type": "string",
+          "description": "The location code (physical zone) of the Subregion. For more information, see [About Regions > Mapping Between Subregions and Physical Zones](https://docs.outscale.com/en/userguide/About-Regions-and-Subregions.html#_mapping_between_subregions_and_physical_zones)."
+        },
+        {
+          "name": "RegionName",
+          "type": "string",
+          "description": "The name of the Region containing the Subregion."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the Subregion."
+        },
+        {
+          "name": "SubregionName",
+          "type": "string",
+          "description": "The name of the Subregion."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "subregion.v1.Subregion.ReadSubregions",

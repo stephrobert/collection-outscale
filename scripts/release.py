@@ -7,19 +7,29 @@ version de plus. Tout ce que ce script refuse coûterait donc un numéro.
     python scripts/release.py --check          juge HEAD et son tag
     python scripts/release.py --check --tag 0.1.0
 
-Quatre refus, et chacun a coûté quelque chose à quelqu'un ailleurs :
+Six refus, et chacun a coûté quelque chose à quelqu'un ailleurs :
 
 1. **le tag et `galaxy.yml` doivent concorder.** L'archive est nommée d'après
    `galaxy.yml`, pas d'après le tag : les deux peuvent diverger sans que rien
    ne le dise, et on publie alors une version que l'historique ne porte pas ;
 2. **le tag doit désigner HEAD.** Publier depuis un arbre en avance du tag
    livre du code que personne ne retrouvera à ce numéro ;
-3. **l'arbre doit être propre.** Une archive construite sur des modifications
+3. **le tag doit désigner un commit de `main`.** Le workflow se déclenche sur
+   un tag, et un tag est mobile : il se pose sur n'importe quel commit, une
+   branche jamais relue, un correctif poussé en vitesse. Ce qui part doit
+   avoir traversé une pull request et ses contrôles ;
+4. **l'arbre doit être propre.** Une archive construite sur des modifications
    non versionnées ne se reproduit pas ;
-4. **le changelog ne doit rien laisser en attente.** Les fragments décrivent ce
+5. **le changelog ne doit rien laisser en attente.** Les fragments décrivent ce
    que la version apporte ; ceux qui restent décrivent une version qui ne sort
    pas. Mesuré sur `collection-scaleway` : douze fragments accumulés sous une
-   `0.1.0` composée quand la collection portait un module.
+   `0.1.0` composée quand la collection portait un module ;
+6. **la documentation doit être publiable.** Une page Galaxy qui dit « Not
+   documented by the Outscale API contract. » ou qui montre un filtre que
+   l'API refuse est publiée pour toujours. Mesuré sur `collection-scaleway` :
+   cent phrases de repli parties dans une 0.2.0, parce que la porte n'était
+   appelée qu'ici, au moment où refuser coûte un numéro. Elle est donc aussi
+   dans `mise run check`, et ce refus-ci est la ceinture après les bretelles.
 
 Ce script ne publie pas et ne parle à personne. Il dit si on peut.
 """
@@ -31,6 +41,8 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+
+import docs_quality
 
 from generator.ansible.collection import load_collection
 
@@ -72,6 +84,37 @@ def fragments_en_attente(collection_path: Path) -> list[str]:
     return sorted(f.name for f in dossier.glob("*.yml") if not f.name.startswith("."))
 
 
+def sur_la_branche_principale(tag: str) -> bool:
+    """Le commit du tag appartient-il à l'historique de `main` ?
+
+    **C'est la garde qui empêche une publication depuis n'importe où.** Le
+    workflow se déclenche sur le tag, pas sur la branche, donc rien d'autre
+    ne vérifie d'où vient ce qui part. Une règle d'environnement GitHub ne
+    sait pas répondre : le déclencheur est un tag, donc la référence n'est
+    jamais `main`, et restreindre l'environnement à `main` bloquerait tout.
+
+    On compare à `origin/main` quand il existe, à `main` sinon : en CI, le
+    dépôt est cloné et la branche locale peut ne pas exister, et une garde
+    qui refuserait pour cette raison-là refuserait pour la mauvaise.
+    """
+    commit = _git("rev-list", "-n", "1", tag)
+    if not commit:
+        return False
+    for reference in ("origin/main", "main"):
+        if not _git("rev-parse", "--verify", "--quiet", reference):
+            continue
+        # `merge-base --is-ancestor` rend 0 quand le commit est atteignable
+        # depuis la référence. C'est exactement la question posée.
+        resultat = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", commit, reference],
+            cwd=ROOT,
+            capture_output=True,
+            check=False,
+        )
+        return resultat.returncode == 0
+    return False
+
+
 def controler(tag: str | None) -> list[str]:
     """Rend la liste des refus. Vide veut dire qu'on peut publier."""
     collection = load_collection()
@@ -95,6 +138,13 @@ def controler(tag: str | None) -> list[str]:
             "l'historique ne porte pas."
         )
 
+    if tag is not None and not sur_la_branche_principale(tag):
+        refus.append(
+            f"le tag {tag!r} ne désigne aucun commit de `main`. Ce qui part sur Galaxy "
+            "est immuable : ça doit être du code qui a traversé une pull request et ses "
+            "contrôles, pas une branche que personne n'a relue."
+        )
+
     sale = _git("status", "--porcelain")
     if sale:
         lignes = sale.splitlines()
@@ -112,8 +162,27 @@ def controler(tag: str | None) -> list[str]:
             "cette version apporte, et resteraient dehors.\n    "
             + "\n    ".join(fragments[:5])
             + ("\n    ..." if len(fragments) > 5 else "")
-            + "\n    Composer la version avec `antsibull-changelog release`."
+            + "\n    Composer la version avec `mise run version:bump`."
         )
+
+    # **La documentation publiée est un livrable, pas un sous-produit.** Ce
+    # refus arrive au même rang que le changelog absent et l'arbre sale.
+    try:
+        _, defauts = docs_quality.mesurer()
+    except docs_quality.QualiteError as erreur:
+        refus.append(f"la qualité documentaire n'a pas pu être mesurée : {erreur}")
+    else:
+        bloquants = [d for d in defauts if d.bloquant]
+        if bloquants:
+            genres: dict[str, int] = {}
+            for defaut in bloquants:
+                genres[defaut.genre] = genres.get(defaut.genre, 0) + 1
+            detail = ", ".join(f"{genre} ({compte})" for genre, compte in sorted(genres.items()))
+            refus.append(
+                f"{len(bloquants)} défaut(s) documentaire(s) bloquant(s) : {detail}.\n"
+                "    Un lecteur de Galaxy doit comprendre le module depuis sa seule page.\n"
+                "    `python scripts/docs_quality.py --details` les nomme un par un."
+            )
 
     return refus
 
@@ -143,8 +212,8 @@ def main(argv: list[str]) -> int:
 
     collection = load_collection()
     print(
-        f"{collection.fqcn} {collection.version} : le tag concorde, l'arbre est propre, "
-        "le changelog est composé."
+        f"{collection.fqcn} {collection.version} : le tag concorde et vient de `main`, "
+        "l'arbre est propre, le changelog est composé, la documentation est publiable."
     )
     return 0
 

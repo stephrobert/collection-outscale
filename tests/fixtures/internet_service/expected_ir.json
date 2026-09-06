@@ -12,6 +12,67 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateInternetServiceResponse",
+      "fields": [
+        {
+          "name": "InternetService",
+          "type": "object",
+          "ref": "InternetService",
+          "description": "Information about the internet service."
+        }
+      ]
+    },
+    {
+      "name": "DeleteInternetServiceResponse"
+    },
+    {
+      "name": "InternetService",
+      "fields": [
+        {
+          "name": "InternetServiceId",
+          "type": "string",
+          "description": "The ID of the internet service."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "description": "The ID of the Net attached to the internet service."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the attachment of the internet service to the Net (always `available`)."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the internet service."
+        }
+      ]
+    },
+    {
+      "name": "LinkInternetServiceResponse"
+    },
+    {
+      "name": "ReadInternetServicesResponse",
+      "fields": [
+        {
+          "name": "InternetServices",
+          "type": "array",
+          "item_type": "object",
+          "ref": "InternetService",
+          "description": "Information about one or more internet services."
+        }
+      ]
+    },
+    {
+      "name": "UnlinkInternetServiceResponse"
+    }
+  ],
   "operations": [
     {
       "key": "internet_service.v1.InternetService.CreateInternetService",

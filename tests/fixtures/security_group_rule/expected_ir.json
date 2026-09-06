@@ -12,6 +12,81 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateSecurityGroupRuleResponse",
+      "fields": [
+        {
+          "name": "SecurityGroup",
+          "type": "object",
+          "ref": "SecurityGroup",
+          "description": "Information about the security group."
+        }
+      ]
+    },
+    {
+      "name": "DeleteSecurityGroupRuleResponse",
+      "fields": [
+        {
+          "name": "SecurityGroup",
+          "type": "object",
+          "ref": "SecurityGroup",
+          "description": "Information about the security group."
+        }
+      ]
+    },
+    {
+      "name": "SecurityGroup",
+      "fields": [
+        {
+          "name": "AccountId",
+          "type": "string",
+          "description": "The OUTSCALE account ID that has been granted permission."
+        },
+        {
+          "name": "Description",
+          "type": "string",
+          "description": "The description of the security group."
+        },
+        {
+          "name": "InboundRules",
+          "type": "array",
+          "item_type": "object",
+          "ref": "SecurityGroupRule",
+          "description": "The inbound rules associated with the security group."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "description": "The ID of the Net for the security group."
+        },
+        {
+          "name": "OutboundRules",
+          "type": "array",
+          "item_type": "object",
+          "ref": "SecurityGroupRule",
+          "description": "The outbound rules associated with the security group."
+        },
+        {
+          "name": "SecurityGroupId",
+          "type": "string",
+          "description": "The ID of the security group."
+        },
+        {
+          "name": "SecurityGroupName",
+          "type": "string",
+          "description": "The name of the security group."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the security group."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "security_group_rule.v1.SecurityGroupRule.CreateSecurityGroupRule",

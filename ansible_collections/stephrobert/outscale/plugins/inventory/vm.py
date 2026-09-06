@@ -3,7 +3,7 @@
 
 DOCUMENTATION = r"""
 name: vm
-short_description: Outscale Vm dynamic inventory
+short_description: Outscale VM dynamic inventory
 version_added: 0.1.0
 author:
   - Stéphane Robert (@stephrobert)
@@ -164,39 +164,42 @@ options:
 """
 
 EXAMPLES = r"""
-# Le cas minimal : les identifiants et la région viennent de l'environnement.
+# The minimal case: credentials and region come from the environment.
 plugin: stephrobert.outscale.vm
 
-# Production : deux régions, les machines qui tournent, groupées par tag.
-# plugin: stephrobert.outscale.vm
-# regions:
-#   - eu-west-2
-#   - cloudgouv-eu-west-1
-# filters:
-#   VmStateNames:
-#     - running
-# tags:
-#   env: production
-# group_by:
-#   - region
-#   - subregion
-#   - tags
-#   - vm_type
-# cache: true
+---
+# Production: two regions, only the running machines, grouped by tag.
+plugin: stephrobert.outscale.vm
+regions:
+  - eu-west-2
+  - cloudgouv-eu-west-1
+filters:
+  VmStateNames:
+    - running
+tags:
+  env: production
+group_by:
+  - region
+  - subregion
+  - tags
+  - vm_type
+cache: true
 
-# Un bastion joint par son adresse publique, le reste par le privé.
-# plugin: stephrobert.outscale.vm
-# entry_role: bastion
-# exclude_tags:
-#   managed_by: talos
+---
+# A bastion reached through its public address, every other machine through its private one.
+plugin: stephrobert.outscale.vm
+entry_role: bastion
+exclude_tags:
+  managed_by: talos
 
-# Groupes et variables construits par Ansible lui-même.
-# plugin: stephrobert.outscale.vm
-# compose:
-#   ansible_user: "'outscale'"
-# keyed_groups:
-#   - prefix: image
-#     key: outscale_image_id
+---
+# Groups and variables built by Ansible itself.
+plugin: stephrobert.outscale.vm
+compose:
+  ansible_user: "'outscale'"
+keyed_groups:
+  - prefix: image
+    key: outscale_image_id
 """
 
 from ansible.errors import AnsibleError, AnsibleParserError  # noqa: E402

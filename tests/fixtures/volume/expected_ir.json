@@ -12,6 +12,185 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateVolumeResponse",
+      "fields": [
+        {
+          "name": "Volume",
+          "type": "object",
+          "ref": "Volume",
+          "description": "Information about the volume."
+        }
+      ]
+    },
+    {
+      "name": "DeleteVolumeResponse"
+    },
+    {
+      "name": "LinkVolumeResponse"
+    },
+    {
+      "name": "ReadVolumeUpdateTasksResponse",
+      "fields": [
+        {
+          "name": "VolumeUpdateTasks",
+          "type": "array",
+          "item_type": "object",
+          "ref": "VolumeUpdateTask",
+          "description": "Information about one or more volume update tasks."
+        }
+      ]
+    },
+    {
+      "name": "ReadVolumesResponse",
+      "fields": [
+        {
+          "name": "Volumes",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Volume",
+          "description": "Information about one or more volumes."
+        }
+      ]
+    },
+    {
+      "name": "UnlinkVolumeResponse"
+    },
+    {
+      "name": "UpdateVolumeResponse",
+      "fields": [
+        {
+          "name": "Volume",
+          "type": "object",
+          "ref": "Volume",
+          "description": "Information about the volume."
+        }
+      ]
+    },
+    {
+      "name": "Volume",
+      "fields": [
+        {
+          "name": "ClientToken",
+          "type": "string",
+          "description": "The idempotency token provided when creating the volume."
+        },
+        {
+          "name": "CreationDate",
+          "type": "string",
+          "description": "The date and time (UTC) at which the volume was created."
+        },
+        {
+          "name": "Iops",
+          "type": "integer",
+          "description": "The number of I/O operations per second (IOPS):<br />\n- For `io1` volumes, the number of provisioned IOPS<br />\n- For `gp2` volumes, the baseline performance of the volume"
+        },
+        {
+          "name": "LinkedVolumes",
+          "type": "array",
+          "item_type": "object",
+          "ref": "LinkedVolume",
+          "description": "Information about your volume attachment."
+        },
+        {
+          "name": "Size",
+          "type": "integer",
+          "description": "The size of the volume, in gibibytes (GiB)."
+        },
+        {
+          "name": "SnapshotId",
+          "type": "string",
+          "description": "The snapshot from which the volume was created."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the volume (`creating` \\| `available` \\| `in-use` \\| `deleting` \\| `error`)."
+        },
+        {
+          "name": "SubregionName",
+          "type": "string",
+          "description": "The Subregion in which the volume was created."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the volume."
+        },
+        {
+          "name": "TaskId",
+          "type": "string",
+          "description": "The ID of the volume update task in progress. Otherwise, it is not returned."
+        },
+        {
+          "name": "VolumeId",
+          "type": "string",
+          "description": "The ID of the volume."
+        },
+        {
+          "name": "VolumeType",
+          "type": "string",
+          "description": "The type of the volume (`standard` \\| `gp2` \\| `io1`)."
+        }
+      ]
+    },
+    {
+      "name": "VolumeUpdateTask",
+      "fields": [
+        {
+          "name": "Comment",
+          "type": "string",
+          "description": "If the update volume task fails, an error message appears."
+        },
+        {
+          "name": "CompletionDate",
+          "type": "string",
+          "description": "The date at which the volume update task was marked as completed."
+        },
+        {
+          "name": "Progress",
+          "type": "integer",
+          "description": "The progress of the volume update task, as a percentage."
+        },
+        {
+          "name": "StartDate",
+          "type": "string",
+          "description": "The creation date of the volume update task."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the volume (`pending` \\| `active` \\| `completed` \\| `failed` \\| `canceled`)."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the volume update task."
+        },
+        {
+          "name": "TaskId",
+          "type": "string",
+          "description": "The ID of the volume update task in progress. Otherwise, it is not returned."
+        },
+        {
+          "name": "VolumeId",
+          "type": "string",
+          "description": "The ID of the updated volume."
+        },
+        {
+          "name": "VolumeUpdate",
+          "type": "object",
+          "ref": "VolumeUpdate",
+          "description": "Information about the update of a volume."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "volume.v1.Volume.CreateVolume",

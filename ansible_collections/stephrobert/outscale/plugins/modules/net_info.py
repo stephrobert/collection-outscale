@@ -37,7 +37,14 @@ EXAMPLES = r"""
   stephrobert.outscale.net_info:
     region: eu-west-2
   register: result
-- name: List nets matching a filter
+- name: Read nets by ID
+  stephrobert.outscale.net_info:
+    region: eu-west-2
+    filters:
+      NetIds:
+      - example-id
+  register: result
+- name: List nets matching a tag
   stephrobert.outscale.net_info:
     region: eu-west-2
     filters:
@@ -52,6 +59,39 @@ nets:
   returned: always
   type: list
   elements: dict
+  contains:
+    DhcpOptionsSetId:
+      description:
+      - The ID of the DHCP options set (or C(default) if you want to associate the default
+        one).
+      returned: when the API returns it
+      type: str
+    IpRange:
+      description:
+      - The IP range for the Net, in CIDR notation (for example, C(10.0.0.0/16)).
+      returned: when the API returns it
+      type: str
+    NetId:
+      description:
+      - The ID of the Net.
+      returned: when the API returns it
+      type: str
+    State:
+      description:
+      - The state of the Net (C(pending) | C(available) | C(deleting)).
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the Net.
+      returned: when the API returns it
+      type: list
+      elements: dict
+    Tenancy:
+      description:
+      - The VM tenancy in a Net.
+      returned: when the API returns it
+      type: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

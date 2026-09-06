@@ -12,6 +12,116 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreatePublicIpResponse",
+      "fields": [
+        {
+          "name": "PublicIp",
+          "type": "object",
+          "ref": "PublicIp",
+          "description": "Information about the public IP."
+        }
+      ]
+    },
+    {
+      "name": "DeletePublicIpResponse"
+    },
+    {
+      "name": "LinkPublicIpResponse",
+      "fields": [
+        {
+          "name": "LinkPublicIpId",
+          "type": "string",
+          "description": "(Net only) The ID representing the association of the public IP with the VM or the NIC."
+        }
+      ]
+    },
+    {
+      "name": "PublicIp",
+      "fields": [
+        {
+          "name": "LinkPublicIpId",
+          "type": "string",
+          "description": "(Required in a Net) The ID representing the association of the public IP with the VM or the NIC."
+        },
+        {
+          "name": "NatServiceId",
+          "type": "string",
+          "description": "The ID of the NAT service associated with the public IP (if any)."
+        },
+        {
+          "name": "NetAccessPointIds",
+          "type": "array",
+          "item_type": "string",
+          "description": "The IDs of the Net access points associated with the public IP (if any)."
+        },
+        {
+          "name": "NicAccountId",
+          "type": "string",
+          "description": "The OUTSCALE account ID of the owner of the NIC."
+        },
+        {
+          "name": "NicId",
+          "type": "string",
+          "description": "The ID of the NIC the public IP is associated with (if any)."
+        },
+        {
+          "name": "PrivateIp",
+          "type": "string",
+          "description": "The private IP associated with the NIC or load balancer."
+        },
+        {
+          "name": "PublicIp",
+          "type": "string",
+          "description": "The public IP."
+        },
+        {
+          "name": "PublicIpId",
+          "type": "string",
+          "description": "The allocation ID of the public IP."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the public IP."
+        },
+        {
+          "name": "VmId",
+          "type": "string",
+          "description": "The ID of the VM the public IP is associated with (if any)."
+        }
+      ]
+    },
+    {
+      "name": "ReadPublicIpRangesResponse",
+      "fields": [
+        {
+          "name": "PublicIps",
+          "type": "array",
+          "item_type": "string",
+          "description": "The list of public IPv4 addresses used in the Region, in CIDR notation."
+        }
+      ]
+    },
+    {
+      "name": "ReadPublicIpsResponse",
+      "fields": [
+        {
+          "name": "PublicIps",
+          "type": "array",
+          "item_type": "object",
+          "ref": "PublicIp",
+          "description": "Information about one or more public IPs."
+        }
+      ]
+    },
+    {
+      "name": "UnlinkPublicIpResponse"
+    }
+  ],
   "operations": [
     {
       "key": "public_ip.v1.PublicIp.CreatePublicIp",

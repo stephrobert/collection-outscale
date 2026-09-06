@@ -14,15 +14,15 @@ from __future__ import annotations
 
 DOCUMENTATION = r"""
 module: vm_action
-short_description: Perform an action on Outscale vms
+short_description: Perform an action on Outscale VMs
 version_added: 0.1.0
 description:
-- 'Trigger one of the following actions on existing vms: C(reboot), C(start), C(stop).'
+- 'Trigger one of the following actions on existing VMs: C(reboot), C(start), C(stop).'
 author:
 - Stéphane Robert (@stephrobert)
 options:
   action:
-    description: The action to trigger on the vms.
+    description: The action to trigger on the VMs.
     type: str
     required: true
     choices:
@@ -43,17 +43,29 @@ extends_documentation_fragment:
 notes:
 - 'Every action answers at once: the API response is returned under RV(result), and the resource
   changes state afterwards.'
-- When I(wait) is true, the module reads the vm until its C(State) reaches the expected value
+- When I(wait) is true, the module reads the VM until its C(State) reaches the expected value
   (C(reboot) leads to C(running), C(start) leads to C(running), C(stop) leads to C(stopped)),
-  and reports C(changed=false) without sending anything when every vm already is in that state,
+  and reports C(changed=false) without sending anything when every VM already is in that state,
   except for C(reboot), which always acts.
 """
 
 EXAMPLES = r"""
-- name: Run reboot on a vm
+- name: Reboot VMs
   stephrobert.outscale.vm_action:
     region: eu-west-2
     action: reboot
+    vm_ids:
+    - example-id
+- name: Start VMs
+  stephrobert.outscale.vm_action:
+    region: eu-west-2
+    action: start
+    vm_ids:
+    - example-id
+- name: Stop VMs
+  stephrobert.outscale.vm_action:
+    region: eu-west-2
+    action: stop
     vm_ids:
     - example-id
 """
@@ -63,8 +75,32 @@ result:
   description: The API response of the action, without the response context.
   returned: when the action was sent
   type: dict
+  contains:
+    Vms:
+      description:
+      - 'After C(start): Information about one or more started VMs.'
+      - 'After C(stop): Information about one or more stopped VMs.'
+      returned: after C(start), C(stop)
+      type: list
+      elements: dict
+      contains:
+        CurrentState:
+          description:
+          - The current state of the VM (C(InService) | C(OutOfService) | C(Unknown)).
+          returned: when the API returns it
+          type: str
+        PreviousState:
+          description:
+          - The previous state of the VM (C(InService) | C(OutOfService) | C(Unknown)).
+          returned: when the API returns it
+          type: str
+        VmId:
+          description:
+          - The ID of the VM.
+          returned: when the API returns it
+          type: str
 states:
-  description: The C(State) of each vm, by identifier, read after the action.
+  description: The C(State) of each VM, by identifier, read after the action.
   returned: when an expected state is declared for the action
   type: dict
 """

@@ -37,7 +37,14 @@ EXAMPLES = r"""
   stephrobert.outscale.subnet_info:
     region: eu-west-2
   register: result
-- name: List subnets matching a filter
+- name: Read subnets by ID
+  stephrobert.outscale.subnet_info:
+    region: eu-west-2
+    filters:
+      SubnetIds:
+      - example-id
+  register: result
+- name: List subnets matching a tag
   stephrobert.outscale.subnet_info:
     region: eu-west-2
     filters:
@@ -52,6 +59,49 @@ subnets:
   returned: always
   type: list
   elements: dict
+  contains:
+    AvailableIpsCount:
+      description:
+      - The number of available IPs in the Subnets.
+      returned: when the API returns it
+      type: int
+    IpRange:
+      description:
+      - The IP range in the Subnet, in CIDR notation (for example, C(10.0.0.0/16)).
+      returned: when the API returns it
+      type: str
+    MapPublicIpOnLaunch:
+      description:
+      - If true, a public IP is assigned to the network interface cards (NICs) created in
+        the specified Subnet. By default, false.
+      returned: when the API returns it
+      type: bool
+    NetId:
+      description:
+      - The ID of the Net in which the Subnet is.
+      returned: when the API returns it
+      type: str
+    State:
+      description:
+      - The state of the Subnet (C(pending) | C(available) | C(deleted)).
+      returned: when the API returns it
+      type: str
+    SubnetId:
+      description:
+      - The ID of the Subnet.
+      returned: when the API returns it
+      type: str
+    SubregionName:
+      description:
+      - The name of the Subregion in which the Subnet is located.
+      returned: when the API returns it
+      type: str
+    Tags:
+      description:
+      - One or more tags associated with the Subnet.
+      returned: when the API returns it
+      type: list
+      elements: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402

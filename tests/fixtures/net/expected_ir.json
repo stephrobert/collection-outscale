@@ -12,6 +12,82 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateNetResponse",
+      "fields": [
+        {
+          "name": "Net",
+          "type": "object",
+          "ref": "Net",
+          "description": "Information about the Net."
+        }
+      ]
+    },
+    {
+      "name": "DeleteNetResponse"
+    },
+    {
+      "name": "Net",
+      "fields": [
+        {
+          "name": "DhcpOptionsSetId",
+          "type": "string",
+          "description": "The ID of the DHCP options set (or `default` if you want to associate the default one)."
+        },
+        {
+          "name": "IpRange",
+          "type": "string",
+          "description": "The IP range for the Net, in CIDR notation (for example, `10.0.0.0/16`)."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "description": "The ID of the Net."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the Net (`pending` \\| `available` \\| `deleting`)."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the Net."
+        },
+        {
+          "name": "Tenancy",
+          "type": "string",
+          "description": "The VM tenancy in a Net."
+        }
+      ]
+    },
+    {
+      "name": "ReadNetsResponse",
+      "fields": [
+        {
+          "name": "Nets",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Net",
+          "description": "Information about the described Nets."
+        }
+      ]
+    },
+    {
+      "name": "UpdateNetResponse",
+      "fields": [
+        {
+          "name": "Net",
+          "type": "object",
+          "ref": "Net",
+          "description": "Information about the Net."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "net.v1.Net.CreateNet",

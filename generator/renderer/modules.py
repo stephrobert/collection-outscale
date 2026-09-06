@@ -259,18 +259,57 @@ def _environment() -> Environment:
     )
 
 
+class _SansAncre(yaml.SafeDumper):
+    """Un sérialiseur qui n'écrit jamais d'ancre YAML.
+
+    **Un exemple se copie tâche par tâche.** La tâche d'écriture d'un module de
+    gestion d'état et sa simulation partagent leurs paramètres : `safe_dump`
+    écrivait `vm_id: &id001` à la première et `vm_id: *id001` à la seconde, du
+    YAML valide que personne ne peut copier séparément, et dont la seconde
+    tâche ne dit plus ce qu'elle envoie. Rendre une valeur deux fois coûte
+    quelques octets ; une page publiée qu'on ne peut pas copier coûte le
+    service qu'elle est censée rendre.
+    """
+
+    def ignore_aliases(self, data: Any) -> bool:
+        return True
+
+
+#: Largeurs de repli quand un bloc porte une ligne que sanity refuserait.
+#:
+#: L'émetteur YAML ne coupe **avant** un mot que si la colonne dépasse déjà la
+#: largeur : un jeton long qui suit une ligne courte s'y colle, et un lien du
+#: contrat de 145 caractères (mesuré, le plus long) posé après « Physical
+#: Zones, » a fait 186 caractères sur `subregion_info`. Une largeur plus
+#: étroite force la coupure avant le jeton, à condition d'être plus courte que
+#: ce qui le précède sur la ligne ; le bloc entier se resserre, ce qui coûte
+#: des lignes et jamais un refus. Sur le contrat 1.42.0, 64 suffit.
+YAML_WIDTHS: tuple[int, ...] = (YAML_WIDTH, 64, 48, 32, 24, 16)
+
+#: La limite qu'`ansible-test sanity` applique à chaque ligne d'un module.
+SANITY_LINE_LIMIT = 160
+
+
 def _yaml_block(payload: Any) -> str:
     """Sérialise un bloc de documentation en YAML, sans réordonner les clés."""
-    text = yaml.safe_dump(
-        payload,
-        sort_keys=False,
-        default_flow_style=False,
-        allow_unicode=True,
-        width=YAML_WIDTH,
+    for width in YAML_WIDTHS:
+        text = yaml.dump(
+            payload,
+            Dumper=_SansAncre,
+            sort_keys=False,
+            default_flow_style=False,
+            allow_unicode=True,
+            width=width,
+        )
+        if '"""' in text:
+            raise RenderError("un bloc de documentation contient une triple quote")
+        if all(len(ligne) <= SANITY_LINE_LIMIT for ligne in text.splitlines()):
+            return text.rstrip("\n")
+    trop_longue = max(text.splitlines(), key=len)
+    raise RenderError(
+        f"un bloc de documentation porte une ligne de {len(trop_longue)} caractères, que "
+        f"sanity refuse au-delà de {SANITY_LINE_LIMIT} : {trop_longue[:80]!r}"
     )
-    if '"""' in text:
-        raise RenderError("un bloc de documentation contient une triple quote")
-    return text.rstrip("\n")
 
 
 def python_literal(value: Any, *, indent: int = 0) -> str:

@@ -33,7 +33,7 @@ tags:
 repository: https://github.com/stephrobert/collection-outscale
 issues: https://github.com/stephrobert/collection-outscale/issues
 homepage: https://github.com/stephrobert/collection-outscale
-documentation: https://github.com/stephrobert/collection-outscale/tree/main/docs
+documentation: https://github.com/stephrobert/collection-outscale/tree/0.1.0/docs
 dependencies: {}
 # La collection ne contient que ce qui se livre : le générateur, le contrat et
 # les tests du dépôt vivent au-dessus de `ansible_collections/`, hors de ce

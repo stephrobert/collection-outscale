@@ -12,6 +12,78 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "CreateNatServiceResponse",
+      "fields": [
+        {
+          "name": "NatService",
+          "type": "object",
+          "ref": "NatService",
+          "description": "Information about the NAT service."
+        }
+      ]
+    },
+    {
+      "name": "DeleteNatServiceResponse"
+    },
+    {
+      "name": "NatService",
+      "fields": [
+        {
+          "name": "ClientToken",
+          "type": "string",
+          "description": "The idempotency token provided when creating the NAT service."
+        },
+        {
+          "name": "NatServiceId",
+          "type": "string",
+          "description": "The ID of the NAT service."
+        },
+        {
+          "name": "NetId",
+          "type": "string",
+          "description": "The ID of the Net in which the NAT service is."
+        },
+        {
+          "name": "PublicIps",
+          "type": "array",
+          "item_type": "object",
+          "ref": "PublicIpLight",
+          "description": "Information about the public IP or IPs associated with the NAT service."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the NAT service (`pending` \\| `available` \\| `deleting` \\| `deleted`)."
+        },
+        {
+          "name": "SubnetId",
+          "type": "string",
+          "description": "The ID of the Subnet in which the NAT service is."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the NAT service."
+        }
+      ]
+    },
+    {
+      "name": "ReadNatServicesResponse",
+      "fields": [
+        {
+          "name": "NatServices",
+          "type": "array",
+          "item_type": "object",
+          "ref": "NatService",
+          "description": "Information about one or more NAT services."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "nat_service.v1.NatService.CreateNatService",

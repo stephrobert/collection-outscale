@@ -155,3 +155,26 @@ against the feint emulator, discovers it with the dynamic inventory, plays
 every module of the collection, destroys everything, and checks that nothing
 survived. It is the only behavioural proof of the repository, and it never
 talks to a real Outscale account.
+
+## What holds the published page
+
+The generated file is not the only deliverable: its `DOCUMENTATION`,
+`EXAMPLES` and `RETURN` blocks are what Galaxy publishes, and a published
+version is immutable. The criterion is that every page can be understood and
+used from Galaxy alone, without the OpenAPI contract nor the source code.
+
+`scripts/docs_quality.py` measures it on the modules and on the inventory
+plugin (options, returned keys and their fields described, examples copyable
+as is) and names nine defects, all blocking: a fallback sentence where the
+contract said nothing, a placeholder in an example, a filter key the option
+does not accept, an action cited that the module refuses, an identifier such
+as `vm` where the contract writes `VM`, an example named after the SDK verb.
+The gate runs in `mise run check` and again in `release:check`.
+
+What the page carries is decided in `generator/ansible/models.py`, never in
+the file: the `contains` of every returned key comes from `ApiService.objects`,
+the resources the responses render with the description the contract gives
+each field; a field the contract leaves mute is filled by a `returns` override
+carrying its reason, or the gate refuses the page. Measured on 1.42.0, the 258
+fields of the 30 rendered schemas are all described, and no parameter is
+undocumented, so the override path has no client on the real contract today.

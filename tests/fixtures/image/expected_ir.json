@@ -22,6 +22,225 @@
       "description": "Information about the boot mode of the VM."
     }
   ],
+  "objects": [
+    {
+      "name": "CreateImageExportTaskResponse",
+      "fields": [
+        {
+          "name": "ImageExportTask",
+          "type": "object",
+          "ref": "ImageExportTask",
+          "description": "Information about the OMI export task."
+        }
+      ]
+    },
+    {
+      "name": "CreateImageResponse",
+      "fields": [
+        {
+          "name": "Image",
+          "type": "object",
+          "ref": "Image",
+          "description": "Information about the OMI."
+        }
+      ]
+    },
+    {
+      "name": "DeleteImageResponse"
+    },
+    {
+      "name": "Image",
+      "fields": [
+        {
+          "name": "AccountAlias",
+          "type": "string",
+          "description": "The account alias of the owner of the OMI."
+        },
+        {
+          "name": "AccountId",
+          "type": "string",
+          "description": "The account ID of the owner of the OMI."
+        },
+        {
+          "name": "Architecture",
+          "type": "string",
+          "description": "The architecture of the OMI."
+        },
+        {
+          "name": "BlockDeviceMappings",
+          "type": "array",
+          "item_type": "object",
+          "ref": "BlockDeviceMappingImage",
+          "description": "One or more block device mappings."
+        },
+        {
+          "name": "BootModes",
+          "type": "array",
+          "item_type": "enum",
+          "ref": "BootMode",
+          "description": "The boot modes compatible with the OMI."
+        },
+        {
+          "name": "CreationDate",
+          "type": "string",
+          "description": "The date and time (UTC) at which the OMI was created."
+        },
+        {
+          "name": "Description",
+          "type": "string",
+          "description": "The description of the OMI."
+        },
+        {
+          "name": "FileLocation",
+          "type": "string",
+          "description": "The location from which the OMI files were created."
+        },
+        {
+          "name": "ImageId",
+          "type": "string",
+          "description": "The ID of the OMI."
+        },
+        {
+          "name": "ImageName",
+          "type": "string",
+          "description": "The name of the OMI."
+        },
+        {
+          "name": "ImageType",
+          "type": "string",
+          "description": "The type of the OMI."
+        },
+        {
+          "name": "PermissionsToLaunch",
+          "type": "object",
+          "ref": "PermissionsOnResource",
+          "description": "Permissions for the resource."
+        },
+        {
+          "name": "ProductCodes",
+          "type": "array",
+          "item_type": "string",
+          "description": "The product codes associated with the OMI."
+        },
+        {
+          "name": "RootDeviceName",
+          "type": "string",
+          "description": "The name of the root device."
+        },
+        {
+          "name": "RootDeviceType",
+          "type": "string",
+          "description": "The type of root device used by the OMI (always `bsu`)."
+        },
+        {
+          "name": "SecureBoot",
+          "type": "boolean",
+          "description": "Whether secure boot is activated or not."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the OMI (`pending` \\| `available` \\| `failed`)."
+        },
+        {
+          "name": "StateComment",
+          "type": "object",
+          "ref": "StateComment",
+          "description": "Information about the change of state."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the OMI."
+        },
+        {
+          "name": "TpmMandatory",
+          "type": "boolean",
+          "description": "If true, a virtual Trusted Platform Module (vTPM) is mandatory for VMs created from this OMI. If false, a vTPM is not mandatory."
+        }
+      ]
+    },
+    {
+      "name": "ImageExportTask",
+      "fields": [
+        {
+          "name": "Comment",
+          "type": "string",
+          "description": "If the OMI export task fails, an error message appears."
+        },
+        {
+          "name": "ImageId",
+          "type": "string",
+          "description": "The ID of the OMI to be exported."
+        },
+        {
+          "name": "OsuExport",
+          "type": "object",
+          "ref": "OsuExportImageExportTask",
+          "description": "Information about the OMI export task."
+        },
+        {
+          "name": "Progress",
+          "type": "integer",
+          "description": "The progress of the OMI export task, as a percentage."
+        },
+        {
+          "name": "State",
+          "type": "string",
+          "description": "The state of the OMI export task (`pending/queued` \\| `pending` \\| `completed` \\| `failed` \\| `cancelled`)."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the image export task."
+        },
+        {
+          "name": "TaskId",
+          "type": "string",
+          "description": "The ID of the OMI export task."
+        }
+      ]
+    },
+    {
+      "name": "ReadImageExportTasksResponse",
+      "fields": [
+        {
+          "name": "ImageExportTasks",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ImageExportTask",
+          "description": "Information about one or more image export tasks."
+        }
+      ]
+    },
+    {
+      "name": "ReadImagesResponse",
+      "fields": [
+        {
+          "name": "Images",
+          "type": "array",
+          "item_type": "object",
+          "ref": "Image",
+          "description": "Information about one or more OMIs."
+        }
+      ]
+    },
+    {
+      "name": "UpdateImageResponse",
+      "fields": [
+        {
+          "name": "Image",
+          "type": "object",
+          "ref": "Image",
+          "description": "Information about the OMI."
+        }
+      ]
+    }
+  ],
   "operations": [
     {
       "key": "image.v1.Image.CreateImage",

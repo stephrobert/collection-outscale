@@ -12,6 +12,88 @@
     "us-east-2",
     "us-west-1"
   ],
+  "objects": [
+    {
+      "name": "AcceptNetPeeringResponse",
+      "fields": [
+        {
+          "name": "NetPeering",
+          "type": "object",
+          "ref": "NetPeering",
+          "description": "Information about the Net peering."
+        }
+      ]
+    },
+    {
+      "name": "CreateNetPeeringResponse",
+      "fields": [
+        {
+          "name": "NetPeering",
+          "type": "object",
+          "ref": "NetPeering",
+          "description": "Information about the Net peering."
+        }
+      ]
+    },
+    {
+      "name": "DeleteNetPeeringResponse"
+    },
+    {
+      "name": "NetPeering",
+      "fields": [
+        {
+          "name": "AccepterNet",
+          "type": "object",
+          "ref": "AccepterNet",
+          "description": "Information about the accepter Net."
+        },
+        {
+          "name": "ExpirationDate",
+          "type": "string",
+          "description": "The date and time (UTC) at which the Net peerings expire."
+        },
+        {
+          "name": "NetPeeringId",
+          "type": "string",
+          "description": "The ID of the Net peering."
+        },
+        {
+          "name": "SourceNet",
+          "type": "object",
+          "ref": "SourceNet",
+          "description": "Information about the source Net."
+        },
+        {
+          "name": "State",
+          "type": "object",
+          "ref": "NetPeeringState",
+          "description": "Information about the state of the Net peering."
+        },
+        {
+          "name": "Tags",
+          "type": "array",
+          "item_type": "object",
+          "ref": "ResourceTag",
+          "description": "One or more tags associated with the Net peering."
+        }
+      ]
+    },
+    {
+      "name": "ReadNetPeeringsResponse",
+      "fields": [
+        {
+          "name": "NetPeerings",
+          "type": "array",
+          "item_type": "object",
+          "ref": "NetPeering",
+          "description": "Information about one or more Net peerings."
+        }
+      ]
+    },
+    {
+      "name": "RejectNetPeeringResponse"
+    }
+  ],
   "operations": [
     {
       "key": "net_peering.v1.NetPeering.AcceptNetPeering",
