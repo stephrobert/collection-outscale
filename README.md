@@ -152,7 +152,7 @@ collection stephrobert.outscale: 32 modules written, 34 planned, 2 set aside wit
   volume                                   Manage the settings of an Outscale volume
   volume_info                              Gather information about Outscale volumes
   vm (inventory)                           dynamic inventory
-  480 unit tests · 61 guards proven by mise run falsify
+  485 unit tests · 64 guards proven by mise run falsify
   CI: 4 jobs, Générateur · collection · Archive · Plateforme d'exemple
   ansible-test sanity: reported by `mise run sanity`, not counted here
 ```

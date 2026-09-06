@@ -36,7 +36,7 @@ sections:
     - Bugfixes
   - - known_issues
     - Known Issues
-title: stephrobert.exoscale
+title: stephrobert.outscale
 trivial_section_name: trivial
 use_fqcn: true
 vcs: auto

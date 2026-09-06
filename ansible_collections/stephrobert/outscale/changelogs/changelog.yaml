@@ -1,3 +1,119 @@
 ---
 ancestor: null
-releases: {}
+releases:
+  0.1.0:
+    changes:
+      release_summary: 'First release of the generated Day-2 collection for the Outscale
+        API: information modules for every resource the example platform touches,
+        action modules for virtual machines and Net peerings, state modules that read
+        a setting before writing it and report a change only when something differs,
+        and a dynamic inventory plugin. Terraform provisions resources, this collection
+        operates existing ones. Nothing here has been run against a real Outscale
+        account yet: every module is exercised against the feint emulator on every
+        pull request, and every setting is written twice to prove the second pass
+        changes nothing.'
+    fragments:
+      - first-release.yml
+    modules:
+      - description: Gather information about Outscale dhcp options.
+        name: dhcp_option_info
+        namespace: ''
+      - description: Manage the settings of an Outscale image.
+        name: image
+        namespace: ''
+      - description: Gather information about Outscale images.
+        name: image_info
+        namespace: ''
+      - description: Gather information about Outscale internet services.
+        name: internet_service_info
+        namespace: ''
+      - description: Gather information about Outscale keypairs.
+        name: keypair_info
+        namespace: ''
+      - description: Manage the settings of an Outscale load balancer.
+        name: load_balancer
+        namespace: ''
+      - description: Gather information about Outscale load balancers.
+        name: load_balancer_info
+        namespace: ''
+      - description: Gather information about Outscale nat services.
+        name: nat_service_info
+        namespace: ''
+      - description: Manage the settings of an Outscale net.
+        name: net
+        namespace: ''
+      - description: Gather information about Outscale nets.
+        name: net_info
+        namespace: ''
+      - description: Perform an action on Outscale net peerings.
+        name: net_peering_action
+        namespace: ''
+      - description: Gather information about Outscale net peerings.
+        name: net_peering_info
+        namespace: ''
+      - description: Manage the settings of an Outscale nic.
+        name: nic
+        namespace: ''
+      - description: Gather information about Outscale nics.
+        name: nic_info
+        namespace: ''
+      - description: Gather information about Outscale public ips.
+        name: public_ip_info
+        namespace: ''
+      - description: Gather information about Outscale public ip ranges.
+        name: public_ip_range_info
+        namespace: ''
+      - description: Gather information about Outscale regions.
+        name: region_info
+        namespace: ''
+      - description: Gather information about Outscale route tables.
+        name: route_table_info
+        namespace: ''
+      - description: Gather information about Outscale security groups.
+        name: security_group_info
+        namespace: ''
+      - description: Gather information about Outscale snapshots.
+        name: snapshot_info
+        namespace: ''
+      - description: Manage the settings of an Outscale subnet.
+        name: subnet
+        namespace: ''
+      - description: Gather information about Outscale subnets.
+        name: subnet_info
+        namespace: ''
+      - description: Gather information about Outscale subregions.
+        name: subregion_info
+        namespace: ''
+      - description: Gather information about Outscale tags.
+        name: tag_info
+        namespace: ''
+      - description: Manage the settings of an Outscale vm.
+        name: vm
+        namespace: ''
+      - description: Perform an action on Outscale vms.
+        name: vm_action
+        namespace: ''
+      - description: Read the Outscale admin password.
+        name: vm_admin_password_info
+        namespace: ''
+      - description: Gather information about Outscale vms.
+        name: vm_info
+        namespace: ''
+      - description: Gather information about Outscale vm states.
+        name: vm_state_info
+        namespace: ''
+      - description: Gather information about Outscale vm types.
+        name: vm_type_info
+        namespace: ''
+      - description: Manage the settings of an Outscale volume.
+        name: volume
+        namespace: ''
+      - description: Gather information about Outscale volumes.
+        name: volume_info
+        namespace: ''
+    plugins:
+      inventory:
+        - description: Outscale Vm dynamic inventory.
+          name: vm
+          namespace: null
+    release_date: '2026-09-06'

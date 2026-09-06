@@ -487,6 +487,30 @@
       "find": "    if len(operations) != 1:\n        raise AmbiguousModule(\n            f\"{name} : {len(operations)} écritures ",
       "replace": "    if len(operations) != 1 and False:\n        raise AmbiguousModule(\n            f\"{name} : {len(operations)} écritures ",
       "test": "tests/unit/generator/test_models.py::test_deux_ecritures_sur_une_ressource_sont_refusees"
+    },
+    {
+      "name": "changelog-ansible-doc-du-depot",
+      "why": "antsibull-changelog prend ansible-doc sur le PATH : mesuré, une session ouverte dans un dépôt voisin composait ce changelog avec l'outil du voisin.",
+      "file": "scripts/changelog.py",
+      "find": "    if len(argv) > 1 and argv[1] == \"release\" and \"--ansible-doc-bin\" not in argv:",
+      "replace": "    if False:",
+      "test": "tests/unit/outillage/test_changelog.py::test_la_composition_nomme_lansible_doc_a_cote_de_linterpreteur"
+    },
+    {
+      "name": "modele-lien-markdown-devient-L",
+      "why": "antsibull-docs refuse un lien Markdown : mesuré sur vm.rst, les cinq jobs collection d'une pull request rouges après un check vert.",
+      "file": "generator/ansible/models.py",
+      "find": "    text = _MARKDOWN_LINK.sub(lambda match: f\"L({match.group(1)}, {match.group(2)})\", text)",
+      "replace": "    text = text",
+      "test": "tests/unit/generator/test_models.py::test_un_lien_markdown_du_contrat_devient_un_lien_ansible"
+    },
+    {
+      "name": "modele-saut-html-devient-espace",
+      "why": "Un <br /> recopié du contrat arrive tel quel dans la page publiée ; 426 dans le contrat.",
+      "file": "generator/ansible/models.py",
+      "find": "    return _HTML_BREAK.sub(\" \", text).strip()",
+      "replace": "    return text",
+      "test": "tests/unit/generator/test_models.py::test_un_saut_de_ligne_html_du_contrat_devient_un_espace"
     }
   ]
 }

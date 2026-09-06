@@ -21,9 +21,24 @@ from generator.ansible.collection import load_collection
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def commande(argv: list[str], executable: str = sys.executable) -> list[str]:
+    """La commande, avec l'`ansible-doc` qui vit à côté de l'interpréteur.
+
+    `antsibull-changelog release` lit les modules par `ansible-doc`, qu'il
+    prend sur le PATH. Mesuré : une session ouverte dans un dépôt voisin
+    composait ce changelog avec l'`ansible-doc` du voisin, et le disait
+    seulement par un avertissement. Celui d'à côté de l'interpréteur est
+    celui de ce dépôt, et il est nommé explicitement.
+    """
+    command = [executable, "-m", "antsibull_changelog", *argv[1:]]
+    if len(argv) > 1 and argv[1] == "release" and "--ansible-doc-bin" not in argv:
+        command += ["--ansible-doc-bin", str(Path(executable).parent / "ansible-doc")]
+    return command
+
+
 def main(argv: list[str]) -> int:
     collection = load_collection()
-    command = [sys.executable, "-m", "antsibull_changelog", *argv[1:]]
+    command = commande(argv)
     print(
         f"$ {' '.join(command[2:])}\n  dans {os.path.relpath(collection.path, ROOT)}\n",
         flush=True,

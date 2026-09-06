@@ -1,8 +1,0 @@
----
-release_summary: >-
-  First release of the generated Day-2 collection for the Outscale API:
-  information modules for every resource the example platform touches, action
-  modules for virtual machines and Net peerings, and a dynamic inventory
-  plugin. Terraform provisions resources, this collection operates existing
-  ones. Nothing here has been run against a real Outscale account yet: every
-  module is exercised against the feint emulator on every pull request.

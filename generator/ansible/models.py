@@ -25,6 +25,7 @@ Trois décisions propres à Outscale valent d'être lues avant le code :
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field, replace
 from typing import Any
 
@@ -862,6 +863,24 @@ def _collect_options(
     return required
 
 
+#: Un lien Markdown du contrat : `[texte](url)`. 130 dans le contrat 1.42.0.
+_MARKDOWN_LINK = re.compile(r"\[([^\]]+)\]\((https?://[^)\s]+)\)")
+#: Un saut de ligne HTML du contrat : `<br />`. 426 dans le contrat 1.42.0.
+_HTML_BREAK = re.compile(r"\s*<br\s*/?>\s*")
+
+
+def _ansible_markup(text: str) -> str:
+    """Le contrat écrit en Markdown et en HTML ; Ansible lit `L()` et des phrases.
+
+    Mesuré : antsibull-docs refuse un lien `[texte](url)` (« Link is formatted
+    in Markdown style »), ce qui a rougi les cinq jobs `collection` d'une pull
+    request ; et un `<br />` arrive tel quel dans la page. Le lien devient
+    `L(texte, url)`, le saut de ligne un espace, et rien d'autre n'est touché.
+    """
+    text = _MARKDOWN_LINK.sub(lambda match: f"L({match.group(1)}, {match.group(2)})", text)
+    return _HTML_BREAK.sub(" ", text).strip()
+
+
 def _describe(parameter: ApiParameter) -> str:
     """La description du contrat, complétée des clés d'un objet référencé.
 
@@ -869,7 +888,7 @@ def _describe(parameter: ApiParameter) -> str:
     contrat référence (`FiltersVm` en porte 67), et elles sont ce qu'un
     utilisateur a besoin de connaître pour écrire un filtre sans lire l'API.
     """
-    text = parameter.description or UNDOCUMENTED
+    text = _ansible_markup(parameter.description or UNDOCUMENTED)
     if parameter.properties and parameter.type is ApiType.OBJECT:
         keys = ", ".join(f"C({key})" for key in parameter.properties)
         text = f"{text} Accepted keys: {keys}."
