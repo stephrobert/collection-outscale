@@ -355,3 +355,13 @@ def test_un_saut_de_ligne_html_du_contrat_devient_un_espace(widget_service: ApiS
 
     parameter = replace(_widget_type(widget_service), description="First.<br />Second.<br/>")
     assert _describe(parameter) == "First. Second."
+
+
+def test_un_code_markdown_du_contrat_devient_une_constante_ansible(
+    widget_service: ApiService,
+) -> None:
+    """Mesuré : 5 modules sur 32 recopiaient `` `io1` `` là où Ansible écrit C(io1)."""
+    from generator.ansible.models import _describe
+
+    parameter = replace(_widget_type(widget_service), description="Either `io1` or `gp2`.")
+    assert _describe(parameter) == "Either C(io1) or C(gp2)."

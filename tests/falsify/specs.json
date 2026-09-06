@@ -511,6 +511,14 @@
       "find": "    return _HTML_BREAK.sub(\" \", text).strip()",
       "replace": "    return text",
       "test": "tests/unit/generator/test_models.py::test_un_saut_de_ligne_html_du_contrat_devient_un_espace"
+    },
+    {
+      "name": "modele-code-markdown-devient-C",
+      "why": "Cinq modules sur 32 recopiaient `io1` entre accents graves là où Ansible écrit C(io1) ; 1054 occurrences dans le contrat.",
+      "file": "generator/ansible/models.py",
+      "find": "    text = _MARKDOWN_CODE.sub(lambda match: f\"C({match.group(1)})\", text)",
+      "replace": "    text = text",
+      "test": "tests/unit/generator/test_models.py::test_un_code_markdown_du_contrat_devient_une_constante_ansible"
     }
   ]
 }
