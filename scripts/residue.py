@@ -42,6 +42,9 @@ BASELINE = ROOT / "build" / "residue" / "baseline.json"
 #:
 #: `ReadVms` est filtré sur les états vivants : une machine supprimée reste
 #: `terminated` quelque temps dans la liste, et elle n'est pas un résidu.
+#: `ReadNetPeerings` aussi : un peering supprimé reste listé `deleted`,
+#: accepté ou non, mesuré sur feint 0.12.1 après un DeleteNetPeering à 200,
+#: et c'est l'état que le contrat énumère (`NetPeeringState.Name`).
 #: `ReadImages` et `ReadSnapshots` ne sont pas filtrés sur le compte : feint
 #: n'émule pas `AccountAliases` (mesuré le 5 septembre 2026, 400 4001 avec
 #: la liste des filtres qu'il sert), et un différentiel n'a pas besoin de
@@ -66,7 +69,13 @@ SURFACE: tuple[tuple[str, str, str, str, dict[str, Any]], ...] = (
     ("route-table", "ReadRouteTables", "RouteTables", "RouteTableId", {}),
     ("internet-service", "ReadInternetServices", "InternetServices", "InternetServiceId", {}),
     ("nat-service", "ReadNatServices", "NatServices", "NatServiceId", {}),
-    ("net-peering", "ReadNetPeerings", "NetPeerings", "NetPeeringId", {}),
+    (
+        "net-peering",
+        "ReadNetPeerings",
+        "NetPeerings",
+        "NetPeeringId",
+        {"StateNames": ["pending-acceptance", "active"]},
+    ),
     ("dhcp-options", "ReadDhcpOptions", "DhcpOptionsSets", "DhcpOptionsSetId", {}),
     ("load-balancer", "ReadLoadBalancers", "LoadBalancers", "LoadBalancerName", {}),
 )
