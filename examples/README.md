@@ -52,8 +52,8 @@ mise run example      # feint on 127.0.0.1:4811, free, offline
    collection;
 5. the dynamic inventory is compared to what the stack built;
 6. `modules.yml` calls **every** module of the collection, twice for the
-   actions whose idempotence can be proven, under a callback plugin that
-   records what really ran;
+   actions whose idempotence can be proven and twice for every setting of a
+   state module, under a callback plugin that records what really ran;
 7. in a `finally`: `terraform destroy`, the residue check, and the coverage
    artefact under `build/example/`.
 

@@ -156,14 +156,17 @@ def _modules_par_produit(collection: Collection) -> dict[str, list[tuple[str, st
 
     Le produit d'un module est le plus long préfixe de son nom qui est un
     produit de l'index : `net_peering_info` appartient à `net_peering`, pas à
-    `net`. Aucun nom n'est écrit ici.
+    `net`. Un module de gestion d'état porte le nom du produit sans suffixe :
+    `net` appartient à `net`. Aucun nom n'est écrit ici.
     """
     produits = sorted((entree.product for entree in _produits()), key=len, reverse=True)
     par_produit: dict[str, list[tuple[str, str]]] = {}
     for fichier in sorted(collection.modules_dir.glob("*.py")):
         if fichier.name.startswith("_"):
             continue
-        produit = next((p for p in produits if fichier.stem.startswith(p + "_")), None)
+        produit = next(
+            (p for p in produits if fichier.stem == p or fichier.stem.startswith(p + "_")), None
+        )
         if produit is None:
             raise CompteursError(
                 f"{fichier.stem} ne porte le préfixe d'aucun produit indexé : "

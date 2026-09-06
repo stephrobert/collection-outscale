@@ -69,3 +69,35 @@ def test_aucun_module_du_plan_ne_porte_de_verbe() -> None:
             assert not nom.startswith(entree.product + "_" + entree.product), nom
         assert plan.unknown == () and plan.orphan_overrides == ()
     assert module_name("vm", "vm", OperationKind.INFO) == "vm_info"
+
+
+def test_le_selecteur_de_net_nomme_la_ressource_et_non_le_jeu_dhcp() -> None:
+    """`UpdateNet` exige `NetId` et `DhcpOptionsSetId`, et `FiltersNet` sait filtrer les
+    deux : l'option qui nomme la ressource est le sélecteur, l'autre se compare."""
+    from generator.ansible.models import build_module_specs
+
+    from .conftest import LAB_COLLECTION
+
+    plan = build_plan("net", "v1", spec_root=OUTSCALE_SPECS)
+    specs, skipped = build_module_specs(plan, LAB_COLLECTION)
+    assert "net" not in dict(skipped)
+    net = next(spec for spec in specs if spec.name == "net")
+    assert net.selector == "net_id"
+    assert net.compare == {"dhcp_options_set_id": "DhcpOptionsSetId"}
+
+
+def test_lexemple_dun_module_de_gestion_regle_une_option_scalaire() -> None:
+    """La première option de `UpdateVm` est un dictionnaire : l'exemple publié
+    règle un booléen, parce que `actions_on_next_boot: {}` n'apprend rien."""
+    from generator.ansible.models import build_module_specs
+
+    from .conftest import LAB_COLLECTION
+
+    plan = build_plan("vm", "v1", spec_root=OUTSCALE_SPECS)
+    specs, _ = build_module_specs(plan, LAB_COLLECTION)
+    vm = next(spec for spec in specs if spec.name == "vm")
+    (example,) = vm.examples_documentation()
+    task = example[LAB_COLLECTION.module_fqcn("vm")]
+    reglees = [name for name in task if name in vm.compare]
+    assert len(reglees) == 1
+    assert vm.options[reglees[0]]["type"] not in ("dict", "list")

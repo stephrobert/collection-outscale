@@ -170,11 +170,20 @@ def test_un_module_qui_attend_declare_le_fragment_wait(widget_plan: ProductPlan)
     assert _spec(specs, "widget_info").doc_fragments() == ["lab.widget.outscale"]
 
 
-def test_la_classe_manage_est_ecartee_avec_sa_raison(widget_plan: ProductPlan) -> None:
-    _, skipped = build_module_specs(widget_plan, LAB_COLLECTION)
+def test_une_classe_sans_renderer_est_ecartee_avec_sa_raison(widget_plan: ProductPlan) -> None:
+    """Un WORKFLOW n'a pas de renderer : il est écarté, nommé, jamais rendu de travers."""
+    from generator.classifier.rules import OperationKind as Kind
+
+    operations = tuple(
+        replace(item, classification=replace(item.classification, kind=Kind.WORKFLOW))
+        if item.operation.id == "UpdateWidget"
+        else item
+        for item in widget_plan.operations
+    )
+    _, skipped = build_module_specs(replace(widget_plan, operations=operations), LAB_COLLECTION)
     raisons = dict(skipped)
     assert "widget" in raisons
-    assert "MANAGE" in raisons["widget"]
+    assert "WORKFLOW" in raisons["widget"]
 
 
 def test_deux_lectures_sur_une_ressource_sont_refusees(widget_service: ApiService) -> None:
@@ -239,3 +248,81 @@ def test_les_exemples_montrent_une_forme_et_pas_une_ressource(widget_plan: Produ
     }
     liste = _spec(specs, "widget_info").examples_documentation()
     assert len(liste) == 2 and "filters" in liste[1]["lab.widget.widget_info"]
+
+
+# ---- la gestion d'état ------------------------------------------------------
+
+
+def test_un_module_de_gestion_detat_porte_lecriture_et_la_lecture_qui_la_juge(
+    widget_plan: ProductPlan,
+) -> None:
+    """`UpdateWidget` exige `WidgetId`, que `FiltersWidget` sait filtrer ; les options
+    exposées sont celles que `Widget` rend sous le même nom, et rien d'autre."""
+    specs, _ = build_module_specs(widget_plan, LAB_COLLECTION)
+    widget = _spec(specs, "widget")
+    assert widget.kind is OperationKind.MANAGE
+    assert widget.selector == "widget_id"
+    assert widget.options["widget_id"]["required"] is True
+    assert widget.compare == {"widget_type": "WidgetType", "performance": "Performance"}
+    assert set(widget.options) == {"widget_id", "widget_type", "performance"}
+    assert widget.update_operation is not None
+    assert widget.update_operation.body_params == {
+        "widget_id": "WidgetId",
+        "widget_type": "WidgetType",
+        "performance": "Performance",
+    }
+    assert widget.read_operation is not None and widget.read_operation.id == "ReadWidgets"
+    assert widget.read_filter == "WidgetIds" and widget.read_id_field == "WidgetId"
+    assert any("UpdateWidget.UserData" in limite for limite in widget.limits)
+    assert widget.doc_fragments() == ["lab.widget.outscale"]
+    assert "changes" in widget.return_documentation()
+
+
+def test_une_ecriture_dont_rien_ne_se_relit_est_ecartee(widget_service: ApiService) -> None:
+    """Sans option comparable, un module écrirait sans jamais pouvoir dire `changed=false`."""
+    operations = tuple(
+        replace(
+            op,
+            parameters=tuple(
+                p for p in op.parameters if p.name in ("WidgetId", "UserData", "DryRun")
+            ),
+        )
+        if op.id == "UpdateWidget"
+        else op
+        for op in widget_service.operations
+    )
+    service = replace(widget_service, operations=operations)
+    _, skipped = build_module_specs(plan_service(service, OverrideSet(source=None)), LAB_COLLECTION)
+    assert "rien à gérer" in dict(skipped)["widget"]
+
+
+def test_une_option_que_la_lecture_ne_rend_pas_nest_pas_exposee(widget_plan: ProductPlan) -> None:
+    """`UserData` et `Options` ne sont pas dans `Widget` : les envoyer rendrait `changed`
+    à chaque passage. La limite le dit, et l'option n'existe pas."""
+    specs, _ = build_module_specs(widget_plan, LAB_COLLECTION)
+    widget = _spec(specs, "widget")
+    assert "user_data" not in widget.options and "options" not in widget.options
+    assert "user_data" not in widget.update_operation.body_params  # type: ignore[union-attr]
+
+
+def test_une_ecriture_sans_lecture_est_ecartee_en_nommant_la_cause(
+    widget_service: ApiService,
+) -> None:
+    """`UpdateRoute` n'a pas de `ReadRoutes` : la raison est l'absence de lecture,
+    pas un compte d'options filtrables, et le compte rendu doit le dire ainsi."""
+    operations = tuple(op for op in widget_service.operations if op.id != "ReadWidgets")
+    service = replace(widget_service, operations=operations)
+    _, skipped = build_module_specs(plan_service(service, OverrideSet(source=None)), LAB_COLLECTION)
+    assert "aucune lecture ne rend widget" in dict(skipped)["widget"]
+
+
+def test_deux_ecritures_sur_une_ressource_sont_refusees(widget_service: ApiService) -> None:
+    """Une seconde écriture sur `widget` dit une ressource mal déduite : le module
+    n'en garde pas une au hasard, il est écarté avec les deux noms."""
+    doublon = next(
+        replace(op, id="PutWidget") for op in widget_service.operations if op.id == "UpdateWidget"
+    )
+    service = replace(widget_service, operations=(*widget_service.operations, doublon))
+    _, skipped = build_module_specs(plan_service(service, OverrideSet(source=None)), LAB_COLLECTION)
+    raison = dict(skipped)["widget"]
+    assert "2 écritures" in raison and "PutWidget" in raison

@@ -113,3 +113,34 @@ def test_le_pourcentage_publie_porte_le_point_decimal_de_langlais() -> None:
     """Le bloc atterrit dans un README publié : la frontière de langue passe là."""
     assert readme_counters._pourcent(0.797) == "79.7%"
     assert readme_counters._pourcent(None) == "n/a"
+
+
+def test_un_module_de_gestion_detat_porte_le_nom_de_son_produit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`net` est le module MANAGE du produit `net` : le nom sans suffixe est le
+    produit lui-même, et `net_peering` n'y est pas rangé pour autant."""
+    racine = tmp_path / "ansible_collections" / "lab" / "gadget"
+    modules = racine / "plugins" / "modules"
+    modules.mkdir(parents=True)
+    for nom in ("net", "net_info", "net_peering"):
+        (modules / f"{nom}.py").write_text(
+            f'DOCUMENTATION = r"""\nmodule: {nom}\nshort_description: Manages {nom}\n"""\n',
+            encoding="utf-8",
+        )
+    collection = Collection(namespace="lab", name="gadget", version="1.0.0", path=racine)
+    monkeypatch.setattr(
+        readme_counters,
+        "_produits",
+        lambda: [
+            ProductEntry(tag="Net", product="net", version="v1"),
+            ProductEntry(tag="NetPeering", product="net_peering", version="v1"),
+        ],
+    )
+
+    par_produit = readme_counters._modules_par_produit(collection)
+
+    assert par_produit == {
+        "net": [("net", "Manages net"), ("net_info", "Manages net_info")],
+        "net_peering": [("net_peering", "Manages net_peering")],
+    }

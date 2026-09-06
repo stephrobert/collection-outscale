@@ -90,6 +90,24 @@ ActionModule = namedtuple(
     defaults=(None, None, None, None),
 )
 
+#: Un module de gestion d'état : le sélecteur, l'écriture, la lecture qui la
+#: juge, et pour chaque option le champ de la ressource lue qu'elle se compare
+#: à. Seules ces options existent : ce que la lecture ne rend pas ne se
+#: compare pas, et n'est pas exposé.
+ManageModule = namedtuple(
+    "ManageModule",
+    [
+        "resource",
+        "selector",
+        "operation",
+        "read_operation",
+        "read_filter",
+        "read_id_field",
+        "compare",
+    ],
+    defaults=(None, {}),
+)
+
 #: Le champ que toute réponse porte et qui n'est jamais la ressource.
 RESPONSE_CONTEXT = "ResponseContext"
 
@@ -410,6 +428,69 @@ def run_action_module(module, spec):
     if verifies and wait:
         extra["states"] = poll_states(module, client, spec, ids, action.expected_state, timeout)
     module.exit_json(changed=True, result=strip_context(result), **extra)
+
+
+def _matches(current, desired):
+    """Vrai quand ce que l'API rend satisfait ce que l'utilisateur demande.
+
+    Un dictionnaire demandé est satisfait quand chacune de ses clés l'est :
+    `HealthCheck` rendu porte plus de champs que ceux qu'on règle, et exiger
+    l'égalité stricte ferait rendre `changed` sur des champs que personne n'a
+    demandés. Une liste ou un scalaire se comparent tels quels.
+    """
+    if isinstance(desired, dict) and isinstance(current, dict):
+        return all(_matches(current.get(key), value) for key, value in desired.items())
+    return current == desired
+
+
+def read_one(module, client, spec, identifier):
+    """La ressource visée, lue par sa lecture filtrée : une seule, ou une erreur."""
+    read = spec.read_operation
+    result = read_all(module, client, read, {"Filters": {spec.read_filter: [identifier]}})
+    items = result.get(read.payload_field) or [] if isinstance(result, dict) else []
+    found = [
+        item
+        for item in items
+        if isinstance(item, dict)
+        and (spec.read_id_field is None or str(item.get(spec.read_id_field)) == str(identifier))
+    ]
+    if len(found) != 1:
+        module.fail_json(
+            msg=f"{read.id} returned {len(found)} {spec.resource} for {identifier!r}, expected one",
+            operation=read.id,
+        )
+    return found[0]
+
+
+def run_manage_module(module, spec):
+    """Lit, compare, n'écrit que s'il y a une différence, relit.
+
+    Un module MANAGE qui enverrait systématiquement son écriture ne serait pas
+    idempotent, quoi qu'affiche `changed`. Ici `changed` est vrai si et
+    seulement si une option demandée diffère de ce que l'API rend, et le
+    module dit laquelle, avant et après.
+    """
+    identifier = module.params[spec.selector]
+    client = build_client(module)
+    current = read_one(module, client, spec, identifier)
+
+    changes = {}
+    for option, field_name in spec.compare.items():
+        desired = module.params.get(option)
+        if desired is None:
+            continue
+        before = current.get(field_name)
+        if not _matches(before, desired):
+            changes[option] = {"before": before, "after": desired}
+
+    if not changes:
+        module.exit_json(changed=False, **{spec.resource: current})
+    if module.check_mode:
+        module.exit_json(changed=True, changes=changes, **{spec.resource: current})
+
+    call(module, client, spec.operation, arguments_for(module, spec.operation))
+    after = read_one(module, client, spec, identifier)
+    module.exit_json(changed=True, changes=changes, **{spec.resource: after})
 
 
 def _plural(resource):

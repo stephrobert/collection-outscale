@@ -99,8 +99,9 @@ the report lists the operation among the contract's limits.
   written in an override `wait` with its reason;
 * whether a write is idempotent, or what `UpdateVm` compares against: 13 of
   its 14 request properties exist on `Vm` with the same name,
-  `SecurityGroupIds` does not (the response carries `SecurityGroups[]`). A
-  MANAGE renderer will have to say which fields it can compare;
+  `SecurityGroupIds` does not (the response carries `SecurityGroups[]`). The
+  MANAGE renderer exposes the 13 it can compare and names the 14th in the
+  limits of the generation report;
 * which routes an emulator serves. feint 0.12.1 serves 100 of the 236, and
   `specs/outscale/products.txt` indexes only the 22 tags it serves and the
   example platform touches.
