@@ -198,9 +198,12 @@ Une garde dont la suppression laisse tous les tests verts est un commentaire.
   `Message` : le champ d'attente s'écrit `State.Name`, et le runtime lit un
   chemin pointé.
 * **Un peering accepté par Terraform ne laisse rien à Ansible.** La stack
-  propose deux peerings sans les accepter, vers deux Nets distincts parce
-  qu'une paire de Nets n'en porte qu'un ; `net_peering_action` accepte le
-  premier et refuse le second.
+  propose un peering sans l'accepter, et `net_peering_action` l'accepte.
+  **Un peering refusé ne se supprime plus** : `409 9029 ResourceConflict,
+  the Net peering ... is rejected and cannot be deleted`, mesuré contre
+  feint et conforme à la documentation de l'API. Refuser un peering que
+  Terraform gère rendait la destruction impossible ; `reject` n'est donc
+  pas joué par l'exemple, et le playbook le dit avec sa mesure.
 * **Le SDK valide avant d'envoyer.** `Gateway` refuse un paramètre absent de
   sa copie du contrat par une exception héritant de `NotImplementedError`, et
   une erreur de l'API est un `requests.HTTPError` dont `.response` porte

@@ -24,9 +24,12 @@ this repository never does that.
 ## What the platform contains
 
 * a **workload Net** with two public subnets, one per subregion, and a
-  private one; a **services Net** and a **sandbox Net**, each receiving a Net
-  peering that Terraform proposes **without accepting it**, so that
-  `net_peering_action` accepts the first and rejects the second;
+  private one; a **services Net** receiving a Net peering that Terraform
+  proposes **without accepting it**, so that `net_peering_action` accepts
+  it. The `reject` action is not exercised, and that is measured: a rejected
+  peering cannot be deleted any more (409 9029 `ResourceConflict`, as the
+  API documents), so rejecting a peering Terraform manages made the platform
+  impossible to destroy;
 * an Internet service, a public route table, a NAT service with its own
   public IP and a private route table, a DHCP options set;
 * two **web** machines, one per subregion, each with a public IP, behind a

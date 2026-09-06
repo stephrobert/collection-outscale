@@ -9,10 +9,12 @@
 # à l'API, une machine nomme son placement, le NAT vit dans un sous-réseau qui
 # route déjà vers Internet) et en retirant ce qu'aucun module n'exerce.
 #
-# Trois Nets : `workload` porte les machines ; `services` reçoit un peering
+# Deux Nets : `workload` porte les machines ; `services` reçoit un peering
 # que Terraform propose **sans l'accepter**, pour que `net_peering_action`
-# l'accepte ; `sandbox` en reçoit un second, que le même module refuse. Un
-# peering ne se crée qu'une fois par paire de Nets, d'où le troisième.
+# l'accepte. Le refus n'est pas exercé, et c'est mesuré : un peering refusé
+# ne se supprime plus (409 9029 `ResourceConflict ... is rejected and cannot
+# be deleted`, conforme à la documentation de l'API), et refuser un peering
+# que Terraform gère rendait la destruction impossible.
 #
 # **Aucun identifiant n'est écrit ici.** Le fournisseur lit `OSC_ACCESS_KEY`,
 # `OSC_SECRET_KEY`, `OSC_REGION` et `OSC_ENDPOINT_API` dans l'environnement,
@@ -99,17 +101,6 @@ module "services" {
   }
 }
 
-module "sandbox" {
-  source = "./modules/net"
-
-  name     = "${var.prefix}-sandbox"
-  ip_range = "10.70.0.0/16"
-
-  subnets = {
-    sandbox = { ip_range = "10.70.1.0/24" }
-  }
-}
-
 # Un jeu d'options DHCP propre au Net workload : c'est la seule forme
 # d'UpdateNet qu'un client atteint, et `dhcp_option_info` le lit.
 resource "outscale_dhcp_option" "workload" {
@@ -130,9 +121,9 @@ resource "outscale_net_attributes" "workload" {
   dhcp_options_set_id = outscale_dhcp_option.workload.dhcp_options_set_id
 }
 
-# Les deux peerings, proposés et **jamais acceptés ici** : c'est le module
-# d'action qui accepte le premier et refuse le second. Un peering accepté
-# par Terraform n'aurait rien laissé à Ansible.
+# Le peering, proposé et **jamais accepté ici** : c'est le module d'action
+# qui l'accepte. Un peering accepté par Terraform n'aurait rien laissé à
+# Ansible.
 resource "outscale_net_peering" "to_services" {
   accepter_net_id = module.services.net_id
   source_net_id   = module.workload.net_id
@@ -140,16 +131,6 @@ resource "outscale_net_peering" "to_services" {
   tags {
     key   = "Name"
     value = "${var.prefix}-peering-services"
-  }
-}
-
-resource "outscale_net_peering" "to_sandbox" {
-  accepter_net_id = module.sandbox.net_id
-  source_net_id   = module.workload.net_id
-
-  tags {
-    key   = "Name"
-    value = "${var.prefix}-peering-sandbox"
   }
 }
 
@@ -480,7 +461,7 @@ output "vm_ids" {
 }
 
 output "net_ids" {
-  value = { workload = module.workload.net_id, services = module.services.net_id, sandbox = module.sandbox.net_id }
+  value = { workload = module.workload.net_id, services = module.services.net_id }
 }
 
 output "subnet_ids" {
@@ -490,7 +471,6 @@ output "subnet_ids" {
 output "net_peering_ids" {
   value = {
     to_services = outscale_net_peering.to_services.net_peering_id
-    to_sandbox  = outscale_net_peering.to_sandbox.net_peering_id
   }
 }
 

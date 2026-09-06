@@ -111,7 +111,7 @@
           KeypairNames: ["{{ keypair_name }}"]
       register: cles
 
-    - name: Les trois Nets
+    - name: Les deux Nets
       stephrobert.outscale.net_info:
         filters:
           NetIds: "{{ net_ids.values() | list }}"
@@ -123,11 +123,11 @@
           NetIds: ["{{ net_ids.workload }}"]
       register: sous_reseaux
 
-    - name: Trois Nets, trois sous-réseaux dans workload
+    - name: Deux Nets, trois sous-réseaux dans workload
       ansible.builtin.assert:
         that:
           - cles.keypairs | length == 1
-          - nets.nets | length == 3
+          - nets.nets | length == 2
           - sous_reseaux.subnets | length == 3
         quiet: true
 
@@ -290,11 +290,10 @@
         net_peering_id: "{{ net_peering_ids.to_services }}"
       register: acceptation_bis
 
-    - name: Refuser le peering vers sandbox
-      stephrobert.outscale.net_peering_action:
-        action: reject
-        net_peering_id: "{{ net_peering_ids.to_sandbox }}"
-      register: refus
+    # `reject` n'est pas joué, et c'est mesuré : un peering refusé ne se
+    # supprime plus (409 9029 `is rejected and cannot be deleted`, conforme à
+    # la documentation de l'API), et refuser un peering que Terraform gère
+    # rendait la destruction de la plateforme impossible.
 
     - name: Les peerings de la plateforme, relus
       stephrobert.outscale.net_peering_info:
@@ -302,14 +301,12 @@
           NetPeeringIds: "{{ net_peering_ids.values() | list }}"
       register: peerings
 
-    - name: L'un est actif, l'autre refusé, et la lecture le confirme
+    - name: Le peering est actif, et la lecture le confirme
       ansible.builtin.assert:
         that:
           - acceptation is changed
           - acceptation.states[net_peering_ids.to_services] == 'active'
-          - refus is changed
-          - refus.states[net_peering_ids.to_sandbox] == 'rejected'
-          - peerings.net_peerings | length == 2
+          - peerings.net_peerings | length == 1
           - (peerings.net_peerings | selectattr('NetPeeringId', 'equalto', net_peering_ids.to_services) | first).State.Name == 'active'
         quiet: true
 

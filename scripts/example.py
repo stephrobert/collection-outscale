@@ -114,15 +114,22 @@ def environnement_emulateur() -> dict[str, str]:
     return valeurs
 
 
-def refuser_emulateur_habite(env: dict[str, str]) -> None:
-    """Un émulateur qui héberge déjà des machines est la session de quelqu'un d'autre."""
+def _gateway(env: dict[str, str]) -> Any:
+    """Le client du SDK, depuis l'environnement de l'exercice et rien d'autre."""
     from osc_sdk_python import Gateway
+    from osc_sdk_python.credentials import Endpoint
 
-    gateway = Gateway(
+    return Gateway(
         access_key=env["OSC_ACCESS_KEY"],
         secret_key=env["OSC_SECRET_KEY"],
-        region=env["OSC_REGION"],
+        region=env.get("OSC_REGION", "eu-west-2"),
+        endpoints=Endpoint(api=env["OSC_ENDPOINT_API"]),
     )
+
+
+def refuser_emulateur_habite(env: dict[str, str]) -> None:
+    """Un émulateur qui héberge déjà des machines est la session de quelqu'un d'autre."""
+    gateway = _gateway(env)
     vms = gateway.ReadVms().get("Vms") or []
     vivantes = [vm for vm in vms if vm.get("State") != "terminated"]
     if vivantes:
@@ -233,10 +240,14 @@ def controler_inventaire(graphe: dict[str, Any], sorties: dict[str, Any]) -> Non
 
 
 def controler_plan_de_controle(env: dict[str, str], sorties: dict[str, Any]) -> None:
-    """Tout ce que la plateforme déclare, vérifié auprès de l'API par le SDK."""
-    from osc_sdk_python import Gateway
+    """Tout ce que la plateforme déclare, vérifié auprès de l'API par le SDK.
 
-    gateway = Gateway()
+    Le client se construit depuis l'environnement de l'exercice, pas depuis
+    `os.environ` : les variables de feint ne sont exportées qu'aux
+    sous-processus, et un `Gateway()` nu signait avec une clé `None`, mesuré
+    au second run.
+    """
+    gateway = _gateway(env)
     prefixe = sorties["prefix"]
     constats: list[str] = []
 
@@ -257,18 +268,18 @@ def controler_plan_de_controle(env: dict[str, str], sorties: dict[str, Any]) -> 
     ]
     exige(len(vms) == sorties["expected"]["total"], f"{sorties['expected']['total']} machines")
     nets = [n for n in gateway.ReadNets().get("Nets") or [] if nom_de(n).startswith(prefixe)]
-    exige(len(nets) == 3, f"trois Nets ({len(nets)} trouvés)")
+    exige(len(nets) == 2, f"deux Nets ({len(nets)} trouvés)")
     peerings = (
         gateway.ReadNetPeerings(
             Filters={"NetPeeringIds": list(sorties["net_peering_ids"].values())}
         ).get("NetPeerings")
         or []
     )
-    exige(len(peerings) == 2, "deux peerings proposés")
+    exige(len(peerings) == 1, "un peering proposé")
     etats = {p["NetPeeringId"]: (p.get("State") or {}).get("Name") for p in peerings}
     exige(
         all(etat == "pending-acceptance" for etat in etats.values()),
-        f"les deux peerings sont en attente d'acceptation ({etats})",
+        f"le peering est en attente d'acceptation ({etats})",
     )
     lbs = (
         gateway.ReadLoadBalancers(
