@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: What the collection covers, and what it excludes
+    url: https://github.com/stephrobert/collection-outscale#fewer-modules-all-exercised
+    about: Terraform provisions, Ansible operates. Only the tags the example platform touches are indexed, and every excluded operation carries its reason in generator/overrides/. Check there before reporting a missing module.
+  - name: Guides and walkthroughs
+    url: https://blog.stephane-robert.info
+    about: Longer-form articles on the author's blog.
+  - name: Security report
+    url: https://github.com/stephrobert/collection-outscale/security/advisories/new
+    about: Report a vulnerability privately instead of opening a public issue.
